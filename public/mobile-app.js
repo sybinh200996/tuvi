@@ -106,7 +106,7 @@ function App() {
 
   return <main className="app-shell">
     <Hero tab={tab} setTab={setTab} health={health} providers={providers} />
-    <div className="tab-rail-wrap"><TabRail tab={tab} setTab={setTab} /></div>
+    <TabRail tab={tab} setTab={setTab} />
     <section className="workspace">
       {tab === 'home' && <Home setTab={setTab} providers={providers} />}
       {tab === 'chat' && <Chat providers={providers} />}
@@ -142,14 +142,20 @@ function Hero({ setTab, health, providers }) {
       <h1>Đặng Năm <b>Mystic</b></h1>
       <p>AI • Tử vi • Chỉ tay • Xem tướng • Chiêm tinh</p>
       <div className="hero-search"><span>⌕</span><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")handleSearch()}} placeholder="Hỏi về tử vi, chỉ tay, tướng số, chiêm tinh..."/><button onClick={handleSearch}>✦ AI phân tích</button></div>
-      <div className="hero-actions quick"><button onClick={() => setTab('horoscope')}>🔮 Tử vi hôm nay</button><button onClick={() => setTab('astrology')}>🪐 Cung hoàng đạo</button><button onClick={() => setTab('palm')}>✋ Xem chỉ tay</button><button onClick={() => setTab('face')}>🙂 Xem tướng</button><button onClick={() => setTab('tarot')}>🃏 Đổi bài</button></div>
+      <div className="hero-actions quick"><button onClick={() => setTab('astrology')}>🪐 Cung hoàng đạo</button><button onClick={() => setTab('horoscope')}>🔮 Tử vi hôm nay</button><button onClick={() => setTab('palm')}>✋ Xem chỉ tay</button><button onClick={() => setTab('face')}>🙂 Xem tướng</button></div>
     </div>
       <div className="hero-img hero-right"><img src="assets/hero-right.jpg" alt="Minh họa Đặng Năm bên phải" /></div>
   </header>;
 }
 
 function TabRail({ tab, setTab }) {
-  return <nav className="tab-rail">{TABS.map(t => <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => setTab(t.id)}><span>{t.icon}</span>{t.label}</button>)}</nav>;
+  return <div className="tab-rail-wrap">
+    <div className="scroll-arrow left">❮</div>
+    <nav className="tab-rail">
+      {TABS.map(t => <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => setTab(t.id)}><span>{t.icon}</span>{t.label}</button>)}
+    </nav>
+    <div className="scroll-arrow right">❯</div>
+  </div>;
 }
 
 function Home({ setTab, providers }) {
@@ -168,7 +174,7 @@ function Home({ setTab, providers }) {
     ['⚙️','Cài đặt','Quản lý tài khoản và thiết lập AI.', 'settings']
   ];
   return <div className="home-grid">
-    <section className="premium-panel wide"><h2>📱 Màn hình chính mobile</h2><p>Phiên bản hybrid NAM46 giữ đủ công cụ trên điện thoại, đồng bộ chat với server và nâng cấp trợ lý AI với ba mức độ chi tiết chuyên nghiệp.</p><div className="provider-pills">{providers.slice(0,8).map(p => <span className={p.configured?'on':''} key={p.id}>{p.configured?'●':'○'} {p.label}</span>)}</div></section>
+    
     {cards.map(c => <button key={c[3]} className="feature-card" onClick={() => setTab(c[3])}><b>{c[0]}</b><h3>{c[1]}</h3><p>{c[2]}</p></button>)}
   </div>;
 }
