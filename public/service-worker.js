@@ -1,4 +1,4 @@
-const CACHE = "synam-nam46-assistant-v1";
+const CACHE = "synam-nam46-assistant-v4-ui-restored";
 const APP_SHELL = [
   "./",
   "./index.html",
