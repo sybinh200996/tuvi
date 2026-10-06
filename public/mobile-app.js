@@ -1,15 +1,15 @@
 const { useEffect, useMemo, useRef, useState } = React;
 
 const TABS = [
-  { id: 'home', icon: '🏠', label: 'Trang chủ' },
+  { id: 'home', icon: '✨', label: 'Trang chủ' },
   { id: 'horoscope', icon: '🔮', label: 'Tử vi' },
   { id: 'palm', icon: '✋', label: 'Chỉ tay' },
-  { id: 'face', icon: '🙂', label: 'Xem tướng' },
-  { id: 'astrology', icon: '🪐', label: 'Chiêm tinh' },
-  { id: 'love', icon: '💞', label: 'Tình duyên' },
+  { id: 'face', icon: '👁️', label: 'Xem tướng' },
+  { id: 'astrology', icon: '🌌', label: 'Chiêm tinh' },
+  { id: 'love', icon: '💖', label: 'Tình duyên' },
   { id: 'numerology', icon: '🔢', label: 'Thần số học' },
-  { id: 'chat', icon: '🤖', label: 'AI Chat' },
-  { id: 'multi', icon: '🧠', label: 'Multi AI' },
+  { id: 'chat', icon: '⚡', label: 'AI Chat' },
+  { id: 'multi', icon: '🌌', label: 'Multi AI' },
   { id: 'fengshui', icon: '☯️', label: 'Phong thủy' },
   { id: 'tarot', icon: '🃏', label: 'Bói bài' },
   { id: 'settings', icon: '⚙️', label: 'AI Keys' }
@@ -106,7 +106,7 @@ function App() {
 
   return <main className="app-shell">
     <Hero tab={tab} setTab={setTab} health={health} providers={providers} />
-    <TabRail tab={tab} setTab={setTab} />
+    <div className="tab-rail-wrap"><TabRail tab={tab} setTab={setTab} /></div>
     <section className="workspace">
       {tab === 'home' && <Home setTab={setTab} providers={providers} />}
       {tab === 'chat' && <Chat providers={providers} />}
@@ -154,7 +154,7 @@ function TabRail({ tab, setTab }) {
 
 function Home({ setTab, providers }) {
   const cards = [
-    ['🧠', 'Phân Tích Sâu PRO', 'AI tổng hợp đa lớp, luận giải chuyên sâu.', 'deep'],
+    ['🧠', 'Phân Tích Chuyên Sâu PRO', 'AI tổng hợp đa lớp, luận giải chuyên sâu.', 'deep'],
     ['🔮','Tử vi','Luận giải hôm nay, công việc, tình cảm, tài chính.', 'horoscope'],
     ['✋','Xem chỉ tay','Upload ảnh bàn tay để AI phân tích rõ hơn.', 'palm'],
     ['🙂','Xem tướng','Upload ảnh khuôn mặt, nhận luận giải nhẹ nhàng.', 'face'],
@@ -375,7 +375,7 @@ function DeepTool() {
   
   return <section className="tool-grid">
     <div className="premium-panel">
-      <h2>🧠 AI Phân Tích Sâu PRO</h2>
+      <h2>🧠 AI Phân Tích Chuyên Sâu PRO</h2>
       <p style={{fontSize: '13px', opacity: 0.8, marginBottom: '14px'}}>Cung cấp thông tin chi tiết nhất để AI tổng hợp đa lớp và luận giải chuyên sâu.</p>
       <input placeholder="Họ tên (vd: Nguyễn Văn A)" value={form.name} onChange={e=>setForm({...form, name: e.target.value})} />
       <input type="date" value={form.birth} onChange={e=>setForm({...form, birth: e.target.value})} />
