@@ -654,355 +654,12 @@ html, body {
   border: none !important;
 }
   
-/* ========================================================
-   FIX BANNER HEIGHT, STATUS POSITION, TAB SIZE, AI SEARCH 
-======================================================== */
-
-/* 1. Tweak hero banner height & status row to prevent overlapping */
-.hero-wrap {
-  padding: 35px 14px 15px !important; /* Reduced top padding */
-  min-height: unset !important;
-  height: auto !important;
-}
-
-.status-row {
-  position: absolute !important;
-  top: 10px !important;
-  left: 50% !important;
-  transform: translateX(-50%) !important;
-  z-index: 10 !important;
-  white-space: nowrap !important;
-  background: rgba(0, 0, 0, 0.3) !important;
-  padding: 4px 10px !important;
-  border-radius: 12px !important;
-  backdrop-filter: blur(5px) !important;
-}
-
-.hero-content h1 {
-  margin-top: 35px !important; /* Push title down so status-row has room */
-  font-size: 28px !important;
-}
-
-/* 2. Rút ngắn các tab ở giữa, làm mờ (glassmorphism) */
-.hero-actions.quick button {
-  padding: 6px 12px !important; /* Thu ngắn chiều cao (ít padding hơn) */
-  width: 55% !important; 
-  max-width: 140px !important;
-  background: rgba(255, 255, 255, 0.15) !important; /* Làm mờ, trong suốt */
-  backdrop-filter: blur(10px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.25) !important;
-  color: #fff !important;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2) !important;
-  font-size: 11px !important;
-}
-
-/* 3. Đưa AI phân tích lên cùng một dòng với ô tìm kiếm */
-.hero-search {
-  display: flex !important;
-  flex-direction: row !important; /* Đưa lên 1 dòng */
-  align-items: stretch !important;
-  justify-content: center !important;
-  gap: 6px !important;
-  width: 95% !important;
-  max-width: 400px !important;
-  margin: 12px auto 0 !important;
-}
-
-.hero-search input {
-  flex: 1 !important;
-  width: auto !important;
-  padding: 8px 12px !important;
-  font-size: 12px !important;
-}
-
-.hero-search button {
-  flex: 0 0 auto !important;
-  width: auto !important;
-  padding: 8px 12px !important;
-  white-space: nowrap !important;
-  font-size: 11px !important;
-  border-radius: 999px !important;
-}
 
 /* ========================================================
-   RE-TWEAK BANNER: ROUNDED TOP, LESS TOP SPACE, INLINE BUTTON
+   CLEAN UI FIX: GOOGLE SEARCH, NO TOP GAP, CLEAN BANNER
 ======================================================== */
 
-/* 1. Bỏ màu xanh đậm phía trên, bo tròn 2 góc trên */
-.hero-wrap {
-  margin: 10px 10px 0 !important; /* Tạo khoảng hở tí xíu để thấy độ bo tròn */
-  padding: 15px 14px 15px !important; /* Cắt hoàn toàn khoảng đệm trên */
-  border-radius: 24px !important; /* Bo tròn cả 4 góc (hoặc ít nhất 2 góc trên) */
-}
-
-/* 2. Sắp xếp lại trạng thái và Title do cắt chiều cao */
-.status-row {
-  position: relative !important; /* Không dùng absolute nữa để nó chiếm không gian chuẩn xác */
-  top: 0 !important;
-  left: 0 !important;
-  transform: none !important;
-  display: inline-block !important;
-  margin: 0 auto 5px !important; /* Căn giữa và đẩy Title xuống 5px */
-}
-
-.hero-content {
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-}
-
-.hero-content h1 {
-  margin-top: 5px !important; /* Vừa khít, không bị đè */
-  font-size: 26px !important;
-}
-
-/* 3. Nút AI Phân tích nằm TRONG khung nhập */
-.hero-search {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  width: 95% !important;
-  max-width: 400px !important;
-  margin: 10px auto 0 !important;
-  padding: 4px 4px 4px 15px !important; /* Đệm trái cho chữ, đệm phải/trên/dưới bao nút */
-  background: rgba(0, 8, 40, 0.75) !important;
-  border-radius: 999px !important; /* Khung tròn 2 đầu */
-  border: 1px solid rgba(91, 225, 255, 0.4) !important;
-  box-shadow: inset 0 0 15px rgba(0, 221, 255, 0.2) !important;
-  backdrop-filter: blur(10px) !important;
-  gap: 0 !important; /* Xoá khoảng cách rời rạc */
-}
-
-.hero-search input {
-  flex: 1 !important;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 8px 5px 8px 0 !important;
-  color: #dbfbff !important;
-  font-size: 13px !important;
-  text-align: left !important;
-}
-
-.hero-search input:focus {
-  outline: none !important;
-}
-
-.hero-search button {
-  flex: 0 0 auto !important;
-  padding: 10px 18px !important;
-  border-radius: 999px !important;
-  background: linear-gradient(135deg, #28e8ff, #61f4ff) !important;
-  color: #002244 !important;
-  font-size: 11px !important;
-  font-weight: 700 !important;
-  border: none !important;
-  margin: 0 !important;
-}
-
-/* ========================================================
-   STRICT BANNER FIX: NO TOP SPACE, ROUNDED TOP CORNERS
-======================================================== */
-
-/* Đẩy banner sát mí, không có margin top, cắt tối đa padding top */
-.hero-wrap {
-  margin: 0 !important; 
-  padding: 5px 10px 15px !important; /* Cắt gần như sạch padding top */
-  border-radius: 24px !important; /* Bo 4 góc (2 góc trên sẽ hiển thị dưới viền điện thoại) */
-  min-height: unset !important;
-  height: auto !important;
-}
-
-/* Đưa status lên ngang với viền trên */
-.status-row {
-  margin: 0 auto 0 !important; 
-  position: relative !important;
-  display: inline-block !important;
-  font-size: 10px !important;
-  padding: 2px 8px !important;
-  top: 0 !important;
-  left: 0 !important;
-  transform: none !important;
-  z-index: 10 !important;
-}
-
-/* Đưa tiêu đề "Đặng Năm Mystic" sát lên trên cùng (ngay dưới status) */
-.hero-content h1 {
-  margin-top: 2px !important;
-  margin-bottom: 2px !important;
-  font-size: 24px !important;
-}
-
-.hero-content p {
-  margin-top: 0 !important;
-  margin-bottom: 8px !important;
-}
-
-/* Đảm bảo hình ảnh nhân vật kéo sát lên để lấp khoảng trống */
-.hero-img.hero-left, .hero-img.hero-right {
-  height: 95% !important; /* Kéo cao lên một chút */
-}
-
-/* Khung tìm kiếm và nút bấm được bọc tròn liền mạch */
-.hero-search {
-  margin: 5px auto 0 !important;
-}
-
-/* ========================================================
-   RE-POSITION SEARCH BAR & BANNER CORNERS
-======================================================== */
-
-/* Đưa banner thành 1 khung nổi rõ ràng (card) để thấy rõ góc bo tròn */
-.hero-wrap {
-  margin: 12px 14px 0 !important; /* Lùi vào trong để bo tròn 4 góc */
-  padding: 8px 14px 15px !important; /* Ép sát chữ Đặng Năm lên trên */
-  border-radius: 28px !important; /* Bo tròn rõ rệt 4 góc */
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,255,255,0.1) !important;
-  border: 1px solid rgba(255,255,255,0.1) !important;
-}
-
-/* Đảm bảo hình ảnh hai bên khớp theo bo tròn */
-.hero-img.hero-left, .hero-img.hero-right {
-  height: 98% !important;
-  border-radius: 28px !important; 
-  opacity: 0.9 !important;
-}
-
-/* Chỉnh khoảng trống thừa màu xanh đậm bên trên chữ */
-.status-row {
-  margin: 0 auto 0 !important;
-  padding: 4px 12px !important;
-}
-.hero-content h1 {
-  margin-top: 0 !important; /* Hết sức ép sát */
-  margin-bottom: 2px !important;
-  font-size: 25px !important;
-}
-
-/* Khung tìm kiếm ở BÊN DƯỚI banner */
-.hero-search.outside {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  width: auto !important;
-  margin: 15px 14px 5px !important; /* Nằm dưới banner */
-  padding: 4px 4px 4px 16px !important;
-  background: rgba(8, 20, 50, 0.9) !important;
-  border-radius: 999px !important;
-  border: 1px solid rgba(91, 225, 255, 0.4) !important;
-  box-shadow: 0 5px 20px rgba(0,0,0,0.4), inset 0 0 15px rgba(0, 221, 255, 0.1) !important;
-  backdrop-filter: blur(10px) !important;
-}
-
-.hero-search.outside input {
-  flex: 1 !important;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 10px 5px 10px 0 !important;
-  color: #dbfbff !important;
-  font-size: 13.5px !important;
-}
-
-.hero-search.outside input:focus {
-  outline: none !important;
-}
-
-/* Nút AI phân tích (nằm gọn trong khung nhập) */
-.hero-search.outside button {
-  flex: 0 0 auto !important;
-  padding: 10px 18px !important;
-  border-radius: 999px !important;
-  background: linear-gradient(135deg, #28e8ff, #61f4ff) !important;
-  color: #002244 !important;
-  font-size: 11.5px !important;
-  font-weight: 800 !important;
-  border: none !important;
-  text-transform: uppercase !important;
-  box-shadow: 0 0 15px rgba(23, 221, 255, 0.4) !important;
-}
-
-/* Ẩn các class hero-search bên trong banner nếu còn sót */
-.hero-wrap .hero-search {
-  display: none !important;
-}
-
-/* ========================================================
-   NEON UI, RECTANGLE CARDS, GOOGLE-STYLE SEARCH
-======================================================== */
-
-/* 1. Thanh tìm kiếm chuẩn Google (1 khung duy nhất) */
-.hero-search.outside {
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  background: rgba(5, 12, 35, 0.85) !important;
-  border: 1px solid #00f0ff !important; /* Viền Neon xanh */
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.4), inset 0 0 8px rgba(0, 240, 255, 0.2) !important;
-  border-radius: 999px !important;
-  padding: 3px 3px 3px 18px !important; /* Đệm gọn gàng */
-  margin: 15px 14px 10px !important;
-}
-
-.hero-search.outside input {
-  flex: 1 !important;
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 10px 0 !important;
-  color: #fff !important;
-  font-size: 14px !important;
-}
-
-/* Nút AI Phân tích trở thành chữ chìm/icon nằm trong ô nhập */
-.hero-search.outside button {
-  flex: 0 0 auto !important;
-  background: transparent !important;
-  color: #00f0ff !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 10px 15px !important;
-  font-size: 13px !important;
-  font-weight: bold !important;
-  text-transform: uppercase !important;
-  border-left: 1px solid rgba(0, 240, 255, 0.3) !important; /* Vạch chia nhỏ giống Google Mic/Lens */
-  border-radius: 0 !important;
-}
-
-/* 2. Thẻ chức năng: Hình chữ nhật & Neon */
-.feature-card {
-  aspect-ratio: 1.4 / 1 !important; /* Chuyển từ hình vuông thành hình chữ nhật ngang */
-  border: 1px solid #00f0ff !important; /* Viền Neon */
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2), inset 0 0 10px rgba(0, 240, 255, 0.1) !important;
-  padding: 12px !important;
-}
-
-/* Thu hẹp khoảng cách các dòng chữ trong thẻ */
-.feature-card b {
-  margin-bottom: 4px !important; /* Cũ là 12px */
-  font-size: 26px !important;
-}
-
-.feature-card h3 {
-  margin-bottom: 2px !important; /* Cũ là 6px */
-  font-size: 13.5px !important;
-}
-
-.feature-card p {
-  margin-top: 0 !important;
-  line-height: 1.25 !important;
-}
-
-/* 3. Tab Banner cũng có viền Neon */
-.hero-actions.quick button {
-  border: 1px solid #ff00ff !important; /* Neon tím/hồng cho nổi bật */
-  box-shadow: 0 0 10px rgba(255, 0, 255, 0.4) !important;
-  background: rgba(28, 4, 58, 0.6) !important;
-}
-
-/* ========================================================
-   ULTIMATE BANNER TOP FIX (NO MARGIN, MAX ROUNDED)
-======================================================== */
+/* 1. Xóa sạch khoảng trống trên banner và bo góc dưới */
 body {
   margin: 0 !important;
   padding: 0 !important;
@@ -1014,27 +671,125 @@ body {
 }
 
 .hero-wrap {
-  margin: 0 !important; /* Xoá sổ TẤT CẢ khoảng hở bên ngoài */
-  padding-top: 2px !important; /* Ép sát padding bên trong lên cực hạn */
-  padding-bottom: 15px !important;
-  border-radius: 30px !important; /* Bo tròn cả 4 góc (phía trên và dưới) */
+  margin: 0 !important; /* Xóa khoảng trống thừa màu xanh đậm */
+  padding: 30px 14px 20px !important; /* Padding vừa đủ để h1 không dính nóc */
+  border-radius: 0 0 35px 35px !important; /* Bo góc mượt ở bên dưới, phía trên sát mí */
+  background: linear-gradient(135deg, rgba(8,16,66,0.95), rgba(28,4,58,0.95)) !important;
   width: 100% !important; 
   box-sizing: border-box !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+  position: relative !important;
+  overflow: hidden !important;
 }
 
-/* Kéo chữ và status sát kịch trần */
+/* Kéo chữ và status về vị trí sạch sẽ */
 .status-row {
-  margin-top: 0 !important;
-  padding-top: 2px !important;
-  padding-bottom: 2px !important;
+  margin: 0 auto 10px !important;
+  display: inline-block !important;
+  padding: 4px 12px !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-radius: 999px !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+.hero-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
 }
 
 .hero-content h1 {
   margin-top: 0 !important;
-  padding-top: 0 !important;
+  font-size: 28px !important;
+  z-index: 10 !important;
+  position: relative !important;
 }
 
+.hero-content p {
+  margin-top: 4px !important;
+  margin-bottom: 12px !important;
+  z-index: 10 !important;
+  position: relative !important;
+}
+
+/* 2. Ảnh nhân vật */
 .hero-img.hero-left, .hero-img.hero-right {
-  height: 98% !important;
-  border-radius: 30px !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: top !important;
+  border-radius: 0 0 35px 35px !important;
+  z-index: 1 !important;
+}
+
+/* 3. Bỏ viền màu hồng ở các tab trên banner */
+.hero-actions.quick {
+  position: relative !important;
+  z-index: 10 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-top: 5px !important;
+  width: 100% !important;
+}
+
+.hero-actions.quick button {
+  width: 60% !important;
+  max-width: 160px !important;
+  padding: 10px 15px !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.15) !important; /* Xám mờ sạch sẽ */
+  border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Viền xám trắng tinh tế, KHÔNG MÀU HỒNG */
+  color: #fff !important;
+  backdrop-filter: blur(8px) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  box-shadow: none !important; /* Xóa bóng neon */
+}
+
+/* 4. Khung tìm kiếm chuẩn Google (1 khối duy nhất, nền trắng/sáng) */
+.hero-search.outside {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  width: 90% !important;
+  max-width: 400px !important;
+  margin: -25px auto 20px !important; /* Đẩy trồi lên đè vào mí dưới của banner một chút cho đẹp */
+  padding: 4px 4px 4px 20px !important; /* Trái rộng, phải hẹp vì có nút */
+  background: #ffffff !important; /* Nền trắng chuẩn Google */
+  border-radius: 999px !important;
+  border: none !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important; /* Bóng đổ nhẹ để nổi bật */
+  position: relative !important;
+  z-index: 20 !important; /* Nổi lên trên banner */
+}
+
+.hero-search.outside input {
+  flex: 1 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 12px 0 !important;
+  color: #333333 !important; /* Chữ tối trên nền trắng */
+  font-size: 15px !important;
+  outline: none !important;
+}
+
+.hero-search.outside input::placeholder {
+  color: #888888 !important;
+}
+
+/* Nút AI phân tích (nằm gọn trong khung nhập, không có viền thừa) */
+.hero-search.outside button {
+  flex: 0 0 auto !important;
+  padding: 12px 20px !important;
+  border-radius: 999px !important;
+  background: #f1f3f4 !important; /* Nút xám nhạt kiểu Google */
+  color: #1a73e8 !important; /* Chữ xanh Google */
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  border: none !important;
+  box-shadow: none !important;
+  margin-left: 8px !important;
 }
