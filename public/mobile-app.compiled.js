@@ -1,4 +1,3 @@
-import { jsxDEV as _jsxDEV, Fragment as _Fragment } from "react/jsx-dev-runtime";
 const {
   useEffect,
   useMemo,
@@ -142,55 +141,48 @@ function App() {
       setProviders([]);
     }
   }
-  return /*#__PURE__*/_jsxDEV("main", {
-    className: "app-shell",
-    children: [/*#__PURE__*/_jsxDEV(Hero, {
-      tab: tab,
-      setTab: setTab,
-      health: health,
-      providers: providers
-    }, void 0, false), /*#__PURE__*/_jsxDEV(TabRail, {
-      tab: tab,
-      setTab: setTab
-    }, void 0, false), /*#__PURE__*/_jsxDEV("section", {
-      className: "workspace",
-      children: [tab === 'home' && /*#__PURE__*/_jsxDEV(Home, {
-        setTab: setTab,
-        providers: providers
-      }, void 0, false), tab === 'chat' && /*#__PURE__*/_jsxDEV(Chat, {
-        providers: providers
-      }, void 0, false), tab === 'deep' && /*#__PURE__*/_jsxDEV(DeepTool, {}, void 0, false), tab === 'palm' && /*#__PURE__*/_jsxDEV(VisionTool, {
-        mode: "palm",
-        title: "Xem chỉ tay AI",
-        icon: "✋"
-      }, void 0, false), tab === 'face' && /*#__PURE__*/_jsxDEV(VisionTool, {
-        mode: "face",
-        title: "Xem tướng AI",
-        icon: "🙂"
-      }, void 0, false), tab === 'love' && /*#__PURE__*/_jsxDEV(LoveTool, {}, void 0, false), tab === 'horoscope' && /*#__PURE__*/_jsxDEV(SimpleTool, {
-        kind: "horoscope",
-        title: "Tử vi / Luận giải",
-        icon: "🔮",
-        preset: "Luận tử vi hôm nay, công việc, tình cảm, tài chính theo thông tin sau:"
-      }, void 0, false), tab === 'astrology' && /*#__PURE__*/_jsxDEV(AstrologyTool, {}, void 0, false), tab === 'numerology' && /*#__PURE__*/_jsxDEV(NumerologyTool, {}, void 0, false), tab === 'multi' && /*#__PURE__*/_jsxDEV(Chat, {
-        providers: providers
-      }, void 0, false), tab === 'fengshui' && /*#__PURE__*/_jsxDEV(FengShuiTool, {}, void 0, false), tab === 'tarot' && /*#__PURE__*/_jsxDEV(TarotTool, {}, void 0, false), tab === 'settings' && /*#__PURE__*/_jsxDEV(Settings, {
-        providers: providers,
-        reload: loadProviders
-      }, void 0, false)]
-    }, void 0, true), /*#__PURE__*/_jsxDEV("nav", {
-      className: "bottom-nav",
-      children: TABS.map(t => /*#__PURE__*/_jsxDEV("button", {
-        onClick: () => setTab(t.id),
-        className: tab === t.id ? 'active' : '',
-        children: [/*#__PURE__*/_jsxDEV("span", {
-          children: t.icon
-        }, void 0, false), /*#__PURE__*/_jsxDEV("small", {
-          children: t.label
-        }, void 0, false)]
-      }, t.id, true))
-    }, void 0, false)]
-  }, void 0, true);
+  return /*#__PURE__*/React.createElement("main", {
+    className: "app-shell"
+  }, /*#__PURE__*/React.createElement(Hero, {
+    tab: tab,
+    setTab: setTab,
+    health: health,
+    providers: providers
+  }), /*#__PURE__*/React.createElement(TabRail, {
+    tab: tab,
+    setTab: setTab
+  }), /*#__PURE__*/React.createElement("section", {
+    className: "workspace"
+  }, tab === 'home' && /*#__PURE__*/React.createElement(Home, {
+    setTab: setTab,
+    providers: providers
+  }), tab === 'chat' && /*#__PURE__*/React.createElement(Chat, {
+    providers: providers
+  }), tab === 'deep' && /*#__PURE__*/React.createElement(DeepTool, null), tab === 'palm' && /*#__PURE__*/React.createElement(VisionTool, {
+    mode: "palm",
+    title: "Xem chỉ tay AI",
+    icon: "✋"
+  }), tab === 'face' && /*#__PURE__*/React.createElement(VisionTool, {
+    mode: "face",
+    title: "Xem tướng AI",
+    icon: "🙂"
+  }), tab === 'love' && /*#__PURE__*/React.createElement(LoveTool, null), tab === 'horoscope' && /*#__PURE__*/React.createElement(SimpleTool, {
+    kind: "horoscope",
+    title: "Tử vi / Luận giải",
+    icon: "🔮",
+    preset: "Luận tử vi hôm nay, công việc, tình cảm, tài chính theo thông tin sau:"
+  }), tab === 'astrology' && /*#__PURE__*/React.createElement(AstrologyTool, null), tab === 'numerology' && /*#__PURE__*/React.createElement(NumerologyTool, null), tab === 'multi' && /*#__PURE__*/React.createElement(Chat, {
+    providers: providers
+  }), tab === 'fengshui' && /*#__PURE__*/React.createElement(FengShuiTool, null), tab === 'tarot' && /*#__PURE__*/React.createElement(TarotTool, null), tab === 'settings' && /*#__PURE__*/React.createElement(Settings, {
+    providers: providers,
+    reload: loadProviders
+  })), /*#__PURE__*/React.createElement("nav", {
+    className: "bottom-nav"
+  }, TABS.map(t => /*#__PURE__*/React.createElement("button", {
+    key: t.id,
+    onClick: () => setTab(t.id),
+    className: tab === t.id ? 'active' : ''
+  }, /*#__PURE__*/React.createElement("span", null, t.icon), /*#__PURE__*/React.createElement("small", null, t.label)))));
 }
 function Hero({
   setTab,
@@ -205,113 +197,79 @@ function Hero({
     }
     setTab("chat");
   }
-  return /*#__PURE__*/_jsxDEV("header", {
-    className: "hero",
-    children: [/*#__PURE__*/_jsxDEV("div", {
-      className: "hero-img hero-left",
-      children: /*#__PURE__*/_jsxDEV("img", {
-        src: "assets/hero-left.png",
-        alt: "Minh họa Đặng Năm bên trái"
-      }, void 0, false)
-    }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
-      className: "hero-content",
-      children: [/*#__PURE__*/_jsxDEV("div", {
-        className: "status-row",
-        children: [/*#__PURE__*/_jsxDEV("span", {
-          className: "dot"
-        }, void 0, false), health, /*#__PURE__*/_jsxDEV("span", {
-          className: "chip",
-          children: [configured || 0, " AI đang bật"]
-        }, void 0, true)]
-      }, void 0, true), /*#__PURE__*/_jsxDEV("h1", {
-        children: ["Đặng Năm ", /*#__PURE__*/_jsxDEV("b", {
-          children: "Mystic"
-        }, void 0, false)]
-      }, void 0, true), /*#__PURE__*/_jsxDEV("p", {
-        children: "AI • Tử vi • Chỉ tay • Xem tướng • Chiêm tinh"
-      }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
-        className: "hero-search",
-        children: [/*#__PURE__*/_jsxDEV("span", {
-          children: "⌕"
-        }, void 0, false), /*#__PURE__*/_jsxDEV("input", {
-          value: query,
-          onChange: e => setQuery(e.target.value),
-          onKeyDown: e => {
-            if (e.key === "Enter") handleSearch();
-          },
-          placeholder: "Hỏi về tử vi, chỉ tay, tướng số, chiêm tinh..."
-        }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
-          onClick: handleSearch,
-          children: "✦ AI phân tích"
-        }, void 0, false)]
-      }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
-        className: "hero-actions quick",
-        children: [/*#__PURE__*/_jsxDEV("button", {
-          onClick: () => setTab('astrology'),
-          children: "🪐 Cung hoàng đạo"
-        }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
-          onClick: () => setTab('horoscope'),
-          children: "🔮 Tử vi hôm nay"
-        }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
-          onClick: () => setTab('palm'),
-          children: "✋ Xem chỉ tay"
-        }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
-          onClick: () => setTab('face'),
-          children: "🙂 Xem tướng"
-        }, void 0, false)]
-      }, void 0, true)]
-    }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
-      className: "hero-img hero-right",
-      children: /*#__PURE__*/_jsxDEV("img", {
-        src: "assets/hero-right.jpg",
-        alt: "Minh họa Đặng Năm bên phải"
-      }, void 0, false)
-    }, void 0, false)]
-  }, void 0, true);
+  return /*#__PURE__*/React.createElement("header", {
+    className: "hero"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "hero-img hero-left"
+  }, /*#__PURE__*/React.createElement("img", {
+    src: "assets/hero-left.png",
+    alt: "Minh họa Đặng Năm bên trái"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "hero-content"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "status-row"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "dot"
+  }), health, /*#__PURE__*/React.createElement("span", {
+    className: "chip"
+  }, configured || 0, " AI đang bật")), /*#__PURE__*/React.createElement("h1", null, "Đặng Năm ", /*#__PURE__*/React.createElement("b", null, "Mystic")), /*#__PURE__*/React.createElement("p", null, "AI • Tử vi • Chỉ tay • Xem tướng • Chiêm tinh"), /*#__PURE__*/React.createElement("div", {
+    className: "hero-search"
+  }, /*#__PURE__*/React.createElement("span", null, "⌕"), /*#__PURE__*/React.createElement("input", {
+    value: query,
+    onChange: e => setQuery(e.target.value),
+    onKeyDown: e => {
+      if (e.key === "Enter") handleSearch();
+    },
+    placeholder: "Hỏi về tử vi, chỉ tay, tướng số, chiêm tinh..."
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: handleSearch
+  }, "✦ AI phân tích")), /*#__PURE__*/React.createElement("div", {
+    className: "hero-actions quick"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setTab('astrology')
+  }, "🪐 Cung hoàng đạo"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setTab('horoscope')
+  }, "🔮 Tử vi hôm nay"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setTab('palm')
+  }, "✋ Xem chỉ tay"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setTab('face')
+  }, "🙂 Xem tướng"))), /*#__PURE__*/React.createElement("div", {
+    className: "hero-img hero-right"
+  }, /*#__PURE__*/React.createElement("img", {
+    src: "assets/hero-right.jpg",
+    alt: "Minh họa Đặng Năm bên phải"
+  })));
 }
 function TabRail({
   tab,
   setTab
 }) {
-  return /*#__PURE__*/_jsxDEV("div", {
-    className: "tab-rail-wrap",
-    children: [/*#__PURE__*/_jsxDEV("div", {
-      className: "scroll-arrow left",
-      children: "❮"
-    }, void 0, false), /*#__PURE__*/_jsxDEV("nav", {
-      className: "tab-rail",
-      children: TABS.map(t => /*#__PURE__*/_jsxDEV("button", {
-        className: tab === t.id ? 'active' : '',
-        onClick: () => setTab(t.id),
-        children: [/*#__PURE__*/_jsxDEV("span", {
-          children: t.icon
-        }, void 0, false), t.label]
-      }, t.id, true))
-    }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
-      className: "scroll-arrow right",
-      children: "❯"
-    }, void 0, false)]
-  }, void 0, true);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "tab-rail-wrap"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "scroll-arrow left"
+  }, "❮"), /*#__PURE__*/React.createElement("nav", {
+    className: "tab-rail"
+  }, TABS.map(t => /*#__PURE__*/React.createElement("button", {
+    key: t.id,
+    className: tab === t.id ? 'active' : '',
+    onClick: () => setTab(t.id)
+  }, /*#__PURE__*/React.createElement("span", null, t.icon), t.label))), /*#__PURE__*/React.createElement("div", {
+    className: "scroll-arrow right"
+  }, "❯"));
 }
 function Home({
   setTab,
   providers
 }) {
   const cards = [['🧠', 'Phân Tích Chuyên Sâu PRO', 'AI tổng hợp đa lớp, luận giải chuyên sâu.', 'deep'], ['🔮', 'Tử vi', 'Luận giải hôm nay, công việc, tình cảm, tài chính.', 'horoscope'], ['✋', 'Xem chỉ tay', 'Upload ảnh bàn tay để AI phân tích rõ hơn.', 'palm'], ['🙂', 'Xem tướng', 'Upload ảnh khuôn mặt, nhận luận giải nhẹ nhàng.', 'face'], ['🪐', 'Chiêm tinh', 'Cung hoàng đạo, vận trình tháng, tình cảm.', 'astrology'], ['💞', 'Tình duyên', 'Tính tuổi, ngũ hành, thần số học bằng code trước khi AI luận.', 'love'], ['🔢', 'Thần số học', 'Tính số chủ đạo, linh hồn, biểu đạt và luận AI.', 'numerology'], ['💬', 'AI Chat Pro', 'Trả lời có nhớ ngữ cảnh, copy, đọc giọng nói.', 'chat'], ['🤖', 'Multi AI', 'Tự chọn Claude, Gemini, Groq, OpenRouter, ChatGPT, Grok.', 'multi'], ['☯️', 'Phong thủy', 'Màu hợp, hướng hợp, bố trí phòng/bàn làm việc.', 'fengshui'], ['🃏', 'Bói bài / Đổi bài', 'Bốc bài tham khảo và đổi bài nhanh.', 'tarot'], ['⚙️', 'Cài đặt', 'Quản lý tài khoản và thiết lập AI.', 'settings']];
-  return /*#__PURE__*/_jsxDEV("div", {
-    className: "home-grid",
-    children: cards.map(c => /*#__PURE__*/_jsxDEV("button", {
-      className: "feature-card",
-      onClick: () => setTab(c[3]),
-      children: [/*#__PURE__*/_jsxDEV("b", {
-        children: c[0]
-      }, void 0, false), /*#__PURE__*/_jsxDEV("h3", {
-        children: c[1]
-      }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
-        children: c[2]
-      }, void 0, false)]
-    }, c[3], true))
-  }, void 0, false);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "home-grid"
+  }, cards.map(c => /*#__PURE__*/React.createElement("button", {
+    key: c[3],
+    className: "feature-card",
+    onClick: () => setTab(c[3])
+  }, /*#__PURE__*/React.createElement("b", null, c[0]), /*#__PURE__*/React.createElement("h3", null, c[1]), /*#__PURE__*/React.createElement("p", null, c[2]))));
 }
 function Chat({
   providers
@@ -390,119 +348,86 @@ function Chat({
       speechSynthesis.speak(u);
     } catch {}
   }
-  return /*#__PURE__*/_jsxDEV("section", {
-    className: "chat-layout",
-    children: [/*#__PURE__*/_jsxDEV("aside", {
-      className: "chat-side premium-panel",
-      children: [/*#__PURE__*/_jsxDEV("h2", {
-        children: "🧠 AI Router"
-      }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
-        children: "Auto chọn provider có key. Ưu tiên nhanh, chính xác, không lộ model."
-      }, void 0, false), /*#__PURE__*/_jsxDEV("select", {
-        value: provider,
-        onChange: e => setProvider(e.target.value),
-        children: [/*#__PURE__*/_jsxDEV("option", {
-          value: "auto",
-          children: "Auto Router"
-        }, void 0, false), providers.map(p => /*#__PURE__*/_jsxDEV("option", {
-          value: p.id,
-          children: p.label
-        }, p.id, false))]
-      }, void 0, true), /*#__PURE__*/_jsxDEV("select", {
-        value: answerStyle,
-        onChange: e => setAnswerStyle(e.target.value),
-        "aria-label": "Độ chi tiết câu trả lời",
-        children: [/*#__PURE__*/_jsxDEV("option", {
-          value: "detailed",
-          children: "Chi tiết chuyên nghiệp"
-        }, void 0, false), /*#__PURE__*/_jsxDEV("option", {
-          value: "expert",
-          children: "Chuyên gia sâu"
-        }, void 0, false), /*#__PURE__*/_jsxDEV("option", {
-          value: "concise",
-          children: "Ngắn gọn"
-        }, void 0, false)]
-      }, void 0, true), /*#__PURE__*/_jsxDEV("label", {
-        className: "switch",
-        children: [/*#__PURE__*/_jsxDEV("input", {
-          type: "checkbox",
-          checked: council,
-          onChange: e => setCouncil(e.target.checked)
-        }, void 0, false), " Hội Đồng AI"]
-      }, void 0, true), /*#__PURE__*/_jsxDEV("button", {
-        onClick: () => setMessages(DEFAULT_MESSAGES),
-        children: "＋ Chat mới"
-      }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
-        className: "mini-list",
-        children: providers.map(p => /*#__PURE__*/_jsxDEV("span", {
-          className: p.configured ? 'ok' : '',
-          children: [p.configured ? '●' : '○', " ", p.label]
-        }, p.id, true))
-      }, void 0, false)]
-    }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
-      className: "chat-main premium-panel",
-      children: [/*#__PURE__*/_jsxDEV("div", {
-        className: "chat-head",
-        children: [/*#__PURE__*/_jsxDEV("div", {
-          children: [/*#__PURE__*/_jsxDEV("h2", {
-            children: "🤖 AI Chat Ultra"
-          }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
-            children: "Chat box hiện đại, copy, đọc, thử lại, giữ ngữ cảnh."
-          }, void 0, false)]
-        }, void 0, true), /*#__PURE__*/_jsxDEV("button", {
-          onClick: () => speak(messages.filter(m => m.role === 'assistant').at(-1)?.text || ''),
-          children: "🔊 Đọc"
-        }, void 0, false)]
-      }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
-        className: "chat-box",
-        ref: boxRef,
-        children: messages.map((m, i) => /*#__PURE__*/_jsxDEV("div", {
-          className: `bubble ${m.role} ${m.loading ? 'loading' : ''}`,
-          children: [/*#__PURE__*/_jsxDEV("div", {
-            className: "avatar",
-            children: m.role === 'user' ? '👤' : '✦'
-          }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
-            className: "bubble-body",
-            children: [/*#__PURE__*/_jsxDEV("div", {
-              dangerouslySetInnerHTML: {
-                __html: markdownLite(m.text)
-              }
-            }, void 0, false), m.role === 'assistant' && !m.loading && /*#__PURE__*/_jsxDEV("div", {
-              className: "msg-actions",
-              children: [/*#__PURE__*/_jsxDEV("button", {
-                onClick: () => copy(m.text),
-                children: "Copy"
-              }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
-                onClick: () => speak(m.text),
-                children: "Đọc"
-              }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
-                onClick: () => send(lastPrompt),
-                children: "Thử lại"
-              }, void 0, false)]
-            }, void 0, true)]
-          }, void 0, true)]
-        }, i, true))
-      }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
-        className: "composer",
-        children: [/*#__PURE__*/_jsxDEV("textarea", {
-          value: text,
-          onChange: e => setText(e.target.value),
-          onKeyDown: e => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              send();
-            }
-          },
-          placeholder: "Nhắn AI như ChatGPT...",
-          rows: "1"
-        }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
-          disabled: busy,
-          onClick: () => send(),
-          children: busy ? '…' : 'Gửi ✈'
-        }, void 0, false)]
-      }, void 0, true)]
-    }, void 0, true)]
-  }, void 0, true);
+  return /*#__PURE__*/React.createElement("section", {
+    className: "chat-layout"
+  }, /*#__PURE__*/React.createElement("aside", {
+    className: "chat-side premium-panel"
+  }, /*#__PURE__*/React.createElement("h2", null, "🧠 AI Router"), /*#__PURE__*/React.createElement("p", null, "Auto chọn provider có key. Ưu tiên nhanh, chính xác, không lộ model."), /*#__PURE__*/React.createElement("select", {
+    value: provider,
+    onChange: e => setProvider(e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "auto"
+  }, "Auto Router"), providers.map(p => /*#__PURE__*/React.createElement("option", {
+    key: p.id,
+    value: p.id
+  }, p.label))), /*#__PURE__*/React.createElement("select", {
+    value: answerStyle,
+    onChange: e => setAnswerStyle(e.target.value),
+    "aria-label": "Độ chi tiết câu trả lời"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "detailed"
+  }, "Chi tiết chuyên nghiệp"), /*#__PURE__*/React.createElement("option", {
+    value: "expert"
+  }, "Chuyên gia sâu"), /*#__PURE__*/React.createElement("option", {
+    value: "concise"
+  }, "Ngắn gọn")), /*#__PURE__*/React.createElement("label", {
+    className: "switch"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: council,
+    onChange: e => setCouncil(e.target.checked)
+  }), " Hội Đồng AI"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setMessages(DEFAULT_MESSAGES)
+  }, "＋ Chat mới"), /*#__PURE__*/React.createElement("div", {
+    className: "mini-list"
+  }, providers.map(p => /*#__PURE__*/React.createElement("span", {
+    className: p.configured ? 'ok' : '',
+    key: p.id
+  }, p.configured ? '●' : '○', " ", p.label)))), /*#__PURE__*/React.createElement("div", {
+    className: "chat-main premium-panel"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "chat-head"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", null, "🤖 AI Chat Ultra"), /*#__PURE__*/React.createElement("p", null, "Chat box hiện đại, copy, đọc, thử lại, giữ ngữ cảnh.")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => speak(messages.filter(m => m.role === 'assistant').at(-1)?.text || '')
+  }, "🔊 Đọc")), /*#__PURE__*/React.createElement("div", {
+    className: "chat-box",
+    ref: boxRef
+  }, messages.map((m, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: `bubble ${m.role} ${m.loading ? 'loading' : ''}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "avatar"
+  }, m.role === 'user' ? '👤' : '✦'), /*#__PURE__*/React.createElement("div", {
+    className: "bubble-body"
+  }, /*#__PURE__*/React.createElement("div", {
+    dangerouslySetInnerHTML: {
+      __html: markdownLite(m.text)
+    }
+  }), m.role === 'assistant' && !m.loading && /*#__PURE__*/React.createElement("div", {
+    className: "msg-actions"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => copy(m.text)
+  }, "Copy"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => speak(m.text)
+  }, "Đọc"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => send(lastPrompt)
+  }, "Thử lại")))))), /*#__PURE__*/React.createElement("div", {
+    className: "composer"
+  }, /*#__PURE__*/React.createElement("textarea", {
+    value: text,
+    onChange: e => setText(e.target.value),
+    onKeyDown: e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        send();
+      }
+    },
+    placeholder: "Nhắn AI như ChatGPT...",
+    rows: "1"
+  }), /*#__PURE__*/React.createElement("button", {
+    disabled: busy,
+    onClick: () => send()
+  }, busy ? '…' : 'Gửi ✈'))));
 }
 function Settings({
   providers,
@@ -582,142 +507,114 @@ function Settings({
       alert(e.message);
     }
   }
-  return /*#__PURE__*/_jsxDEV("section", {
-    className: "premium-panel settings",
-    children: [/*#__PURE__*/_jsxDEV("h2", {
-      children: "👤 Quản lý Tài khoản & AI Keys"
-    }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
-      className: "account-card",
-      style: {
-        marginBottom: '20px'
-      },
-      children: [/*#__PURE__*/_jsxDEV("h3", {
-        children: user ? `Đã đăng nhập: ${user.name || user.email}` : 'Tài khoản thành viên'
-      }, void 0, false), user ? /*#__PURE__*/_jsxDEV("button", {
-        type: "button",
-        onClick: logout,
-        children: "Đăng xuất"
-      }, void 0, false) : /*#__PURE__*/_jsxDEV(_Fragment, {
-        children: [/*#__PURE__*/_jsxDEV("div", {
-          style: {
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '10px',
-            marginBottom: '14px'
-          },
-          children: [/*#__PURE__*/_jsxDEV("button", {
-            type: "button",
-            onClick: () => handleSocialLogin('google'),
-            style: {
-              background: 'linear-gradient(135deg,rgba(255,74,74,.92),rgba(255,180,42,.78))',
-              border: '1px solid rgba(255,255,255,.18)',
-              borderRadius: '16px',
-              color: '#fff',
-              fontWeight: 900,
-              textShadow: '0 1px 3px rgba(0,0,0,0.3)'
-            },
-            children: "🔴 Google"
-          }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
-            type: "button",
-            onClick: () => handleSocialLogin('facebook'),
-            style: {
-              background: 'linear-gradient(135deg,rgba(24,119,242,.92),rgba(68,72,255,.82))',
-              border: '1px solid rgba(255,255,255,.18)',
-              borderRadius: '16px',
-              color: '#fff',
-              fontWeight: 900,
-              textShadow: '0 1px 3px rgba(0,0,0,0.3)'
-            },
-            children: "🔵 Facebook"
-          }, void 0, false)]
-        }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
-          style: {
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            margin: '14px 0',
-            fontSize: '11px',
-            textTransform: 'uppercase',
-            opacity: 0.6
-          },
-          children: [/*#__PURE__*/_jsxDEV("div", {
-            style: {
-              flex: 1,
-              height: '1px',
-              background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent)'
-            }
-          }, void 0, false), /*#__PURE__*/_jsxDEV("span", {
-            children: "hoặc dùng email"
-          }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
-            style: {
-              flex: 1,
-              height: '1px',
-              background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent)'
-            }
-          }, void 0, false)]
-        }, void 0, true), /*#__PURE__*/_jsxDEV("input", {
-          value: account.name,
-          onChange: e => setAccount(a => ({
-            ...a,
-            name: e.target.value
-          })),
-          placeholder: "Tên hiển thị (để đăng ký)"
-        }, void 0, false), /*#__PURE__*/_jsxDEV("input", {
-          value: account.email,
-          onChange: e => setAccount(a => ({
-            ...a,
-            email: e.target.value
-          })),
-          type: "email",
-          placeholder: "Email"
-        }, void 0, false), /*#__PURE__*/_jsxDEV("input", {
-          value: account.password,
-          onChange: e => setAccount(a => ({
-            ...a,
-            password: e.target.value
-          })),
-          type: "password",
-          placeholder: "Mật khẩu từ 6 ký tự"
-        }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
-          className: "account-actions",
-          children: [/*#__PURE__*/_jsxDEV("button", {
-            className: "primary",
-            type: "button",
-            onClick: () => submitAccount('register'),
-            children: "Đăng ký"
-          }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
-            type: "button",
-            onClick: () => submitAccount('login'),
-            children: "Đăng nhập"
-          }, void 0, false)]
-        }, void 0, true)]
-      }, void 0, true)]
-    }, void 0, true), /*#__PURE__*/_jsxDEV("h2", {
-      children: "⚙️ Multi-AI API Keys"
-    }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
-      children: "Nhập key cá nhân hoặc dùng key mặc định từ server."
-    }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
-      className: "key-grid",
-      children: providers.map(p => /*#__PURE__*/_jsxDEV("label", {
-        children: [/*#__PURE__*/_jsxDEV("span", {
-          children: [p.label, " ", p.configured ? '✅' : '○']
-        }, void 0, true), /*#__PURE__*/_jsxDEV("input", {
-          type: "password",
-          placeholder: p.maskedKey || p.keyEnv || 'API key',
-          onChange: e => setKeys(k => ({
-            ...k,
-            [p.id]: e.target.value
-          }))
-        }, void 0, false), /*#__PURE__*/_jsxDEV("small", {
-          children: p.model
-        }, void 0, false)]
-      }, p.id, true))
-    }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
-      className: "primary",
-      onClick: save,
-      children: "💾 Lưu keys"
-    }, void 0, false)]
-  }, void 0, true);
+  return /*#__PURE__*/React.createElement("section", {
+    className: "premium-panel settings"
+  }, /*#__PURE__*/React.createElement("h2", null, "👤 Quản lý Tài khoản & AI Keys"), /*#__PURE__*/React.createElement("div", {
+    className: "account-card",
+    style: {
+      marginBottom: '20px'
+    }
+  }, /*#__PURE__*/React.createElement("h3", null, user ? `Đã đăng nhập: ${user.name || user.email}` : 'Tài khoản thành viên'), user ? /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: logout
+  }, "Đăng xuất") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: '10px',
+      marginBottom: '14px'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => handleSocialLogin('google'),
+    style: {
+      background: 'linear-gradient(135deg,rgba(255,74,74,.92),rgba(255,180,42,.78))',
+      border: '1px solid rgba(255,255,255,.18)',
+      borderRadius: '16px',
+      color: '#fff',
+      fontWeight: 900,
+      textShadow: '0 1px 3px rgba(0,0,0,0.3)'
+    }
+  }, "🔴 Google"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => handleSocialLogin('facebook'),
+    style: {
+      background: 'linear-gradient(135deg,rgba(24,119,242,.92),rgba(68,72,255,.82))',
+      border: '1px solid rgba(255,255,255,.18)',
+      borderRadius: '16px',
+      color: '#fff',
+      fontWeight: 900,
+      textShadow: '0 1px 3px rgba(0,0,0,0.3)'
+    }
+  }, "🔵 Facebook")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '10px',
+      margin: '14px 0',
+      fontSize: '11px',
+      textTransform: 'uppercase',
+      opacity: 0.6
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      height: '1px',
+      background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent)'
+    }
+  }), /*#__PURE__*/React.createElement("span", null, "hoặc dùng email"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      height: '1px',
+      background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent)'
+    }
+  })), /*#__PURE__*/React.createElement("input", {
+    value: account.name,
+    onChange: e => setAccount(a => ({
+      ...a,
+      name: e.target.value
+    })),
+    placeholder: "Tên hiển thị (để đăng ký)"
+  }), /*#__PURE__*/React.createElement("input", {
+    value: account.email,
+    onChange: e => setAccount(a => ({
+      ...a,
+      email: e.target.value
+    })),
+    type: "email",
+    placeholder: "Email"
+  }), /*#__PURE__*/React.createElement("input", {
+    value: account.password,
+    onChange: e => setAccount(a => ({
+      ...a,
+      password: e.target.value
+    })),
+    type: "password",
+    placeholder: "Mật khẩu từ 6 ký tự"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "account-actions"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "primary",
+    type: "button",
+    onClick: () => submitAccount('register')
+  }, "Đăng ký"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => submitAccount('login')
+  }, "Đăng nhập")))), /*#__PURE__*/React.createElement("h2", null, "⚙️ Multi-AI API Keys"), /*#__PURE__*/React.createElement("p", null, "Nhập key cá nhân hoặc dùng key mặc định từ server."), /*#__PURE__*/React.createElement("div", {
+    className: "key-grid"
+  }, providers.map(p => /*#__PURE__*/React.createElement("label", {
+    key: p.id
+  }, /*#__PURE__*/React.createElement("span", null, p.label, " ", p.configured ? '✅' : '○'), /*#__PURE__*/React.createElement("input", {
+    type: "password",
+    placeholder: p.maskedKey || p.keyEnv || 'API key',
+    onChange: e => setKeys(k => ({
+      ...k,
+      [p.id]: e.target.value
+    }))
+  }), /*#__PURE__*/React.createElement("small", null, p.model)))), /*#__PURE__*/React.createElement("button", {
+    className: "primary",
+    onClick: save
+  }, "💾 Lưu keys"));
 }
 function VisionTool({
   mode,
@@ -751,25 +648,20 @@ function VisionTool({
       setResult('⚠️ ' + e.message);
     }
   }
-  return /*#__PURE__*/_jsxDEV("section", {
-    className: "tool-grid",
-    children: [/*#__PURE__*/_jsxDEV("div", {
-      className: "premium-panel",
-      children: [/*#__PURE__*/_jsxDEV("h2", {
-        children: [icon, " ", title]
-      }, void 0, true), /*#__PURE__*/_jsxDEV("input", {
-        type: "file",
-        accept: "image/*",
-        onChange: e => setFile(e.target.files?.[0])
-      }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
-        className: "primary",
-        onClick: run,
-        children: "Phân tích"
-      }, void 0, false)]
-    }, void 0, true), /*#__PURE__*/_jsxDEV(Result, {
-      text: result
-    }, void 0, false)]
-  }, void 0, true);
+  return /*#__PURE__*/React.createElement("section", {
+    className: "tool-grid"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "premium-panel"
+  }, /*#__PURE__*/React.createElement("h2", null, icon, " ", title), /*#__PURE__*/React.createElement("input", {
+    type: "file",
+    accept: "image/*",
+    onChange: e => setFile(e.target.files?.[0])
+  }), /*#__PURE__*/React.createElement("button", {
+    className: "primary",
+    onClick: run
+  }, "Phân tích")), /*#__PURE__*/React.createElement(Result, {
+    text: result
+  }));
 }
 function LoveTool() {
   const [a, setA] = useState('');
@@ -792,29 +684,24 @@ function LoveTool() {
       setOut('⚠️ ' + e.message);
     }
   }
-  return /*#__PURE__*/_jsxDEV("section", {
-    className: "tool-grid",
-    children: [/*#__PURE__*/_jsxDEV("div", {
-      className: "premium-panel",
-      children: [/*#__PURE__*/_jsxDEV("h2", {
-        children: "💞 Tình duyên"
-      }, void 0, false), /*#__PURE__*/_jsxDEV("input", {
-        value: a,
-        onChange: e => setA(e.target.value),
-        placeholder: "Ngày sinh người 1: 01/01/2000"
-      }, void 0, false), /*#__PURE__*/_jsxDEV("input", {
-        value: b,
-        onChange: e => setB(e.target.value),
-        placeholder: "Ngày sinh người 2: 02/02/2004"
-      }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
-        className: "primary",
-        onClick: run,
-        children: "Luận giải"
-      }, void 0, false)]
-    }, void 0, true), /*#__PURE__*/_jsxDEV(Result, {
-      text: out
-    }, void 0, false)]
-  }, void 0, true);
+  return /*#__PURE__*/React.createElement("section", {
+    className: "tool-grid"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "premium-panel"
+  }, /*#__PURE__*/React.createElement("h2", null, "💞 Tình duyên"), /*#__PURE__*/React.createElement("input", {
+    value: a,
+    onChange: e => setA(e.target.value),
+    placeholder: "Ngày sinh người 1: 01/01/2000"
+  }), /*#__PURE__*/React.createElement("input", {
+    value: b,
+    onChange: e => setB(e.target.value),
+    placeholder: "Ngày sinh người 2: 02/02/2004"
+  }), /*#__PURE__*/React.createElement("button", {
+    className: "primary",
+    onClick: run
+  }, "Luận giải")), /*#__PURE__*/React.createElement(Result, {
+    text: out
+  }));
 }
 function SimpleTool({
   kind,
@@ -837,43 +724,38 @@ function SimpleTool({
       setOut('⚠️ ' + e.message);
     }
   }
-  return /*#__PURE__*/_jsxDEV("section", {
-    className: "tool-grid",
-    children: [/*#__PURE__*/_jsxDEV("div", {
-      className: "premium-panel",
-      children: [/*#__PURE__*/_jsxDEV("h2", {
-        children: [icon, " ", title]
-      }, void 0, true), /*#__PURE__*/_jsxDEV("textarea", {
-        value: q,
-        onChange: e => setQ(e.target.value),
-        placeholder: placeholder
-      }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
-        className: "primary",
-        onClick: run,
-        children: "Luận giải"
-      }, void 0, false)]
-    }, void 0, true), /*#__PURE__*/_jsxDEV(Result, {
-      text: out
-    }, void 0, false)]
-  }, void 0, true);
+  return /*#__PURE__*/React.createElement("section", {
+    className: "tool-grid"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "premium-panel"
+  }, /*#__PURE__*/React.createElement("h2", null, icon, " ", title), /*#__PURE__*/React.createElement("textarea", {
+    value: q,
+    onChange: e => setQ(e.target.value),
+    placeholder: placeholder
+  }), /*#__PURE__*/React.createElement("button", {
+    className: "primary",
+    onClick: run
+  }, "Luận giải")), /*#__PURE__*/React.createElement(Result, {
+    text: out
+  }));
 }
 function AstrologyTool() {
-  return /*#__PURE__*/_jsxDEV(SimpleTool, {
+  return /*#__PURE__*/React.createElement(SimpleTool, {
     kind: "astrology",
     title: "Chiêm tinh",
     icon: "🪐",
     preset: "Luận chiêm tinh theo cung hoàng đạo, thời điểm hiện tại và câu hỏi sau:",
     placeholder: "Ví dụ: Song Tử, tình duyên tháng này thế nào?"
-  }, void 0, false);
+  });
 }
 function FengShuiTool() {
-  return /*#__PURE__*/_jsxDEV(SimpleTool, {
+  return /*#__PURE__*/React.createElement(SimpleTool, {
     kind: "fengshui",
     title: "Phong thủy",
     icon: "☯️",
     preset: "Phân tích phong thủy thực tế, màu hợp, hướng hợp, bố trí không gian theo thông tin sau:",
     placeholder: "Ví dụ: sinh năm 1995, muốn xem hướng bàn làm việc và màu hợp."
-  }, void 0, false);
+  });
 }
 function TarotTool() {
   const cards = ['The Fool - Khởi đầu mới', 'The Magician - Chủ động tạo cơ hội', 'The High Priestess - Lắng nghe trực giác', 'The Lovers - Lựa chọn trong tình cảm', 'The Chariot - Tiến lên quyết đoán', 'Strength - Bình tĩnh và mềm mỏng', 'The Hermit - Cần thời gian suy ngẫm', 'Wheel of Fortune - Vận trình đang xoay chuyển', 'The Star - Hy vọng và chữa lành', 'The Sun - Rõ ràng, vui vẻ, tích cực'];
@@ -894,30 +776,24 @@ function TarotTool() {
       setOut(`### 🃏 Ba lá bài\n- ${deck.join('\n- ')}\n\nLời khuyên: xem như tham khảo để bình tĩnh lựa chọn, không quyết định thay thực tế.`);
     }
   }
-  return /*#__PURE__*/_jsxDEV("section", {
-    className: "tool-grid",
-    children: [/*#__PURE__*/_jsxDEV("div", {
-      className: "premium-panel",
-      children: [/*#__PURE__*/_jsxDEV("h2", {
-        children: "🃏 Bói bài / Đổi bài"
-      }, void 0, false), /*#__PURE__*/_jsxDEV("textarea", {
-        value: q,
-        onChange: e => setQ(e.target.value),
-        placeholder: "Bạn muốn hỏi điều gì?"
-      }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
-        className: "primary",
-        onClick: draw,
-        children: picked.length ? '🔄 Đổi bài' : '🃏 Bốc bài'
-      }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
-        className: "tarot-cards",
-        children: picked.map(c => /*#__PURE__*/_jsxDEV("span", {
-          children: c
-        }, c, false))
-      }, void 0, false)]
-    }, void 0, true), /*#__PURE__*/_jsxDEV(Result, {
-      text: out
-    }, void 0, false)]
-  }, void 0, true);
+  return /*#__PURE__*/React.createElement("section", {
+    className: "tool-grid"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "premium-panel"
+  }, /*#__PURE__*/React.createElement("h2", null, "🃏 Bói bài / Đổi bài"), /*#__PURE__*/React.createElement("textarea", {
+    value: q,
+    onChange: e => setQ(e.target.value),
+    placeholder: "Bạn muốn hỏi điều gì?"
+  }), /*#__PURE__*/React.createElement("button", {
+    className: "primary",
+    onClick: draw
+  }, picked.length ? '🔄 Đổi bài' : '🃏 Bốc bài'), /*#__PURE__*/React.createElement("div", {
+    className: "tarot-cards"
+  }, picked.map(c => /*#__PURE__*/React.createElement("span", {
+    key: c
+  }, c)))), /*#__PURE__*/React.createElement(Result, {
+    text: out
+  }));
 }
 function NumerologyTool() {
   const [name, setName] = useState('');
@@ -946,45 +822,37 @@ function NumerologyTool() {
 Kết quả chỉ mang tính tham khảo.`);
     }
   }
-  return /*#__PURE__*/_jsxDEV("section", {
-    className: "tool-grid",
-    children: [/*#__PURE__*/_jsxDEV("div", {
-      className: "premium-panel",
-      children: [/*#__PURE__*/_jsxDEV("h2", {
-        children: "🔢 Thần số học AI"
-      }, void 0, false), /*#__PURE__*/_jsxDEV("input", {
-        value: name,
-        onChange: e => setName(e.target.value),
-        placeholder: "Họ và tên"
-      }, void 0, false), /*#__PURE__*/_jsxDEV("input", {
-        value: birth,
-        onChange: e => setBirth(e.target.value),
-        placeholder: "Ngày sinh: 01/01/2000"
-      }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
-        className: "primary",
-        onClick: run,
-        children: "🤖 Luận thần số học"
-      }, void 0, false)]
-    }, void 0, true), /*#__PURE__*/_jsxDEV(Result, {
-      text: out
-    }, void 0, false)]
-  }, void 0, true);
+  return /*#__PURE__*/React.createElement("section", {
+    className: "tool-grid"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "premium-panel"
+  }, /*#__PURE__*/React.createElement("h2", null, "🔢 Thần số học AI"), /*#__PURE__*/React.createElement("input", {
+    value: name,
+    onChange: e => setName(e.target.value),
+    placeholder: "Họ và tên"
+  }), /*#__PURE__*/React.createElement("input", {
+    value: birth,
+    onChange: e => setBirth(e.target.value),
+    placeholder: "Ngày sinh: 01/01/2000"
+  }), /*#__PURE__*/React.createElement("button", {
+    className: "primary",
+    onClick: run
+  }, "🤖 Luận thần số học")), /*#__PURE__*/React.createElement(Result, {
+    text: out
+  }));
 }
 function Result({
   text
 }) {
-  return /*#__PURE__*/_jsxDEV("article", {
-    className: "premium-panel result",
-    children: [/*#__PURE__*/_jsxDEV("h2", {
-      children: "📌 Kết quả"
-    }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
-      dangerouslySetInnerHTML: {
-        __html: markdownLite(text)
-      }
-    }, void 0, false)]
-  }, void 0, true);
+  return /*#__PURE__*/React.createElement("article", {
+    className: "premium-panel result"
+  }, /*#__PURE__*/React.createElement("h2", null, "📌 Kết quả"), /*#__PURE__*/React.createElement("div", {
+    dangerouslySetInnerHTML: {
+      __html: markdownLite(text)
+    }
+  }));
 }
-ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/_jsxDEV(App, {}, void 0, false));
+ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(App, null));
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js').catch(() => {}));
 }
@@ -1010,66 +878,51 @@ function DeepTool() {
       setBusy(false);
     }
   }
-  return /*#__PURE__*/_jsxDEV("section", {
-    className: "tool-grid",
-    children: [/*#__PURE__*/_jsxDEV("div", {
-      className: "premium-panel",
-      children: [/*#__PURE__*/_jsxDEV("h2", {
-        children: "🧠 AI Phân Tích Chuyên Sâu PRO"
-      }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
-        style: {
-          fontSize: '13px',
-          opacity: 0.8,
-          marginBottom: '14px'
-        },
-        children: "Cung cấp thông tin chi tiết nhất để AI tổng hợp đa lớp và luận giải chuyên sâu."
-      }, void 0, false), /*#__PURE__*/_jsxDEV("input", {
-        placeholder: "Họ tên (vd: Nguyễn Văn A)",
-        value: form.name,
-        onChange: e => setForm({
-          ...form,
-          name: e.target.value
-        })
-      }, void 0, false), /*#__PURE__*/_jsxDEV("input", {
-        type: "date",
-        value: form.birth,
-        onChange: e => setForm({
-          ...form,
-          birth: e.target.value
-        })
-      }, void 0, false), /*#__PURE__*/_jsxDEV("textarea", {
-        placeholder: "Trình bày rõ vấn đề bạn đang gặp phải hoặc điều muốn hỏi thật chi tiết...",
-        value: form.ask,
-        onChange: e => setForm({
-          ...form,
-          ask: e.target.value
-        }),
-        style: {
-          height: '100px'
-        }
-      }, void 0, false), /*#__PURE__*/_jsxDEV("select", {
-        value: form.focus,
-        onChange: e => setForm({
-          ...form,
-          focus: e.target.value
-        }),
-        children: [/*#__PURE__*/_jsxDEV("option", {
-          children: "Tổng quan cuộc đời & Vận hạn"
-        }, void 0, false), /*#__PURE__*/_jsxDEV("option", {
-          children: "Công danh sự nghiệp & Tài lộc"
-        }, void 0, false), /*#__PURE__*/_jsxDEV("option", {
-          children: "Tình duyên & Hôn nhân"
-        }, void 0, false), /*#__PURE__*/_jsxDEV("option", {
-          children: "Phân tích tâm lý & Lời khuyên"
-        }, void 0, false)]
-      }, void 0, true), /*#__PURE__*/_jsxDEV("button", {
-        className: "primary",
-        onClick: run,
-        disabled: busy,
-        children: busy ? 'Đang xử lý...' : '✦ Bắt Đầu Phân Tích'
-      }, void 0, false)]
-    }, void 0, true), /*#__PURE__*/_jsxDEV(Result, {
-      text: result
-    }, void 0, false)]
-  }, void 0, true);
+  return /*#__PURE__*/React.createElement("section", {
+    className: "tool-grid"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "premium-panel"
+  }, /*#__PURE__*/React.createElement("h2", null, "🧠 AI Phân Tích Chuyên Sâu PRO"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: '13px',
+      opacity: 0.8,
+      marginBottom: '14px'
+    }
+  }, "Cung cấp thông tin chi tiết nhất để AI tổng hợp đa lớp và luận giải chuyên sâu."), /*#__PURE__*/React.createElement("input", {
+    placeholder: "Họ tên (vd: Nguyễn Văn A)",
+    value: form.name,
+    onChange: e => setForm({
+      ...form,
+      name: e.target.value
+    })
+  }), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: form.birth,
+    onChange: e => setForm({
+      ...form,
+      birth: e.target.value
+    })
+  }), /*#__PURE__*/React.createElement("textarea", {
+    placeholder: "Trình bày rõ vấn đề bạn đang gặp phải hoặc điều muốn hỏi thật chi tiết...",
+    value: form.ask,
+    onChange: e => setForm({
+      ...form,
+      ask: e.target.value
+    }),
+    style: {
+      height: '100px'
+    }
+  }), /*#__PURE__*/React.createElement("select", {
+    value: form.focus,
+    onChange: e => setForm({
+      ...form,
+      focus: e.target.value
+    })
+  }, /*#__PURE__*/React.createElement("option", null, "Tổng quan cuộc đời & Vận hạn"), /*#__PURE__*/React.createElement("option", null, "Công danh sự nghiệp & Tài lộc"), /*#__PURE__*/React.createElement("option", null, "Tình duyên & Hôn nhân"), /*#__PURE__*/React.createElement("option", null, "Phân tích tâm lý & Lời khuyên")), /*#__PURE__*/React.createElement("button", {
+    className: "primary",
+    onClick: run,
+    disabled: busy
+  }, busy ? 'Đang xử lý...' : '✦ Bắt Đầu Phân Tích')), /*#__PURE__*/React.createElement(Result, {
+    text: result
+  }));
 }
