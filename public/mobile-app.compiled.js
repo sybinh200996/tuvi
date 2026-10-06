@@ -224,17 +224,6 @@ function Hero({
   }), health, /*#__PURE__*/React.createElement("span", {
     className: "chip"
   }, configured || 0, " AI đang bật")), /*#__PURE__*/React.createElement("h1", null, "Đặng Năm ", /*#__PURE__*/React.createElement("b", null, "Mystic")), /*#__PURE__*/React.createElement("p", null, "AI • Tử vi • Chỉ tay • Xem tướng • Chiêm tinh"), /*#__PURE__*/React.createElement("div", {
-    className: "hero-search"
-  }, /*#__PURE__*/React.createElement("span", null, "⌕"), /*#__PURE__*/React.createElement("input", {
-    value: query,
-    onChange: e => setQuery(e.target.value),
-    onKeyDown: e => {
-      if (e.key === "Enter") handleSearch();
-    },
-    placeholder: "Hỏi về tử vi, chỉ tay, tướng số, chiêm tinh..."
-  }), /*#__PURE__*/React.createElement("button", {
-    onClick: handleSearch
-  }, "✦ AI phân tích")), /*#__PURE__*/React.createElement("div", {
     className: "hero-actions quick"
   }, /*#__PURE__*/React.createElement("button", {
     onClick: () => setTab('horoscope')
@@ -244,7 +233,18 @@ function Hero({
     onClick: () => setTab('palm')
   }, "✋ Xem chỉ tay"), /*#__PURE__*/React.createElement("button", {
     onClick: () => setTab('face')
-  }, "🙂 Xem tướng"))), /*#__PURE__*/React.createElement("div", {
+  }, "🙂 Xem tướng")), /*#__PURE__*/React.createElement("div", {
+    className: "hero-search"
+  }, /*#__PURE__*/React.createElement("input", {
+    value: query,
+    onChange: e => setQuery(e.target.value),
+    onKeyDown: e => {
+      if (e.key === "Enter") handleSearch();
+    },
+    placeholder: "Nhập câu hỏi tử vi..."
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: handleSearch
+  }, "✦ AI phân tích"))), /*#__PURE__*/React.createElement("div", {
     className: "hero-img hero-right"
   }, /*#__PURE__*/React.createElement("img", {
     src: "assets/hero-right.jpg",

@@ -147,8 +147,16 @@ function Hero({ setTab, health, providers }) {
       <div className="status-row"><span className="dot"></span>{health}<span className="chip">{configured || 0} AI đang bật</span></div>
       <h1>Đặng Năm <b>Mystic</b></h1>
       <p>AI • Tử vi • Chỉ tay • Xem tướng • Chiêm tinh</p>
-      <div className="hero-search"><span>⌕</span><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")handleSearch()}} placeholder="Hỏi về tử vi, chỉ tay, tướng số, chiêm tinh..."/><button onClick={handleSearch}>✦ AI phân tích</button></div>
-      <div className="hero-actions quick"><button onClick={() => setTab('horoscope')}>🔮 Tử vi hôm nay</button><button onClick={() => setTab('astrology')}>🪐 Cung hoàng đạo</button><button onClick={() => setTab('palm')}>✋ Xem chỉ tay</button><button onClick={() => setTab('face')}>🙂 Xem tướng</button></div>
+      <div className="hero-actions quick">
+        <button onClick={() => setTab('horoscope')}>🔮 Tử vi hôm nay</button>
+        <button onClick={() => setTab('astrology')}>🪐 Cung hoàng đạo</button>
+        <button onClick={() => setTab('palm')}>✋ Xem chỉ tay</button>
+        <button onClick={() => setTab('face')}>🙂 Xem tướng</button>
+      </div>
+      <div className="hero-search">
+        <input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")handleSearch()}} placeholder="Nhập câu hỏi tử vi..."/>
+        <button onClick={handleSearch}>✦ AI phân tích</button>
+      </div>
     </div>
       <div className="hero-img hero-right"><img src="assets/hero-right.jpg" alt="Minh họa Đặng Năm bên phải" /></div>
   </header>;
