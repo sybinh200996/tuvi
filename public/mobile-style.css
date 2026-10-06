@@ -847,3 +847,82 @@ html, body {
 .hero-search {
   margin: 5px auto 0 !important;
 }
+
+/* ========================================================
+   RE-POSITION SEARCH BAR & BANNER CORNERS
+======================================================== */
+
+/* Đưa banner thành 1 khung nổi rõ ràng (card) để thấy rõ góc bo tròn */
+.hero-wrap {
+  margin: 12px 14px 0 !important; /* Lùi vào trong để bo tròn 4 góc */
+  padding: 8px 14px 15px !important; /* Ép sát chữ Đặng Năm lên trên */
+  border-radius: 28px !important; /* Bo tròn rõ rệt 4 góc */
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5), inset 0 0 20px rgba(0,255,255,0.1) !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+}
+
+/* Đảm bảo hình ảnh hai bên khớp theo bo tròn */
+.hero-img.hero-left, .hero-img.hero-right {
+  height: 98% !important;
+  border-radius: 28px !important; 
+  opacity: 0.9 !important;
+}
+
+/* Chỉnh khoảng trống thừa màu xanh đậm bên trên chữ */
+.status-row {
+  margin: 0 auto 0 !important;
+  padding: 4px 12px !important;
+}
+.hero-content h1 {
+  margin-top: 0 !important; /* Hết sức ép sát */
+  margin-bottom: 2px !important;
+  font-size: 25px !important;
+}
+
+/* Khung tìm kiếm ở BÊN DƯỚI banner */
+.hero-search.outside {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  width: auto !important;
+  margin: 15px 14px 5px !important; /* Nằm dưới banner */
+  padding: 4px 4px 4px 16px !important;
+  background: rgba(8, 20, 50, 0.9) !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(91, 225, 255, 0.4) !important;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.4), inset 0 0 15px rgba(0, 221, 255, 0.1) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.hero-search.outside input {
+  flex: 1 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 10px 5px 10px 0 !important;
+  color: #dbfbff !important;
+  font-size: 13.5px !important;
+}
+
+.hero-search.outside input:focus {
+  outline: none !important;
+}
+
+/* Nút AI phân tích (nằm gọn trong khung nhập) */
+.hero-search.outside button {
+  flex: 0 0 auto !important;
+  padding: 10px 18px !important;
+  border-radius: 999px !important;
+  background: linear-gradient(135deg, #28e8ff, #61f4ff) !important;
+  color: #002244 !important;
+  font-size: 11.5px !important;
+  font-weight: 800 !important;
+  border: none !important;
+  text-transform: uppercase !important;
+  box-shadow: 0 0 15px rgba(23, 221, 255, 0.4) !important;
+}
+
+/* Ẩn các class hero-search bên trong banner nếu còn sót */
+.hero-wrap .hero-search {
+  display: none !important;
+}
