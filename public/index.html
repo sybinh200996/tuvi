@@ -39,6 +39,7 @@
         <div class="top-actions"><span id="liveClock" class="live-clock">Đang lấy giờ...</span><span id="geminiStatus" class="ai-status warn">Gemini: kiểm tra...</span>
           <button class="icon-btn" onclick="speakLastResult()">🔊</button>
           <button class="icon-btn" onclick="routeTo('account')">🌐</button>
+          <button class="icon-btn" onclick="openAppModal()" title="Tải App Mobile" style="width:auto; padding: 0 10px; font-weight:bold; font-size: 13px;">📱 Tải App</button>
           <button class="profile-pill" onclick="routeTo('account')"><span class="avatar">👤</span> Tài khoản <b>Member</b></button>
         </div>
       </nav>
@@ -162,5 +163,32 @@
   </main>
   <div id="toast" class="toast"></div>
   <script src="app.js"></script>
+
+  <!-- App Download Modal -->
+  <div id="appDownloadModal" class="modal-overlay" onclick="if(event.target===this) closeAppModal()">
+    <div class="modal-content glass-panel">
+      <button class="close-modal" onclick="closeAppModal()">×</button>
+      <h2 style="margin-top:0; color:#00f0ff;">📱 Tải Ứng Dụng Mobile</h2>
+      <p style="opacity:0.8; font-size:14px;">Quét mã QR dưới đây bằng Camera điện thoại để truy cập và cài đặt ứng dụng Đặng Năm Mystic phiên bản chuẩn App.</p>
+      
+      <div style="text-align:center; margin: 20px 0;">
+        <div style="background:white; padding:10px; display:inline-block; border-radius:12px;">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://dangnam.online" alt="QR Code" style="width:200px; height:200px; display:block;" />
+        </div>
+      </div>
+      
+      <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:12px; font-size:13px; line-height:1.5;">
+        <b>💡 Hướng dẫn cài đặt:</b><br>
+        1. Quét mã QR hoặc truy cập <b>dangnam.online</b> trên điện thoại.<br>
+        2. Nếu dùng <b>iPhone (Safari)</b>: Chọn nút Chia sẻ (Share) ở cạnh dưới ➝ "Thêm vào MH chính" (Add to Home Screen).<br>
+        3. Nếu dùng <b>Android (Chrome)</b>: Nhấn vào thông báo "Cài đặt ứng dụng" hoặc chọn Menu (3 chấm) ➝ "Thêm vào Màn hình chính".
+      </div>
+      
+      <div style="text-align:center; margin-top: 15px;">
+        <a href="https://www.pwabuilder.com/" target="_blank" style="color:#d800ff; text-decoration:underline; font-size: 12px;">Nhà phát triển: Đóng gói ra file APK qua PWABuilder</a>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>

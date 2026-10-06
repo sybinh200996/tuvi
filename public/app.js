@@ -972,3 +972,11 @@ async function analyzeDeep() {
     setLoading('deepResult', false);
   }
 }
+
+// App Modal Handlers
+function openAppModal() {
+  document.getElementById('appDownloadModal').classList.add('show');
+}
+function closeAppModal() {
+  document.getElementById('appDownloadModal').classList.remove('show');
+}
