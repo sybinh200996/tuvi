@@ -122,7 +122,13 @@ function App() {
       {tab === 'tarot' && <TarotTool />}
       {tab === 'settings' && <Settings providers={providers} reload={loadProviders} />}
     </section>
-    <nav className="bottom-nav">{TABS.map(t => <button key={t.id} onClick={() => setTab(t.id)} className={tab===t.id?'active':''}><span>{t.icon}</span><small>{t.label}</small></button>)}</nav>
+    <nav className="bottom-nav">
+      <button onClick={() => setTab('home')} className={tab==='home'?'active':''}>⌂<span>Trang chủ</span></button>
+      <button onClick={() => alert('Tính năng Lịch sử đang phát triển!')} className={tab==='history'?'active':''}>▣<span>Lịch sử</span></button>
+      <button className="magic" onClick={() => setTab('chat')}>✦</button>
+      <button onClick={() => setTab('chat')} className={tab==='chat'?'active':''}>☻<span>AI Chat</span></button>
+      <button onClick={() => setTab('settings')} className={tab==='settings'?'active':''}>♙<span>Tài khoản</span></button>
+    </nav>
   </main>;
 }
 
@@ -142,7 +148,7 @@ function Hero({ setTab, health, providers }) {
       <h1>Đặng Năm <b>Mystic</b></h1>
       <p>AI • Tử vi • Chỉ tay • Xem tướng • Chiêm tinh</p>
       <div className="hero-search"><span>⌕</span><input value={query} onChange={e=>setQuery(e.target.value)} onKeyDown={e=>{if(e.key==="Enter")handleSearch()}} placeholder="Hỏi về tử vi, chỉ tay, tướng số, chiêm tinh..."/><button onClick={handleSearch}>✦ AI phân tích</button></div>
-      <div className="hero-actions quick"><button onClick={() => setTab('astrology')}>🪐 Cung hoàng đạo</button><button onClick={() => setTab('horoscope')}>🔮 Tử vi hôm nay</button><button onClick={() => setTab('palm')}>✋ Xem chỉ tay</button><button onClick={() => setTab('face')}>🙂 Xem tướng</button></div>
+      <div className="hero-actions quick"><button onClick={() => setTab('horoscope')}>🔮 Tử vi hôm nay</button><button onClick={() => setTab('astrology')}>🪐 Cung hoàng đạo</button><button onClick={() => setTab('palm')}>✋ Xem chỉ tay</button><button onClick={() => setTab('face')}>🙂 Xem tướng</button></div>
     </div>
       <div className="hero-img hero-right"><img src="assets/hero-right.jpg" alt="Minh họa Đặng Năm bên phải" /></div>
   </header>;
@@ -150,11 +156,9 @@ function Hero({ setTab, health, providers }) {
 
 function TabRail({ tab, setTab }) {
   return <div className="tab-rail-wrap">
-    <div className="scroll-arrow left">❮</div>
     <nav className="tab-rail">
       {TABS.map(t => <button key={t.id} className={tab === t.id ? 'active' : ''} onClick={() => setTab(t.id)}><span>{t.icon}</span>{t.label}</button>)}
     </nav>
-    <div className="scroll-arrow right">❯</div>
   </div>;
 }
 

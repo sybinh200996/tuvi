@@ -178,11 +178,22 @@ function App() {
     reload: loadProviders
   })), /*#__PURE__*/React.createElement("nav", {
     className: "bottom-nav"
-  }, TABS.map(t => /*#__PURE__*/React.createElement("button", {
-    key: t.id,
-    onClick: () => setTab(t.id),
-    className: tab === t.id ? 'active' : ''
-  }, /*#__PURE__*/React.createElement("span", null, t.icon), /*#__PURE__*/React.createElement("small", null, t.label)))));
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setTab('home'),
+    className: tab === 'home' ? 'active' : ''
+  }, "⌂", /*#__PURE__*/React.createElement("span", null, "Trang chủ")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => alert('Tính năng Lịch sử đang phát triển!'),
+    className: tab === 'history' ? 'active' : ''
+  }, "▣", /*#__PURE__*/React.createElement("span", null, "Lịch sử")), /*#__PURE__*/React.createElement("button", {
+    className: "magic",
+    onClick: () => setTab('chat')
+  }, "✦"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setTab('chat'),
+    className: tab === 'chat' ? 'active' : ''
+  }, "☻", /*#__PURE__*/React.createElement("span", null, "AI Chat")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setTab('settings'),
+    className: tab === 'settings' ? 'active' : ''
+  }, "♙", /*#__PURE__*/React.createElement("span", null, "Tài khoản"))));
 }
 function Hero({
   setTab,
@@ -226,10 +237,10 @@ function Hero({
   }, "✦ AI phân tích")), /*#__PURE__*/React.createElement("div", {
     className: "hero-actions quick"
   }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => setTab('astrology')
-  }, "🪐 Cung hoàng đạo"), /*#__PURE__*/React.createElement("button", {
     onClick: () => setTab('horoscope')
   }, "🔮 Tử vi hôm nay"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setTab('astrology')
+  }, "🪐 Cung hoàng đạo"), /*#__PURE__*/React.createElement("button", {
     onClick: () => setTab('palm')
   }, "✋ Xem chỉ tay"), /*#__PURE__*/React.createElement("button", {
     onClick: () => setTab('face')
@@ -246,17 +257,13 @@ function TabRail({
 }) {
   return /*#__PURE__*/React.createElement("div", {
     className: "tab-rail-wrap"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "scroll-arrow left"
-  }, "❮"), /*#__PURE__*/React.createElement("nav", {
+  }, /*#__PURE__*/React.createElement("nav", {
     className: "tab-rail"
   }, TABS.map(t => /*#__PURE__*/React.createElement("button", {
     key: t.id,
     className: tab === t.id ? 'active' : '',
     onClick: () => setTab(t.id)
-  }, /*#__PURE__*/React.createElement("span", null, t.icon), t.label))), /*#__PURE__*/React.createElement("div", {
-    className: "scroll-arrow right"
-  }, "❯"));
+  }, /*#__PURE__*/React.createElement("span", null, t.icon), t.label))));
 }
 function Home({
   setTab,
