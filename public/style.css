@@ -1596,8 +1596,11 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
 }
 
 
+
+
+
 /* ========================================================
-   MYSTIC NIGHT THEME (MOBILE ONLY)
+   MYSTIC NIGHT THEME (MOBILE ONLY) - V2 (FIXED OVERLAP)
 ======================================================== */
 @media (max-width: 900px) {
   /* 1. Global Background for Chat Route */
@@ -1606,6 +1609,11 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
     color: #fff !important;
   }
   
+  /* HIDE the default dashboard banner (hero-section) when in Chat */
+  body[data-route="chat"] .hero-section {
+    display: none !important;
+  }
+
   /* Make all panels transparent so background shows through */
   body[data-route="chat"] .app,
   body[data-route="chat"] .chat-pro-shell,
@@ -1615,118 +1623,173 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
+    padding: 0 !important;
   }
 
-  /* 2. Top Bar Styling (Gold text, centered) */
-  body[data-route="chat"] .chat-pro-head {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    text-align: center !important;
-    margin-bottom: 20px !important;
-  }
-  body[data-route="chat"] .chat-pro-head h2 {
-    font-family: "Times New Roman", Times, serif !important; /* Elegant serif */
-    font-size: 26px !important;
-    color: #f7d896 !important; /* Gold */
-    font-weight: 500 !important;
-    letter-spacing: 1px !important;
-    margin: 0 !important;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.8) !important;
-  }
-  body[data-route="chat"] .chat-pro-head p {
-    color: #a3b8cc !important;
-    font-size: 13px !important;
-    margin-top: 4px !important;
-  }
-
-  /* Hide messy header actions */
-  body[data-route="chat"] .chat-head-actions {
-    display: none !important;
-  }
+  /* Hide messy desktop header actions and sidebars */
+  body[data-route="chat"] .chat-pro-sidebar,
+  body[data-route="chat"] .chat-pro-head,
+  body[data-route="chat"] .chat-head-actions,
   body[data-route="chat"] .chat-mobile-settings {
     display: none !important;
   }
 
-  /* 3. Segmented Control Tabs (Tử vi | Tình duyên | Chat AI) */
-  body[data-route="chat"] .chat-mode-tabs {
-    display: flex !important;
-    background: rgba(20, 25, 45, 0.6) !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
-    border-radius: 999px !important;
-    padding: 4px !important;
-    margin: 0 auto 20px !important;
-    max-width: 340px !important;
-    backdrop-filter: blur(10px) !important;
+  /* 2. Mystic Mobile Header */
+  .mobile-mystic-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 15px 20px 5px;
   }
-  body[data-route="chat"] .chat-mode-tabs button {
-    flex: 1 !important;
-    background: transparent !important;
-    color: #a3b8cc !important;
-    border: none !important;
-    border-radius: 999px !important;
-    padding: 10px 0 !important;
-    font-size: 14px !important;
-    font-weight: 500 !important;
+  .mobile-mystic-header .menu-btn,
+  .mobile-mystic-header .user-btn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    padding: 10px;
   }
-  /* Active tab: Gold pill */
-  body[data-route="chat"] .chat-mode-tabs button.active {
-    background: linear-gradient(135deg, #fcebb6, #dca054) !important;
-    color: #1a1a2e !important;
-    font-weight: 700 !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+  .mobile-mystic-header .user-btn {
+    font-size: 20px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+  .mobile-mystic-header .center-brand {
+    text-align: center;
+    margin-top: 5px;
+  }
+  .mobile-mystic-header .moon-logo {
+    font-size: 22px;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .mobile-mystic-header h2 {
+    font-family: "Times New Roman", Times, serif;
+    font-size: 24px;
+    color: #f7d896;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: 1px;
+  }
+  .mobile-mystic-header p {
+    color: #a3b8cc;
+    font-size: 13px;
+    margin: 4px 0 0;
+  }
+
+  /* 3. Segmented Control Tabs */
+  .mobile-mystic-tabs {
+    display: flex;
+    background: rgba(20, 25, 45, 0.4);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 999px;
+    padding: 5px;
+    margin: 15px auto 25px;
+    max-width: 90%;
+    backdrop-filter: blur(10px);
+  }
+  .mobile-mystic-tabs button {
+    flex: 1;
+    background: transparent;
+    color: #a3b8cc;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 0;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .mobile-mystic-tabs button.active {
+    background: linear-gradient(135deg, #fcebb6, #dca054);
+    color: #1a1a2e;
+    font-weight: 700;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   }
 
   /* 4. Chat Bubbles */
   body[data-route="chat"] .pro-chat-log {
-    padding: 0 14px !important;
+    height: calc(100vh - 280px) !important;
+    padding: 0 15px !important;
+    overflow-y: auto !important;
   }
   body[data-route="chat"] .pro-chat-log .msg {
-    max-width: 85% !important;
-    padding: 12px 16px !important;
+    max-width: 82% !important;
+    padding: 12px 18px !important;
     border-radius: 20px !important;
     font-size: 15px !important;
     line-height: 1.5 !important;
     backdrop-filter: blur(10px) !important;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
+    margin: 10px 0 !important;
   }
   body[data-route="chat"] .pro-chat-log .msg.me {
-    background: rgba(65, 70, 100, 0.85) !important; /* Grey/Purple */
+    background: rgba(73, 76, 110, 0.85) !important;
     border: 1px solid rgba(255,255,255,0.08) !important;
     border-bottom-right-radius: 4px !important;
     color: #fff !important;
+    float: right !important;
+    clear: both !important;
   }
   body[data-route="chat"] .pro-chat-log .msg:not(.me) {
-    background: rgba(22, 26, 45, 0.85) !important; /* Dark Navy */
-    border: 1px solid rgba(247, 216, 150, 0.15) !important; /* Subtle Gold border */
+    background: rgba(30, 32, 50, 0.85) !important;
+    border: 1px solid rgba(247, 216, 150, 0.15) !important;
     border-bottom-left-radius: 4px !important;
     color: #e2e8f0 !important;
+    float: left !important;
+    clear: both !important;
   }
   body[data-route="chat"] .msg-role {
-    color: #dca054 !important; /* Gold role text */
+    color: #dca054 !important;
+    font-size: 11px !important;
+    text-transform: uppercase !important;
+    margin-bottom: 6px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+  
+  /* Fix scroll float issue */
+  body[data-route="chat"] .pro-chat-log::after {
+    content: '';
+    display: block;
+    clear: both;
+    height: 10px;
   }
 
   /* 5. Input Bar */
   body[data-route="chat"] .pro-input {
-    background: rgba(22, 26, 45, 0.85) !important;
+    background: rgba(30, 32, 50, 0.85) !important;
     border: 1px solid rgba(255,255,255,0.1) !important;
     border-radius: 999px !important;
-    padding: 6px 12px !important;
-    margin: 10px 14px 20px !important;
+    padding: 5px 15px !important;
+    margin: 10px 15px 25px !important;
     backdrop-filter: blur(15px) !important;
     display: flex !important;
     align-items: center !important;
     gap: 8px !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: auto !important;
+    z-index: 100 !important;
   }
   body[data-route="chat"] .pro-input textarea {
+    flex: 1 !important;
     background: transparent !important;
     border: none !important;
     color: #fff !important;
     font-size: 15px !important;
-    padding: 10px 0 !important;
+    padding: 12px 0 !important;
     min-height: 20px !important;
-    max-height: 100px !important;
+    max-height: 80px !important;
     box-shadow: none !important;
+    outline: none !important;
   }
   body[data-route="chat"] .pro-input textarea::placeholder {
     color: #7a8c9e !important;
@@ -1759,6 +1822,13 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
 
   /* Hide Bottom Nav on Chat to match screenshot */
   body[data-route="chat"] .bottom-nav {
+    display: none !important;
+  }
+}
+/* Hide the mystic header on desktop */
+@media (min-width: 901px) {
+  .mobile-mystic-header,
+  .mobile-mystic-tabs {
     display: none !important;
   }
 }
