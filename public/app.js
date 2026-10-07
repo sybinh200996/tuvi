@@ -261,8 +261,8 @@ function autoResizeChatText(){
   const el=$('chatText');
   if(!el) return;
   el.style.height='auto';
-  const max=window.innerWidth<700?170:240;
-  const next=Math.min(Math.max(el.scrollHeight,52),max);
+  const max=window.innerWidth<700?120:240;
+  const next=Math.min(Math.max(el.scrollHeight,24),max);
   el.style.height=next+'px';
   el.style.overflowY=el.scrollHeight>max?'auto':'hidden';
 }
