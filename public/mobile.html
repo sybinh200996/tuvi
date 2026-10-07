@@ -1,22 +1,25 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#07142f">
-  <meta name="robots" content="noindex">
-  <title>Đặng Năm Mystic — đang mở ứng dụng</title>
-  <style>
-    :root{color-scheme:dark}body{min-height:100vh;margin:0;display:grid;place-items:center;background:#07122f;color:#eaf4ff;font:16px system-ui,sans-serif}p{padding:24px;text-align:center}
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#06112b" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Đặng Năm Mystic" />
+  <meta name="description" content="Đặng Năm Mystic NAM46 - trợ lý AI chuyên nghiệp, AI chat, tử vi, chỉ tay, xem tướng và công cụ tham khảo trên mobile." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="assets/icon.svg" />
+  <link rel="stylesheet" href="mobile-style.css?v=1791303999981" />
+  <title>Đặng Năm Mystic Mobile</title>
 </head>
 <body>
-  <p>Đang mở Đặng Năm Mystic…</p>
-  <script>
-    const target = new URL('./index.html', location.href);
-    target.search = location.search;
-    target.hash = location.hash;
-    location.replace(target.href);
-  </script>
+  <div id="stars"></div>
+  <div id="root"></div>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="mobile-app.compiled.js?v=1791303116601"></script>
+<script>/* NAM45 mobile back desktop */ window.SYNAM_DESKTOP_URL="index.html?desktop=1";</script>
 </body>
 </html>

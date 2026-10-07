@@ -8,7 +8,19 @@
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="assets/icon.svg" />
   <link rel="stylesheet" href="style.css" />
-  <title>Đặng Năm Mystic</title>
+  
+    <script>
+      // NAM45 Hybrid: Desktop dùng giao diện file 1, Mobile dùng giao diện file 2.
+      (function(){
+        var params = new URLSearchParams(location.search);
+        var forceDesktop = params.get('desktop') === '1';
+        var isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+        if (isMobile && !forceDesktop && !location.pathname.endsWith('/mobile.html')) {
+          location.replace('mobile.html');
+        }
+      })();
+    </script>
+    <title>Đặng Năm Mystic</title>
 
   <!-- Dùng chung một ứng dụng responsive cho desktop và mobile; tránh SPA mobile tách rời làm thiếu tab/chức năng. -->
 
