@@ -20,6 +20,7 @@ function routeTo(route,push=true){
   const page=$('page-'+route)||$('page-home');
   page.classList.add('active');
   document.body.dataset.route=route;
+    document.documentElement.dataset.route=route;
   document.querySelectorAll('.tab-card').forEach(t=>t.classList.toggle('active',t.dataset.route===route));
   document.querySelectorAll('.bottom-nav button').forEach(btn=>btn.classList.remove('active'));
   document.querySelectorAll('.side-menu button.link').forEach(btn=>btn.classList.remove('active'));
