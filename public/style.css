@@ -1348,7 +1348,7 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
   body[data-route="chat"] .feature-tabs-wrap .slide-btn { display: none !important; }
   body[data-route="chat"] .feature-tabs {
     display: flex !important; flex: 1 1 auto !important; width: 100% !important; max-width: none !important;
-    height: auto !important; gap: 7px !important; overflow-x: auto !important; overflow-y: hidden !important;
+    height: auto !important; gap: 7px !important; overflow-x: auto !important; overflow-y: auto !important; max-height: 120px !important;
     padding: 2px 2px 5px !important; scroll-snap-type: x proximity !important;
     -webkit-overflow-scrolling: touch !important; scrollbar-width: none !important;
   }
@@ -1945,7 +1945,7 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
     color: #fff !important;
     font-size: 15px !important;
     padding: 6px 4px !important; /* Very tight padding */
-    height: 24px !important; /* Forced small initial height */
+    min-height: 24px !important; height: auto;
     line-height: 24px !important;
     box-shadow: none !important;
     outline: none !important;
