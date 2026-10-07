@@ -596,7 +596,7 @@ async function sendChat(){
       }
     }
     const text=hideModelLeak(data.text||data.answer||data.result||'AI đã phản hồi nhưng server không trả text.');
-    $('typing').outerHTML=`<div class="msg ai-msg"><span class="msg-role">🤖 Đặng Năm AI</span>${markdownish(text)}</div>`;
+    $('typing').outerHTML=`<div class="msg ai-msg fade-in"><div class="msg-header"><span class="msg-role">🤖 Đặng Năm AI</span><button class="copy-btn" onclick="copyText(this)">📋 Copy</button></div>${markdownish(text)}</div>`;
     lastResult=text;rememberChatTurn('assistant',text);saveHistory(data.label||'Đặng Năm AI Chat',text);checkGeminiStatus();scrollChatBottom();speakText(text); 
   }catch(e){
     const err=parseError(e);

@@ -1902,3 +1902,79 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
     font-size: 18px !important;
   }
 }
+
+
+/* ========================================================
+   PREMIUM CHAT FEATURES
+======================================================== */
+.fade-in {
+  animation: fadeInMsg 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+@keyframes fadeInMsg {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.msg-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  padding-bottom: 6px;
+}
+
+.copy-btn {
+  background: rgba(255,255,255,0.1) !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  color: #a3b8cc !important;
+  border-radius: 12px !important;
+  padding: 4px 10px !important;
+  font-size: 11px !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
+}
+.copy-btn:hover {
+  background: rgba(255,255,255,0.2) !important;
+  color: #fff !important;
+}
+
+/* Markdown Standard Styling within msg */
+.msg ul, .msg ol {
+  padding-left: 20px;
+  margin: 10px 0;
+}
+.msg li {
+  margin-bottom: 6px;
+}
+.msg p {
+  margin: 8px 0;
+}
+.msg pre {
+  background: rgba(0,0,0,0.4);
+  padding: 12px;
+  border-radius: 10px;
+  overflow-x: auto;
+  border: 1px solid rgba(255,255,255,0.1);
+  font-family: monospace;
+}
+.msg code {
+  background: rgba(255,255,255,0.15);
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 13px;
+}
+.msg table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 10px 0;
+}
+.msg th, .msg td {
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 8px;
+  text-align: left;
+}
+.msg th {
+  background: rgba(255,255,255,0.1);
+}
