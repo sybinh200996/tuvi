@@ -1,1 +1,1 @@
-{"name":"Đặng Năm Mystic","short_name":"Đặng Năm","start_url":"./","display":"standalone","background_color":"#040b1e","theme_color":"#07142f","icons":[{"src":"assets/icon.svg","sizes":"any","type":"image/svg+xml"}]}
+{"name":"Đặng Năm Mystic","short_name":"Đặng Năm","start_url":"./index.html","display":"standalone","background_color":"#040b1e","theme_color":"#07142f","icons":[{"src":"assets/icon.svg","sizes":"any","type":"image/svg+xml"}]}

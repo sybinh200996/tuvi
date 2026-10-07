@@ -10,17 +10,7 @@
   <link rel="stylesheet" href="style.css" />
   <title>Đặng Năm Mystic</title>
 
-  <script>
-    // NAM45 Hybrid: Desktop dùng giao diện file 1, Mobile dùng giao diện file 2.
-    (function(){
-      var params = new URLSearchParams(location.search);
-      var forceDesktop = params.get('desktop') === '1';
-      var isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
-      if (isMobile && !forceDesktop && !location.pathname.endsWith('/mobile.html')) {
-        location.replace('mobile.html');
-      }
-    })();
-  </script>
+  <!-- Dùng chung một ứng dụng responsive cho desktop và mobile; tránh SPA mobile tách rời làm thiếu tab/chức năng. -->
 </head>
 <body>
   <div id="stars"></div>
@@ -126,17 +116,22 @@
           <div class="chat-pro-main">
             <div class="chat-pro-head">
               <div><h2>🤖 AI Chat Pro</h2><p>Nhập bằng bàn phím hoặc giọng nói. AI trả lời text + đọc thành tiếng.</p></div>
-              <div class="chat-head-actions"><button onclick="routeTo('ai')">⚙️ AI Keys</button><button onclick="speakLastResult()">🔊 Đọc lại</button></div>
+              <div class="chat-head-actions"><button type="button" aria-label="Mở cài đặt AI" title="Mở cài đặt AI" onclick="routeTo('ai')">⚙️ AI Keys</button><button type="button" aria-label="Đọc lại câu trả lời gần nhất" title="Đọc lại câu trả lời gần nhất" onclick="speakLastResult()">🔊 Đọc lại</button></div>
             </div>
-            <div class="chat-mode-tabs pro-tabs">
-              <button id="modeChat" class="active" onclick="setChatMode('chat')">💬 Hỏi đáp</button>
-            </div>
-            <div class="multi-ai-toolbar pro-toolbar">
-              <label>AI Provider<select id="chatProvider"><option value="auto">Auto Router</option><option value="gemini">Gemini</option><option value="groq">Groq Free/Nhanh</option><option value="openrouter">OpenRouter Free</option><option value="openai">ChatGPT/OpenAI</option><option value="claude">Claude</option><option value="deepseek">DeepSeek</option><option value="grok">Grok</option><option value="qwen">Qwen</option><option value="mistral">Mistral</option></select></label>
-              <label>Model tùy chọn<input id="chatModel" placeholder="Để trống = Tự động chọn Model cao cấp nhất"></label>
-              <label>Độ chi tiết<select id="chatAnswerStyle"><option value="detailed" selected>Chi tiết chuyên nghiệp</option><option value="expert">Chuyên gia sâu</option><option value="concise">Ngắn gọn</option></select></label>
-              <label class="council-toggle"><input id="chatCouncil" type="checkbox"> Hội Đồng AI</label>
-            </div>
+            <details class="chat-mobile-settings" open>
+              <summary>⚙️ Tùy chọn AI và chế độ chat</summary>
+              <div class="chat-mobile-settings-content">
+                <div class="chat-mode-tabs pro-tabs">
+                  <button id="modeChat" class="active" onclick="setChatMode('chat')">💬 Hỏi đáp</button>
+                </div>
+                <div class="multi-ai-toolbar pro-toolbar">
+                  <label>AI Provider<select id="chatProvider"><option value="auto">Auto Router</option><option value="gemini">Gemini</option><option value="groq">Groq Free/Nhanh</option><option value="openrouter">OpenRouter Free</option><option value="openai">ChatGPT/OpenAI</option><option value="claude">Claude</option><option value="deepseek">DeepSeek</option><option value="grok">Grok</option><option value="qwen">Qwen</option><option value="mistral">Mistral</option></select></label>
+                  <label>Model tùy chọn<input id="chatModel" placeholder="Để trống = Tự động chọn Model cao cấp nhất"></label>
+                  <label>Độ chi tiết<select id="chatAnswerStyle"><option value="detailed" selected>Chi tiết chuyên nghiệp</option><option value="expert">Chuyên gia sâu</option><option value="concise">Ngắn gọn</option></select></label>
+                  <label class="council-toggle"><input id="chatCouncil" type="checkbox"> Hội Đồng AI</label>
+                </div>
+              </div>
+            </details>
             <div id="voiceStatus" class="voice-status">🎙️ Sẵn sàng nhận giọng nói</div>
             <div id="chatLog" class="chat-log pro-chat-log"><div class="msg ai-welcome"><b>👋 Chào bạn!</b><br>Mình là Đặng Năm AI Pro. Hỏi gì cũng được: app, code, thời tiết, ảnh/file, ý tưởng. Mình sẽ trả lời rõ ràng, đúng trọng tâm hơn.</div></div>
             <div class="chat-upload-bar pro-upload">
@@ -151,7 +146,7 @@
               <textarea id="chatText" rows="1" placeholder="Hỏi Đặng Năm AI như ChatGPT/Gemini..." oninput="autoResizeChatText()" onkeydown="handleChatTextKey(event)"></textarea>
               <button id="voiceReplyQuickBtn" class="quick-voice-btn" type="button" onclick="toggleQuickSpeakReply()" title="Bật/tắt giọng đọc">🔊</button>
               <button id="stopSpeakQuickBtn" class="quick-stop-btn" type="button" onclick="stopSpeaking()" title="Dừng đọc ngay">⛔</button>
-              <button id="chatSendBtn" onclick="sendChat()">Gửi ✈</button>
+              <button id="chatSendBtn" type="button" aria-label="Gửi tin nhắn" title="Gửi tin nhắn" onclick="sendChat()">Gửi ✈</button>
             </div>
           </div>
         </div>

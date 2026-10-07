@@ -1,13 +1,10 @@
-const CACHE = "synam-nam46-assistant-v4-ui-restored";
+const CACHE = "synam-nam46-unified-responsive-v5";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./mobile.html",
   "./style.css",
-  "./mobile-style.css",
   "./app.js",
-  "./mobile-app.js",
-  "./mobile-app.compiled.js",
   "./knowledge.js",
   "./manifest.webmanifest",
   "./assets/icon.svg",

@@ -1,7 +1,17 @@
 const routes=[['home','Trang Chủ','home'],['tuvi','Tử Vi','tuvi'],['palm','Xem Chỉ Tay','palm'],['face','Xem Tướng','face'],['astrology','Chiêm Tinh','astro'],['love','Tình Duyên','love'],['numerology','Thần Số Học','num'],['chat','AI Chat','chat'],['ai','Multi AI','deep'],['fengshui','Phong Thủy','feng'],['tarot','Bói Bài','tarot'],['history','Lịch Sử','history']];
 let lastResult='';
 const $=id=>document.getElementById(id);
-function init(){renderTabs();renderHistory();loadAccount();loadVoicePrefs();initVietnameseVoices();startClock();const firstRoute=location.hash?.replace('#/','')||(window.matchMedia&&window.matchMedia('(max-width: 760px)').matches?'chat':'home');routeTo(firstRoute,false);window.addEventListener('hashchange',()=>routeTo(location.hash.replace('#/','')||'home',false));checkGeminiStatus();loadAIProviders();setTimeout(()=>{if(window.matchMedia&&window.matchMedia('(max-width:760px)').matches&&$('chatText')){$('chatText').focus({preventScroll:true});}},600);}
+function init(){renderTabs();syncMobileChatSettings();renderHistory();loadAccount();loadVoicePrefs();initVietnameseVoices();startClock();const firstRoute=location.hash?.replace('#/','')||(window.matchMedia&&window.matchMedia('(max-width: 760px)').matches?'chat':'home');routeTo(firstRoute,false);window.addEventListener('hashchange',()=>routeTo(location.hash.replace('#/','')||'home',false));checkGeminiStatus();loadAIProviders();}
+function syncMobileChatSettings(){
+  const details=document.querySelector('.chat-mobile-settings');
+  if(!details||!window.matchMedia)return;
+  const query=window.matchMedia('(max-width:760px)');
+  details.open=!query.matches;
+  if(!details.dataset.responsiveBound&&query.addEventListener){
+    query.addEventListener('change',event=>{details.open=!event.matches;});
+    details.dataset.responsiveBound='true';
+  }
+}
 function tabIcon(icon){return `<span class="holo-icon icon-${icon}"><i></i></span>`}
 function renderTabs(){const html=routes.map(([id,name,ico])=>`<button class="tab-card" data-route="${id}" onclick="routeTo('${id}')">${tabIcon(ico)}<span>${name}</span></button>`).join('');$('featureTabs').innerHTML=html;$('sideLinks').innerHTML=routes.concat([['deep','AI phân tích sâu','deep'],['ai','Cài đặt Multi-AI','deep'],['account','Tài khoản','account']]).map(([id,name,ico])=>`<button class="link" onclick="routeTo('${id}');toggleMenu(false)">${tabIcon(ico)} <span>${name}</span></button>`).join('')}
 function routeTo(route,push=true){
@@ -16,7 +26,12 @@ function routeTo(route,push=true){
   if(push) location.hash='#/'+route;
   requestAnimationFrame(()=>{
     const targetTop=Math.max(0,page.getBoundingClientRect().top+window.pageYOffset-18);
-    window.scrollTo({top:targetTop,behavior:'smooth'});
+    const mobileChat=route==='chat'&&window.matchMedia&&window.matchMedia('(max-width:760px)').matches;
+    window.scrollTo({top:mobileChat?0:targetTop,behavior:'smooth'});
+    if(window.matchMedia&&window.matchMedia('(max-width:760px)').matches){
+      const rail=$('featureTabs'),active=rail?.querySelector('.tab-card.active');
+      if(rail&&active){const rr=rail.getBoundingClientRect(),ar=active.getBoundingClientRect();rail.scrollTo({left:rail.scrollLeft+ar.left-rr.left-(rail.clientWidth-ar.width)/2,behavior:'smooth'});}
+    }
     const scrollers=page.querySelectorAll('.chat-log,.pro-chat-log,.result-panel,.side-menu');
     scrollers.forEach(el=>{try{el.scrollTop=0}catch{}});
   });
