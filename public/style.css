@@ -1609,18 +1609,24 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
 }
 
 
+
+
+
 /* ========================================================
-   MYSTIC NIGHT THEME (MOBILE ONLY) - V3 (EXACT MATCH)
+   MYSTIC NIGHT THEME (MOBILE ONLY) - V4 (CRISP BG + FIX BUTTONS)
 ======================================================== */
 @media (max-width: 900px) {
-  /* 1. Global Background for Chat Route */
+  /* 1. Global Background (REMOVED FIXED TO PREVENT BLUR ON MOBILE) */
   html[data-route="chat"],
   body[data-route="chat"] {
-    background: url('assets/chat-bg.jpg') center/cover no-repeat fixed !important;
-    background-color: #070e23 !important; /* Fallback */
+    background: url('assets/chat-bg.jpg') center/cover no-repeat !important; /* No 'fixed' */
+    background-color: #070e23 !important;
     color: #fff !important;
-    height: 100vh !important;
+    height: 100dvh !important;
+    width: 100vw !important;
     overflow: hidden !important;
+    position: fixed !important;
+    top: 0; left: 0;
   }
   
   /* HIDE everything else outside of Chat */
@@ -1628,7 +1634,6 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
   body[data-route="chat"] .feature-tabs-wrap,
   body[data-route="chat"] .bottom-nav,
   body[data-route="chat"] .voice-status,
-  body[data-route="chat"] .pro-upload,
   body[data-route="chat"] .chat-pro-sidebar,
   body[data-route="chat"] .chat-pro-head,
   body[data-route="chat"] .chat-head-actions,
@@ -1636,7 +1641,7 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
     display: none !important;
   }
 
-  /* Make panels transparent */
+  /* Transparent panels */
   body[data-route="chat"] .app,
   body[data-route="chat"] .chat-pro-shell,
   body[data-route="chat"] .chat-pro-main,
@@ -1649,7 +1654,7 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
   }
 
   body[data-route="chat"] .chat-pro-shell {
-    height: 100vh !important;
+    height: 100dvh !important;
     display: flex !important;
     flex-direction: column !important;
   }
@@ -1657,7 +1662,8 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
     flex: 1 !important;
     display: flex !important;
     flex-direction: column !important;
-    height: 100vh !important;
+    height: 100dvh !important;
+    padding-bottom: 20px !important;
   }
 
   /* 2. Mystic Mobile Header */
@@ -1665,7 +1671,7 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
     display: flex !important;
     justify-content: space-between !important;
     align-items: flex-start !important;
-    padding: 20px 20px 5px !important;
+    padding: 15px 20px 0px !important;
     flex: 0 0 auto !important;
   }
   .mobile-mystic-header .menu-btn,
@@ -1686,6 +1692,7 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
     align-items: center !important;
     justify-content: center !important;
     padding: 0 !important;
+    margin-top: 5px !important;
   }
   .mobile-mystic-header .center-brand {
     text-align: center !important;
@@ -1729,7 +1736,7 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
     color: #a3b8cc !important;
     border: none !important;
     border-radius: 999px !important;
-    padding: 12px 0 !important;
+    padding: 10px 0 !important;
     font-size: 14px !important;
     font-weight: 500 !important;
   }
@@ -1743,19 +1750,20 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
   /* 4. Chat Bubbles */
   body[data-route="chat"] .pro-chat-log {
     flex: 1 1 0 !important;
-    padding: 10px 15px 120px !important;
+    padding: 10px 15px 10px !important;
     overflow-y: auto !important;
     scroll-behavior: smooth !important;
+    -webkit-overflow-scrolling: touch !important;
   }
   body[data-route="chat"] .pro-chat-log .msg {
-    max-width: 82% !important;
+    max-width: 85% !important;
     padding: 14px 18px !important;
     border-radius: 20px !important;
     font-size: 15px !important;
     line-height: 1.5 !important;
     backdrop-filter: blur(10px) !important;
     box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important;
-    margin: 12px 0 !important;
+    margin: 8px 0 !important;
   }
   body[data-route="chat"] .pro-chat-log .msg.me {
     background: rgba(73, 76, 110, 0.85) !important;
@@ -1786,78 +1794,93 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
     content: '';
     display: block;
     clear: both;
-    height: 10px;
+    height: 5px;
   }
 
-  /* 5. Input Bar */
-  body[data-route="chat"] .pro-input {
-    background: rgba(30, 32, 50, 0.95) !important;
-    border: 1px solid rgba(255,255,255,0.1) !important;
+  /* 5. Upload Bar (Floating above input pill) */
+  body[data-route="chat"] .pro-upload {
+    flex: 0 0 auto !important;
+    display: flex !important;
+    gap: 10px !important;
+    padding: 0 15px 5px !important;
+    margin: 0 !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+  }
+  body[data-route="chat"] .pro-upload::-webkit-scrollbar {
+    display: none !important;
+  }
+  body[data-route="chat"] .pro-upload .upload-chip,
+  body[data-route="chat"] .pro-upload .clear-attachments {
+    background: rgba(30, 32, 50, 0.8) !important;
+    border: 1px solid rgba(255,255,255,0.2) !important;
     border-radius: 999px !important;
     padding: 6px 12px !important;
-    margin: 0 !important;
+    color: #a3b8cc !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+    backdrop-filter: blur(10px) !important;
+  }
+
+  /* 6. Input Bar Pill */
+  body[data-route="chat"] .pro-input {
+    flex: 0 0 auto !important;
+    background: rgba(30, 32, 50, 0.85) !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+    border-radius: 999px !important;
+    padding: 6px 12px !important;
+    margin: 0 15px 15px !important;
     backdrop-filter: blur(15px) !important;
     display: flex !important;
     align-items: center !important;
+    justify-content: space-between !important;
     gap: 8px !important;
-    position: fixed !important;
-    bottom: 25px !important;
-    left: 15px !important;
-    right: 15px !important;
-    width: auto !important;
-    z-index: 100 !important;
+    position: relative !important;
   }
+  
   body[data-route="chat"] .pro-input textarea {
-    flex: 1 !important;
+    flex: 1 1 auto !important;
     background: transparent !important;
     border: none !important;
     color: #fff !important;
     font-size: 15px !important;
-    padding: 12px 0 !important;
+    padding: 10px 0 !important;
     min-height: 20px !important;
     max-height: 80px !important;
     box-shadow: none !important;
     outline: none !important;
+    margin: 0 !important;
   }
   body[data-route="chat"] .pro-input textarea::placeholder {
     color: #7a8c9e !important;
   }
-  body[data-route="chat"] .pro-input button,
-  body[data-route="chat"] .pro-input label.upload-btn {
+
+  /* Reset all buttons inside pro-input */
+  body[data-route="chat"] .pro-input button {
+    flex: 0 0 auto !important;
     background: transparent !important;
     border: none !important;
     color: #a3b8cc !important;
     box-shadow: none !important;
     width: 36px !important;
     height: 36px !important;
-    font-size: 20px !important;
+    font-size: 18px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     padding: 0 !important;
+    margin: 0 !important;
   }
   
-  /* The Paperclip Icon inside pro-input (instead of ugly mic/stop buttons) */
-  body[data-route="chat"] .pro-input::before {
-    content: '📎';
-    font-size: 20px;
-    color: #a3b8cc;
-    margin-left: 8px;
-    margin-right: 4px;
-    opacity: 0.8;
-  }
-
-  body[data-route="chat"] .pro-input .voice-btn,
+  /* Hide unwanted buttons (keep mic and send) */
   body[data-route="chat"] .pro-input .quick-voice-btn,
   body[data-route="chat"] .pro-input .quick-stop-btn {
-    display: none !important; /* Hide extra ugly buttons, keep it super clean */
+    display: none !important; 
   }
 
+  /* Mic Button styling */
   body[data-route="chat"] .pro-input .voice-btn {
-    display: flex !important; /* Wait, user screenshot has a mic icon. Let's keep one */
-    background: transparent !important;
-    color: #a3b8cc !important;
-    box-shadow: none !important;
+    font-size: 0 !important; /* Hide original icon text */
   }
   body[data-route="chat"] .pro-input .voice-btn::before {
     content: '🎤' !important;
@@ -1872,7 +1895,7 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
     width: 40px !important;
     height: 40px !important;
     min-width: 40px !important;
-    display: flex !important;
+    font-size: 0 !important; /* Hide text */
   }
   body[data-route="chat"] .pro-input #chatSendBtn::before {
     content: '➤' !important;
