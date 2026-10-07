@@ -1974,15 +1974,8 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
     margin: 0 !important;
   }
   
-  /* The Paperclip Icon (Optional decoration if missing real one) */
-  body[data-route="chat"] .pro-input::before {
-    content: '📎';
-    font-size: 20px;
-    color: #a3b8cc;
-    margin-right: 4px;
-    margin-bottom: 6px;
-    opacity: 0.8;
-  }
+  /* Removed Paperclip Icon as requested */
+  body[data-route="chat"] .pro-input::before { display: none !important; }
 
   /* Hide extra buttons */
   body[data-route="chat"] .pro-input .quick-voice-btn,
