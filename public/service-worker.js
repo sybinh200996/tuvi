@@ -1,4 +1,4 @@
-const CACHE = "v43-ultimate-fix-1791444773802";
+const CACHE = "v44-revert-to-first-dangnam2k4-1791445125909";
 const APP_SHELL = [
   "./",
   "./index.html",
