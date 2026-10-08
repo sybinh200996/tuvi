@@ -237,7 +237,7 @@ function Chat({ providers }) {
     <div className="chat-main premium-panel">
       <div className="chat-head"><div><h2>🤖 AI Chat Ultra</h2><p>Chat box hiện đại, copy, đọc, thử lại, giữ ngữ cảnh.</p></div><button onClick={()=>speak(messages.filter(m=>m.role==='assistant').at(-1)?.text || '')}>🔊 Đọc</button></div>
       <div className="chat-box" ref={boxRef}>{messages.map((m,i) => <div key={i} className={`bubble ${m.role} ${m.loading?'loading':''}`}><div className="avatar">{m.role==='user'?'👤':'✦'}</div><div className="bubble-body"><div dangerouslySetInnerHTML={{__html: markdownLite(m.text)}} />{m.role==='assistant' && !m.loading && <div className="msg-actions"><button onClick={()=>copy(m.text)}>Copy</button><button onClick={()=>speak(m.text)}>Đọc</button><button onClick={()=>send(lastPrompt)}>Thử lại</button></div>}</div></div>)}</div>
-      <div className="composer"><textarea value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}} placeholder="Nhắn AI như ChatGPT..." rows="1"/><button disabled={busy} onClick={()=>send()}>{busy?'…':'Gửi ✈'}</button></div>
+      <div className="composer chat-pill-composer"><textarea value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}} placeholder="Nhắn AI như ChatGPT..." rows="1"/><button disabled={busy} onClick={()=>send()}>{busy?'…':'Gửi ✈'}</button></div>
     </div>
   </section>;
 }
