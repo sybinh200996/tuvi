@@ -1121,33 +1121,7 @@ body {
 }
 
 
-/* ========================================================
-   ABSOLUTE FINAL BANNER (1/2 HEIGHT)
-======================================================== */
-@media (max-width: 900px) {
-  /* Khung banner cứng 1/2 chiều cao */
-  .hero {
-    position: relative !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-height: 155px !important;
-    height: auto !important;
-    padding: 10px !important;
-    border-radius: 0 0 20px 20px !important;
-    overflow: hidden !important;
-  }
-  
-  .hero-content {
-    position: relative !important;
-    z-index: 10 !important;
-    width: 100% !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    margin: 0 !important;
-  }
+
 
   /* Trạng thái server online chính giữa (nhỏ) */
   .status-row {
@@ -1254,20 +1228,133 @@ body {
 }
 
 
+
+
 /* ========================================================
-   FIX BANNER IMAGES CROPPING
+   TRUE VERTICAL TABS & COVER IMAGES (1/2 HEIGHT BANNER)
 ======================================================== */
 @media (max-width: 900px) {
-  /* Mở rộng khung chứa ảnh ra một chút */
-  .hero-img.hero-left, .hero-img.hero-right {
-    max-height: 100% !important; 
-    max-width: 32% !important; /* Mở rộng chiều ngang */
+  /* Khóa cứng chiều cao banner để không bị kéo giãn */
+  .hero {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 180px !important;
+    max-height: 180px !important;
+    height: 180px !important;
+    padding: 5px !important;
+    border-radius: 0 0 20px 20px !important;
+    overflow: hidden !important;
   }
   
-  /* Bắt buộc ảnh bên trong hiển thị toàn vẹn (contain) thay vì bị cắt xén (cover) */
+  .hero-content {
+    position: relative !important;
+    z-index: 10 !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    margin: 0 !important;
+    transform: scale(0.95) !important; /* Thu nhỏ nhẹ toàn bộ nội dung để vừa vặn */
+  }
+
+  /* Status row */
+  .status-row {
+    position: relative !important;
+    left: auto !important;
+    transform: none !important;
+    margin: 0 auto 2px !important;
+    padding: 2px 10px !important;
+    display: inline-flex !important;
+    font-size: 9px !important;
+    background: rgba(0,0,0,0.4) !important;
+  }
+
+  .hero h1 {
+    font-size: 20px !important;
+    margin: 0 0 2px 0 !important;
+    text-align: center !important;
+  }
+  .hero p {
+    display: none !important; /* Ẩn đi để tiết kiệm chỗ */
+  }
+
+  /* Sắp xếp các tab thành HÀNG DỌC ở giữa */
+  .hero-actions.quick {
+    display: flex !important;
+    flex-direction: column !important; /* Hàng dọc như yêu cầu */
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    margin: 2px auto !important;
+    width: 100% !important;
+  }
+  
+  .hero-actions.quick button {
+    width: 140px !important; /* Đều nhau */
+    padding: 4px 10px !important; /* Rất mỏng */
+    font-size: 10px !important;
+    border-radius: 99px !important;
+    margin: 0 !important;
+    text-align: center !important;
+    box-shadow: none !important;
+  }
+
+  /* Hộp thoại AI thu gọn vào form search */
+  .hero-search {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    position: relative !important;
+    width: 90% !important;
+    max-width: 240px !important;
+    margin: 4px auto 0 !important;
+    padding: 2px !important;
+    background: rgba(0,8,40,0.85) !important;
+    border: 1px solid rgba(91,225,255,0.4) !important;
+    border-radius: 99px !important;
+  }
+  
+  .hero-search input {
+    flex: 1 1 auto !important;
+    background: transparent !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 4px 10px !important;
+    color: #dbfbff !important;
+    font-size: 11px !important;
+    width: 100% !important;
+  }
+  
+  .hero-search button {
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    padding: 4px 10px !important;
+    border-radius: 99px !important;
+    background: linear-gradient(135deg, rgba(16,227,255,1), rgba(18,78,214,1)) !important;
+    border: none !important;
+    color: #fff !important;
+    font-size: 10px !important;
+  }
+
+  /* Hai hình 2 bên: KHỚP hoàn toàn vào banner, không bị xén lẹm, không bị kéo giãn */
+  .hero-img.hero-left, .hero-img.hero-right {
+    position: absolute !important;
+    height: 100% !important;
+    width: 28% !important; /* Mở rộng thêm để không bị lẹm */
+    bottom: 0 !important;
+    opacity: 0.8 !important;
+    z-index: 1 !important;
+  }
+  .hero-img.hero-left { left: 0 !important; }
+  .hero-img.hero-right { right: 0 !important; }
+
+  /* Đảm bảo ảnh cover vừa vặn, giữ khuôn mặt ở trên cùng */
   .hero-img.hero-left img, .hero-img.hero-right img {
-    object-fit: contain !important;
-    object-position: bottom !important;
+    object-fit: cover !important; 
+    object-position: top center !important; 
     width: 100% !important;
     height: 100% !important;
   }
