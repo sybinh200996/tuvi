@@ -1,4 +1,4 @@
-const CACHE = "v42-chat-ui-restored-1791444527880";
+const CACHE = "v43-ultimate-fix-1791444773802";
 const APP_SHELL = [
   "./",
   "./index.html",
