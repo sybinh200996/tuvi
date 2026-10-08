@@ -1,4 +1,4 @@
-const CACHE = "v34-fade-images-1791438475783";
+const CACHE = "v32-super-compact-1791438702195";
 const APP_SHELL = [
   "./",
   "./index.html",
