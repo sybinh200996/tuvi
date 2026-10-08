@@ -1,4 +1,4 @@
-const CACHE = "v32-super-compact-1791441066201";
+const CACHE = "v42-chat-ui-restored-1791444527880";
 const APP_SHELL = [
   "./",
   "./index.html",
