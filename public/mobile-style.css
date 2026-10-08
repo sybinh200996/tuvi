@@ -872,73 +872,7 @@ body {
 }
 
 
-/* ========================================================
-   REDUCE BANNER HEIGHT 1/2
-======================================================== */
-@media (max-width: 900px) {
-  .hero {
-    min-height: 120px !important;
-    padding: 10px 10px 15px !important;
-  }
-  .hero h1 {
-    font-size: 24px !important;
-    margin: 5px 0 !important;
-  }
-  .hero p {
-    font-size: 10px !important;
-    margin-bottom: 5px !important;
-  }
-  .hero-actions.quick {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 6px !important;
-    margin: 5px auto !important;
-    width: 95% !important;
-  }
-  .hero-actions.quick button {
-    width: 100% !important;
-    max-width: none !important;
-    padding: 8px !important;
-    font-size: 11px !important;
-  }
-  .hero-search {
-    width: 95% !important;
-    margin: 0 auto !important;
-  }
-  .hero-search input {
-    padding: 8px 12px !important;
-    font-size: 12px !important;
-  }
-  .hero-search button {
-    padding: 8px 15px !important;
-    font-size: 11px !important;
-  }
-  .hero-img.hero-left, .hero-img.hero-right {
-    max-width: 35% !important;
-  }
-}
 
-
-/* ========================================================
-   BANNER ADJUSTMENTS: VERTICAL TABS & INLINE SEARCH BUTTON
-======================================================== */
-@media (max-width: 900px) {
-  /* 1. Vertical tabs in the middle */
-  .hero-actions.quick {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 8px !important;
-    margin: 10px auto !important;
-    width: 100% !important;
-  }
-  .hero-actions.quick button {
-    width: auto !important;
-    min-width: 180px !important; /* Rút ngắn khung tab lại cho hợp lý */
-    max-width: 250px !important;
-    padding: 9px 15px !important;
-    font-size: 12px !important;
-  }
 
   /* 2. Button inside input box */
   .hero-search {
@@ -978,5 +912,105 @@ body {
     white-space: nowrap !important;
     width: auto !important;
     box-shadow: 0 2px 8px rgba(0,221,255,0.4) !important;
+  }
+}
+
+
+/* ========================================================
+   ULTIMATE COMPACT VERTICAL BANNER (1/2 HEIGHT)
+======================================================== */
+@media (max-width: 900px) {
+  /* Khung banner cực kỳ ngắn */
+  .hero {
+    min-height: auto !important;
+    padding: 15px 10px 10px !important;
+    border-radius: 0 0 20px 20px !important;
+  }
+  
+  .hero-content {
+    margin-top: 5px !important;
+  }
+
+  .hero h1 {
+    font-size: 20px !important;
+    margin: 0 0 2px 0 !important;
+  }
+  
+  .hero p {
+    font-size: 9px !important;
+    margin: 0 0 5px 0 !important;
+    line-height: 1 !important;
+  }
+
+  /* 4 Tab xếp hàng dọc ở giữa, khung rất gọn */
+  .hero-actions.quick {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 4px !important; /* Rất sít nhau */
+    margin: 5px auto !important;
+    width: 100% !important;
+  }
+  
+  .hero-actions.quick button {
+    width: auto !important;
+    min-width: 140px !important; /* Rút gọn khung tab cực kỳ hợp lý */
+    max-width: 180px !important;
+    padding: 6px 15px !important; /* Tab mỏng lại */
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    border-radius: 99px !important;
+  }
+
+  /* Khung tìm kiếm tích hợp nút AI (Hộp thoại tìm kiếm) */
+  .hero-search {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    position: relative !important;
+    width: 85% !important;
+    max-width: 280px !important;
+    margin: 8px auto 0 !important;
+    padding: 2px !important; /* Nhỏ gọn */
+    background: rgba(0,8,40,0.85) !important;
+    border: 1px solid rgba(91,225,255,0.4) !important;
+    border-radius: 99px !important;
+    box-shadow: inset 0 2px 10px rgba(0,0,0,0.5) !important;
+  }
+  
+  .hero-search input {
+    flex: 1 1 auto !important;
+    background: transparent !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 8px 12px !important;
+    color: #dbfbff !important;
+    font-size: 12px !important;
+    width: 100% !important;
+  }
+  
+  .hero-search button {
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    padding: 8px 12px !important; /* Nút mỏng lại */
+    border-radius: 99px !important;
+    background: linear-gradient(135deg, rgba(16,227,255,0.9), rgba(18,78,214,0.9)) !important;
+    border: none !important;
+    color: #fff !important;
+    font-weight: bold !important;
+    font-size: 11px !important;
+    white-space: nowrap !important;
+    width: auto !important;
+  }
+
+  /* Căn chỉnh hình ảnh hai bên banner cho hợp lý (không che chữ) */
+  .hero-img.hero-left, .hero-img.hero-right {
+    height: 100% !important;
+    max-height: 130px !important; /* Thu nhỏ ảnh */
+    max-width: 22% !important; /* Ép mỏng để không chạm vào cột dọc giữa */
+    object-fit: contain !important;
+    object-position: bottom !important;
+    bottom: 0 !important;
+    opacity: 0.8 !important;
   }
 }
