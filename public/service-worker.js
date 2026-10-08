@@ -1,4 +1,4 @@
-const CACHE = "v32-super-compact-1791438702195";
+const CACHE = "v32-super-compact-1791438841925";
 const APP_SHELL = [
   "./",
   "./index.html",
