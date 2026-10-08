@@ -263,7 +263,7 @@ body {
     border: none !important;
     color: rgba(255,255,255,0.5) !important;
     padding: 6px !important;
-    gap: 2px !important;
+    gap: 4px !important;
     width: 60px !important;
     box-shadow: none !important;
   }
@@ -277,7 +277,7 @@ body {
   
   .bottom-nav button small {
     display: block !important;
-    font-size: 9.5px !important; line-height: 1.1 !important;
+    font-size: 10px !important;
     font-weight: 600 !important;
     white-space: nowrap !important;
   }
@@ -658,10 +658,9 @@ html, body {
 
 
 /* ========================================================
-   V35 FINAL - NO JUMBLE, PERFECT FEET & HIDDEN STATUS
+   V35 - EXACT ORIGINAL RESTORE (NO FEET TWEAKS)
 ======================================================== */
 @media (max-width: 900px) {
-  /* ÉP CHIỀU CAO BANNER SIÊU NGẮN (Không có padding top - giống y hệt V35) */
   .hero {
     position: relative !important;
     display: flex !important;
@@ -688,14 +687,14 @@ html, body {
     transform-origin: top center !important;
   }
 
-  /* ẨN HOÀN TOÀN TAB SERVER ONLINE (như V35) */
+  /* ẨN HOÀN TOÀN TAB SERVER ONLINE NHƯ YÊU CẦU CỦA V35 */
   .status-row {
     display: none !important;
   }
 
   .hero h1 {
     font-size: 24px !important;
-    margin: 5px 0 4px 0 !important; /* Đẩy h1 xuống một chút xíu so với mép */
+    margin: 5px 0 4px 0 !important;
     text-align: center !important;
   }
   .hero p {
@@ -757,10 +756,12 @@ html, body {
     font-size: 11px !important;
   }
 
-  /* ẢNH FADE EDGES CỦA V35 */
+  /* ẢNH FADE EDGES CỦA V35 GỐC */
   .hero-img.hero-left, .hero-img.hero-right {
     position: absolute !important;
     height: 100% !important;
+    width: 42% !important; 
+    max-width: 42% !important;
     top: 0 !important; 
     bottom: 0 !important; 
     opacity: 0.9 !important;
@@ -769,30 +770,18 @@ html, body {
   
   .hero-img.hero-left { 
     left: 0 !important; 
-    /* THU NHỎ width ảnh trái xuống 35% để thấy chân nhiều hơn khi object-fit cover */
-    width: 35% !important; 
-    max-width: 35% !important;
     -webkit-mask-image: linear-gradient(to right, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%) !important;
     mask-image: linear-gradient(to right, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%) !important;
   } 
   
   .hero-img.hero-right { 
     right: 0 !important; 
-    width: 42% !important;
-    max-width: 42% !important;
     -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%) !important;
     mask-image: linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0) 100%) !important;
   }
 
-  /* ẢNH TRÁI: Dịch xuống để thấy chân */
-  .hero-img.hero-left img {
-    object-fit: cover !important; 
-    object-position: bottom center !important; /* Chuyển trọng tâm xuống dưới để thấy chân */
-    width: 100% !important;
-    height: 100% !important;
-  }
-
-  .hero-img.hero-right img {
+  /* KHÔI PHỤC LẠI OBJECT-POSITION TOP CENTER NHƯ V35 GỐC */
+  .hero-img.hero-left img, .hero-img.hero-right img {
     object-fit: cover !important; 
     object-position: top center !important; 
     width: 100% !important;
