@@ -1014,3 +1014,33 @@ body {
     opacity: 0.8 !important;
   }
 }
+
+
+/* ========================================================
+   STATUS ROW CENTERING FIX
+======================================================== */
+@media (max-width: 900px) {
+  .hero {
+    position: relative !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .status-row {
+    position: relative !important;
+    left: auto !important;
+    transform: none !important;
+    margin: 0 auto 5px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: max-content !important;
+  }
+  .hero-content {
+    width: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+}
