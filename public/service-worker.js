@@ -1,4 +1,4 @@
-const CACHE = "v38-restore-v35-exact-1791439832566";
+const CACHE = "v39-clean-slate-1791440309595";
 const APP_SHELL = [
   "./",
   "./index.html",
