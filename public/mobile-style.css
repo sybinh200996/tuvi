@@ -667,9 +667,9 @@ html, body {
     flex-direction: column !important;
     align-items: center !important;
     justify-content: flex-start !important;
-    min-height: 118px !important;
-    max-height: 118px !important;
-    height: 118px !important;
+    min-height: 150px !important;
+    max-height: none !important;
+    height: 150px !important;
     padding: 0 5px 0 !important; 
     border-radius: 0 0 20px 20px !important;
     overflow: hidden !important;
