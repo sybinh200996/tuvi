@@ -263,7 +263,7 @@ body {
     border: none !important;
     color: rgba(255,255,255,0.5) !important;
     padding: 6px !important;
-    gap: 4px !important;
+    gap: 2px !important;
     width: 60px !important;
     box-shadow: none !important;
   }
@@ -277,7 +277,7 @@ body {
   
   .bottom-nav button small {
     display: block !important;
-    font-size: 10px !important;
+    font-size: 9.5px !important; line-height: 1.1 !important;
     font-weight: 600 !important;
     white-space: nowrap !important;
   }
@@ -941,7 +941,7 @@ body {
   
   .hero-actions.quick button {
     width: auto !important;
-    min-width: 140px !important; /* Rút gọn khung tab cực kỳ hợp lý */
+    min-width: 120px !important; /* Rút gọn khung tab cực kỳ hợp lý */
     max-width: 180px !important;
     padding: 6px 15px !important; /* Tab mỏng lại */
     font-size: 11px !important;
@@ -1294,7 +1294,7 @@ body {
   
   .hero-actions.quick button {
     width: 140px !important; /* Đều nhau */
-    padding: 4px 10px !important; /* Rất mỏng */
+    padding: 2px 8px !important; /* Rất mỏng */
     font-size: 10px !important;
     border-radius: 99px !important;
     margin: 0 !important;
