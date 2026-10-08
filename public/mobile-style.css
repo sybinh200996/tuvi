@@ -870,3 +870,50 @@ body {
     .chat-layout .bubble-body th, .chat-layout .bubble-body td { border: 1px solid rgba(255,255,255,0.2); padding: 8px; }
     .chat-layout .bubble-body th { background: rgba(255,255,255,0.1); }
 }
+
+
+/* ========================================================
+   REDUCE BANNER HEIGHT 1/2
+======================================================== */
+@media (max-width: 900px) {
+  .hero {
+    min-height: 120px !important;
+    padding: 10px 10px 15px !important;
+  }
+  .hero h1 {
+    font-size: 24px !important;
+    margin: 5px 0 !important;
+  }
+  .hero p {
+    font-size: 10px !important;
+    margin-bottom: 5px !important;
+  }
+  .hero-actions.quick {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+    margin: 5px auto !important;
+    width: 95% !important;
+  }
+  .hero-actions.quick button {
+    width: 100% !important;
+    max-width: none !important;
+    padding: 8px !important;
+    font-size: 11px !important;
+  }
+  .hero-search {
+    width: 95% !important;
+    margin: 0 auto !important;
+  }
+  .hero-search input {
+    padding: 8px 12px !important;
+    font-size: 12px !important;
+  }
+  .hero-search button {
+    padding: 8px 15px !important;
+    font-size: 11px !important;
+  }
+  .hero-img.hero-left, .hero-img.hero-right {
+    max-width: 35% !important;
+  }
+}

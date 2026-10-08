@@ -245,8 +245,11 @@ function Settings({ providers, reload }) {
   const [account, setAccount] = useState({ name: user?.name || '', email: user?.email || '', password: '' });
   async function handleSocialLogin(provider) {
     try {
-      const email = prompt(`[Mô phỏng OAuth] - Đăng nhập ${provider} thành công! Vui lòng nhập email của bạn:`, `user@${provider}.com`);
-      if (!email) return;
+      // Simulated OAuth popup
+  const email = `user_${Date.now().toString().slice(-6)}@${provider}.com`;
+  alert('Đang kết nối tới ' + provider + '...');
+  await new Promise(r => setTimeout(r, 1000));
+      
       const name = provider === 'google' ? 'Google User' : 'Facebook User';
       const data = await apiJSON('/api/auth/social', { provider, email, name, uid: 'social_' + Date.now() });
       localStorage.setItem('synam_user', JSON.stringify(data.user));

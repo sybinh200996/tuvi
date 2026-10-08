@@ -699,8 +699,11 @@ async function initFirebaseAuth(){
 
 async function socialLogin(provider){
   try{
-    const email = prompt(`[Mô phỏng OAuth] - Đăng nhập ${provider} thành công! Vui lòng nhập email của bạn:`, `user@${provider}.com`);
-    if(!email) return;
+    // Simulated OAuth popup
+  const email = `user_${Date.now().toString().slice(-6)}@${provider}.com`;
+  toast('Đang kết nối ' + provider + '...');
+  await new Promise(r => setTimeout(r, 1000));
+    
     const name = provider === 'google' ? 'Google User' : 'Facebook User';
     const data=await postJSON('/api/auth/social',{
       provider,
