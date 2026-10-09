@@ -231,12 +231,7 @@ function App() {
     mode: "face",
     title: "Xem tướng AI",
     icon: "🙂"
-  }), tab === 'love' && /*#__PURE__*/React.createElement(LoveTool, null), tab === 'horoscope' && /*#__PURE__*/React.createElement(SimpleTool, {
-    kind: "horoscope",
-    title: "Tử vi / Luận giải",
-    icon: "🔮",
-    preset: "Luận tử vi hôm nay, công việc, tình cảm, tài chính theo thông tin sau:"
-  }), tab === 'astrology' && /*#__PURE__*/React.createElement(AstrologyTool, null), tab === 'numerology' && /*#__PURE__*/React.createElement(NumerologyTool, null), tab === 'multi' && /*#__PURE__*/React.createElement(Chat, {
+  }), tab === 'love' && /*#__PURE__*/React.createElement(LoveTool, null), tab === 'horoscope' && /*#__PURE__*/React.createElement(TuviTool, null), tab === 'astrology' && /*#__PURE__*/React.createElement(AstrologyTool, null), tab === 'numerology' && /*#__PURE__*/React.createElement(NumerologyTool, null), tab === 'multi' && /*#__PURE__*/React.createElement(Chat, {
     providers: providers
   }), tab === 'fengshui' && /*#__PURE__*/React.createElement(FengShuiTool, null), tab === 'tarot' && /*#__PURE__*/React.createElement(TarotTool, null), tab === 'settings' && /*#__PURE__*/React.createElement(Settings, {
     providers: providers,
@@ -1107,6 +1102,53 @@ function LoveTool() {
     onChange: e => setB(e.target.value),
     placeholder: "Ngày sinh người 2: 02/02/2004"
   }), /*#__PURE__*/React.createElement("button", {
+    className: "primary",
+    onClick: run
+  }, "Luận giải")), /*#__PURE__*/React.createElement(Result, {
+    text: out
+  }));
+}
+function TuviTool() {
+  const [name, setName] = useState('');
+  const [dob, setDob] = useState('');
+  const [time, setTime] = useState('');
+  const [gender, setGender] = useState('Nam');
+  const [out, setOut] = useState('Nhập thông tin để luận giải.');
+  async function run() {
+    setOut('Đang tải...');
+    try {
+      const d = await apiJSON('/api/mystic-ai', {
+        name,
+        birthDate: dob,
+        birthTime: time,
+        gender,
+        localReport: window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : ''
+      });
+      setOut(d.text || d.reply || 'Không có kết quả');
+    } catch (e) {
+      setOut(window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : '⚠️ Lỗi: ' + e.message);
+    }
+  }
+  return /*#__PURE__*/React.createElement("section", {
+    className: "tool-grid"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "premium-panel"
+  }, /*#__PURE__*/React.createElement("h2", null, "📜 Tử vi / Thần số"), /*#__PURE__*/React.createElement("input", {
+    value: name,
+    onChange: e => setName(e.target.value),
+    placeholder: "Họ và tên"
+  }), /*#__PURE__*/React.createElement("input", {
+    value: dob,
+    onChange: e => setDob(e.target.value),
+    type: "date"
+  }), /*#__PURE__*/React.createElement("input", {
+    value: time,
+    onChange: e => setTime(e.target.value),
+    type: "time"
+  }), /*#__PURE__*/React.createElement("select", {
+    value: gender,
+    onChange: e => setGender(e.target.value)
+  }, /*#__PURE__*/React.createElement("option", null, "Nam"), /*#__PURE__*/React.createElement("option", null, "Nữ")), /*#__PURE__*/React.createElement("button", {
     className: "primary",
     onClick: run
   }, "Luận giải")), /*#__PURE__*/React.createElement(Result, {

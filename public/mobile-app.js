@@ -1,4 +1,4 @@
-const { useEffect, useMemo, useRef, useState } = React;
+﻿const { useEffect, useMemo, useRef, useState } = React;
 
 const TABS = [
   { id: 'home', icon: '✨', label: 'Trang chủ' },
@@ -152,7 +152,7 @@ function App() {
       {tab === 'palm' && <VisionTool mode="palm" title="Xem chỉ tay AI" icon="✋" />}
       {tab === 'face' && <VisionTool mode="face" title="Xem tướng AI" icon="🙂" />}
       {tab === 'love' && <LoveTool />}
-      {tab === 'horoscope' && <SimpleTool kind="horoscope" title="Tử vi / Luận giải" icon="🔮" preset="Luận tử vi hôm nay, công việc, tình cảm, tài chính theo thông tin sau:" />}
+      {tab === 'horoscope' && <TuviTool />}
       {tab === 'astrology' && <AstrologyTool />}
       {tab === 'numerology' && <NumerologyTool />}
       {tab === 'multi' && <Chat providers={providers} />}
@@ -572,7 +572,8 @@ function LoveTool() {
   async function run(){ setOut('Đang tính bằng code và AI luận giải...'); try{const d=await apiJSON('/api/love-ai',{ persons:[{name:'Người 1',birthDate:a},{name:'Người 2',birthDate:b}]}); setOut(d.text||d.reply||'Không có kết quả');}catch(e){setOut('⚠️ '+e.message)} }
   return <section className="tool-grid"><div className="premium-panel"><h2>💞 Tình duyên</h2><input value={a} onChange={e=>setA(e.target.value)} placeholder="Ngày sinh người 1: 01/01/2000"/><input value={b} onChange={e=>setB(e.target.value)} placeholder="Ngày sinh người 2: 02/02/2004"/><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>;
 }
-function SimpleTool({kind,title,icon,preset='',placeholder='Bạn muốn hỏi điều gì?'}){const [q,setQ]=useState('');const [out,setOut]=useState('Nhập nội dung rồi bấm luận giải.');async function run(){setOut('AI đang luận giải...');try{const d=await apiJSON('/api/multi-ai/chat',{message:`${preset||title} ${q}`, provider:'auto'});setOut(d.text||d.reply||'Không có kết quả')}catch(e){setOut('⚠️ '+e.message)}}return <section className="tool-grid"><div className="premium-panel"><h2>{icon} {title}</h2><textarea value={q} onChange={e=>setQ(e.target.value)} placeholder={placeholder}/><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>}
+function TuviTool() { const [name,setName]=useState(''); const [dob,setDob]=useState(''); const [time,setTime]=useState(''); const [gender,setGender]=useState('Nam'); const [out,setOut]=useState('Nhập thông tin để luận giải.'); async function run(){ setOut('Đang tải...'); try{const d=await apiJSON('/api/mystic-ai',{name,birthDate:dob,birthTime:time,gender, localReport: window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : '' }); setOut(d.text||d.reply||'Không có kết quả');}catch(e){setOut(window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : '⚠️ Lỗi: '+e.message)} } return <section className="tool-grid"><div className="premium-panel"><h2>📜 Tử vi / Thần số</h2><input value={name} onChange={e=>setName(e.target.value)} placeholder="Họ và tên"/><input value={dob} onChange={e=>setDob(e.target.value)} type="date"/><input value={time} onChange={e=>setTime(e.target.value)} type="time"/><select value={gender} onChange={e=>setGender(e.target.value)}><option>Nam</option><option>Nữ</option></select><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>; }
+  function SimpleTool({kind,title,icon,preset='',placeholder='Bạn muốn hỏi điều gì?'}){const [q,setQ]=useState('');const [out,setOut]=useState('Nhập nội dung rồi bấm luận giải.');async function run(){setOut('AI đang luận giải...');try{const d=await apiJSON('/api/multi-ai/chat',{message:`${preset||title} ${q}`, provider:'auto'});setOut(d.text||d.reply||'Không có kết quả')}catch(e){setOut('⚠️ '+e.message)}}return <section className="tool-grid"><div className="premium-panel"><h2>{icon} {title}</h2><textarea value={q} onChange={e=>setQ(e.target.value)} placeholder={placeholder}/><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>}
 
 function AstrologyTool(){
   const zodiacs = [
@@ -701,3 +702,6 @@ function DeepTool() {
     <Result text={result}/>
   </section>;
 }
+
+
+

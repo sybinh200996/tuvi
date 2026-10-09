@@ -1,16 +1,16 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#07142f" />
-  <meta name="description" content="Đặng Năm Mystic - AI tử vi, chỉ tay, xem tướng, chiêm tinh, chat, lịch sử và tài khoản." />
+  <meta name="description" content="Äáº·ng NÄƒm Mystic - AI tá»­ vi, chá»‰ tay, xem tÆ°á»›ng, chiÃªm tinh, chat, lá»‹ch sá»­ vÃ  tÃ i khoáº£n." />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="assets/icon.svg" />
   <link rel="stylesheet" href="style.css?v=1791519947985" />
   
     <script>
-      // NAM45 Hybrid: Desktop dùng giao diện file 1, Mobile dùng giao diện file 2.
+      // NAM45 Hybrid: Desktop dÃ¹ng giao diá»‡n file 1, Mobile dÃ¹ng giao diá»‡n file 2.
       (function(){
         var params = new URLSearchParams(location.search);
         var forceDesktop = params.get('desktop') === '1';
@@ -20,9 +20,9 @@
         }
       })();
     </script>
-    <title>Đặng Năm Mystic</title>
+    <title>Äáº·ng NÄƒm Mystic</title>
 
-  <!-- Dùng chung một ứng dụng responsive cho desktop và mobile; tránh SPA mobile tách rời làm thiếu tab/chức năng. -->
+  <!-- DÃ¹ng chung má»™t á»©ng dá»¥ng responsive cho desktop vÃ  mobile; trÃ¡nh SPA mobile tÃ¡ch rá»i lÃ m thiáº¿u tab/chá»©c nÄƒng. -->
 
     <!-- Premium Chat Upgrades -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -247,7 +247,7 @@
   }
 
   :is(body[data-route="chat"], #page-chat) .chat-input.pro-input #chatSendBtn::after {
-    content: "➤" !important;
+    content: "âž¤" !important;
     color: #241900 !important;
     font-size: 17px !important;
     font-weight: 800 !important;
@@ -289,9 +289,9 @@
 <body>
   <div id="stars"></div>
   <aside id="sideMenu" class="side-menu">
-    <button class="close-menu" onclick="toggleMenu(false)">×</button>
-    <h2>Đặng Năm Mystic</h2>
-    <p>Điều hướng nhanh</p>
+    <button class="close-menu" onclick="toggleMenu(false)">Ã—</button>
+    <h2>Äáº·ng NÄƒm Mystic</h2>
+    <p>Äiá»u hÆ°á»›ng nhanh</p>
     <div id="sideLinks"></div>
   </aside>
   <div id="menuShade" class="menu-shade" onclick="toggleMenu(false)"></div>
@@ -299,161 +299,161 @@
   <main class="app">
     <header class="hero-section">
       <nav class="topbar">
-        <button class="icon-btn menu-btn" onclick="toggleMenu(true)">☰</button>
-        <div class="top-actions"><span id="liveClock" class="live-clock">Đang lấy giờ...</span><span id="geminiStatus" class="ai-status warn">Gemini: kiểm tra...</span>
-          <button class="icon-btn" onclick="speakLastResult()">🔊</button>
-          <button class="icon-btn" onclick="routeTo('account')">🌐</button>
-          <button class="icon-btn" onclick="openAppModal()" title="Tải App Mobile" style="width:auto; padding: 0 10px; font-weight:bold; font-size: 13px;">📱 Tải App</button>
-          <button class="profile-pill" onclick="routeTo('account')"><span class="avatar">👤</span> Tài khoản <b>Member</b></button>
+        <button class="icon-btn menu-btn" onclick="toggleMenu(true)">â˜°</button>
+        <div class="top-actions"><span id="liveClock" class="live-clock">Äang láº¥y giá»...</span><span id="geminiStatus" class="ai-status warn">Gemini: kiá»ƒm tra...</span>
+          <button class="icon-btn" onclick="speakLastResult()">ðŸ”Š</button>
+          <button class="icon-btn" onclick="routeTo('account')">ðŸŒ</button>
+          <button class="icon-btn" onclick="openAppModal()" title="Táº£i App Mobile" style="width:auto; padding: 0 10px; font-weight:bold; font-size: 13px;">ðŸ“± Táº£i App</button>
+          <button class="profile-pill" onclick="routeTo('account')"><span class="avatar">ðŸ‘¤</span> TÃ i khoáº£n <b>Member</b></button>
         </div>
       </nav>
-      <img src="assets/hero-left.png" class="hero-person hero-left" alt="Ảnh trái" />
-      <img src="assets/hero-right.jpg" class="hero-person hero-right" alt="Ảnh phải" />
+      <img src="assets/hero-left.png" class="hero-person hero-left" alt="áº¢nh trÃ¡i" />
+      <img src="assets/hero-right.jpg" class="hero-person hero-right" alt="áº¢nh pháº£i" />
       <div class="hero-center">
-        <h1>Đặng Năm Mystic</h1>
-        <p>AI TỬ VI - CHỈ TAY - XEM TƯỚNG - CHIÊM TINH</p>
+        <h1>Äáº·ng NÄƒm Mystic</h1>
+        <p>AI Tá»¬ VI - CHá»ˆ TAY - XEM TÆ¯á»šNG - CHIÃŠM TINH</p>
         <div class="search-shell">
-          <span>⌕</span>
-          <input id="globalAsk" placeholder="Hỏi về tử vi, chỉ tay, tướng số, chiêm tinh..." onkeydown="if(event.key==='Enter') quickAsk()" />
-          <button onclick="quickAsk()">✦ AI PHÂN TÍCH</button>
+          <span>âŒ•</span>
+          <input id="globalAsk" placeholder="Há»i vá» tá»­ vi, chá»‰ tay, tÆ°á»›ng sá»‘, chiÃªm tinh..." onkeydown="if(event.key==='Enter') quickAsk()" />
+          <button onclick="quickAsk()">âœ¦ AI PHÃ‚N TÃCH</button>
         </div>
         <div class="quick-row">
-          <button onclick="routeTo('tuvi')">⚙ Tử vi hôm nay</button>
-          <button onclick="routeTo('astrology')">♈ Cung hoàng đạo</button>
-          <button onclick="routeTo('palm')">🖐 Xem chỉ tay</button>
-          <button onclick="routeTo('face')">♙ Xem tướng</button>
+          <button onclick="routeTo('tuvi')">âš™ Tá»­ vi hÃ´m nay</button>
+          <button onclick="routeTo('astrology')">â™ˆ Cung hoÃ ng Ä‘áº¡o</button>
+          <button onclick="routeTo('palm')">ðŸ– Xem chá»‰ tay</button>
+          <button onclick="routeTo('face')">â™™ Xem tÆ°á»›ng</button>
         </div>
       </div>
     </header>
 
     <section class="feature-tabs-wrap">
-      <button class="slide-btn">‹</button>
+      <button class="slide-btn">â€¹</button>
       <div id="featureTabs" class="feature-tabs"></div>
-      <button class="slide-btn">›</button>
+      <button class="slide-btn">â€º</button>
     </section>
 
     <section id="page-home" class="page active">
       <div class="dashboard-grid">
         <article class="feature-card wide" onclick="routeTo('deep')">
-          <div><h2>AI PHÂN TÍCH SÂU <em>PRO</em></h2><p>AI phân tích đa lớp, kết hợp thông tin bạn nhập để đưa ra bản luận giải chi tiết nhất.</p><button>✦ BẮT ĐẦU NGAY</button></div><div class="card-art ai-head">AI</div>
+          <div><h2>AI PHÃ‚N TÃCH SÃ‚U <em>PRO</em></h2><p>AI phÃ¢n tÃ­ch Ä‘a lá»›p, káº¿t há»£p thÃ´ng tin báº¡n nháº­p Ä‘á»ƒ Ä‘Æ°a ra báº£n luáº­n giáº£i chi tiáº¿t nháº¥t.</p><button>âœ¦ Báº®T Äáº¦U NGAY</button></div><div class="card-art ai-head">AI</div>
         </article>
         <article class="feature-card wide" onclick="routeTo('palm')">
-          <div><h2>XEM CHỈ TAY AI <em>PRO</em></h2><p>Upload ảnh bàn tay để AI phân tích đường sinh đạo, trí đạo, tâm đạo...</p><button>⇧ TẢI ẢNH LÊN</button></div><div class="card-art hand-art">🖐</div>
+          <div><h2>XEM CHá»ˆ TAY AI <em>PRO</em></h2><p>Upload áº£nh bÃ n tay Ä‘á»ƒ AI phÃ¢n tÃ­ch Ä‘Æ°á»ng sinh Ä‘áº¡o, trÃ­ Ä‘áº¡o, tÃ¢m Ä‘áº¡o...</p><button>â‡§ Táº¢I áº¢NH LÃŠN</button></div><div class="card-art hand-art">ðŸ–</div>
         </article>
         <article class="feature-card wide" onclick="routeTo('face')">
-          <div><h2>XEM TƯỚNG AI <em>PRO</em></h2><p>Upload ảnh khuôn mặt để AI phân tích ngũ quan, thần thái, vận mệnh tham khảo.</p><button>⇧ TẢI ẢNH LÊN</button></div><div class="card-art face-art">◎</div>
+          <div><h2>XEM TÆ¯á»šNG AI <em>PRO</em></h2><p>Upload áº£nh khuÃ´n máº·t Ä‘á»ƒ AI phÃ¢n tÃ­ch ngÅ© quan, tháº§n thÃ¡i, váº­n má»‡nh tham kháº£o.</p><button>â‡§ Táº¢I áº¢NH LÃŠN</button></div><div class="card-art face-art">â—Ž</div>
         </article>
         <article class="feature-card wide" onclick="routeTo('love')">
-          <div><h2>TÌNH DUYÊN AI <em>PRO</em></h2><p>So sánh 2 ngày sinh, phân tích mức độ hòa hợp, điểm hút nhau và cách dung hòa.</p><button>💕 XEM TÌNH DUYÊN</button></div><div class="card-art">💕</div>
+          <div><h2>TÃŒNH DUYÃŠN AI <em>PRO</em></h2><p>So sÃ¡nh 2 ngÃ y sinh, phÃ¢n tÃ­ch má»©c Ä‘á»™ hÃ²a há»£p, Ä‘iá»ƒm hÃºt nhau vÃ  cÃ¡ch dung hÃ²a.</p><button>ðŸ’• XEM TÃŒNH DUYÃŠN</button></div><div class="card-art">ðŸ’•</div>
         </article>
         <article class="feature-card wide" onclick="routeTo('numerology')">
-          <div><h2>THẦN SỐ HỌC AI <em>PRO</em></h2><p>Tính con số chủ đạo, linh hồn, biểu đạt và AI luận giải theo tên + ngày sinh.</p><button>🔢 XEM THẦN SỐ</button></div><div class="card-art">🔢</div>
+          <div><h2>THáº¦N Sá» Há»ŒC AI <em>PRO</em></h2><p>TÃ­nh con sá»‘ chá»§ Ä‘áº¡o, linh há»“n, biá»ƒu Ä‘áº¡t vÃ  AI luáº­n giáº£i theo tÃªn + ngÃ y sinh.</p><button>ðŸ”¢ XEM THáº¦N Sá»</button></div><div class="card-art">ðŸ”¢</div>
         </article>
         <article class="feature-card wide" onclick="routeTo('chat')">
-          <div><h2>AI CHAT - HỎI VÀ ĐÁP <em>PRO</em></h2><p>Hỏi đáp với Gemini AI thật, có thể tải ảnh/file để phân tích nội dung.</p><button>☻ BẮT ĐẦU CHAT</button></div><div class="card-art bot-art">🤖</div>
+          <div><h2>AI CHAT - Há»ŽI VÃ€ ÄÃP <em>PRO</em></h2><p>Há»i Ä‘Ã¡p vá»›i Gemini AI tháº­t, cÃ³ thá»ƒ táº£i áº£nh/file Ä‘á»ƒ phÃ¢n tÃ­ch ná»™i dung.</p><button>â˜» Báº®T Äáº¦U CHAT</button></div><div class="card-art bot-art">ðŸ¤–</div>
         </article>
-        <article class="mini-card nam33-history-card"><h3>LỊCH SỬ PHÂN TÍCH</h3><div id="historyMini"></div><div class="nam33-card-actions"><button type="button" onclick="routeTo('history')">📜 Mở lịch sử</button><button type="button" onclick="exportHistoryTxt(event)">⬇ TXT</button><button type="button" onclick="clearHistory()">🗑 Xóa</button></div></article>
-        <article class="mini-card nam33-voice-card"><h3>GIỌNG NÓI AI</h3><div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><p>Nghe kết quả phân tích bằng giọng nói thật của trình duyệt.</p><div class="nam33-voice-controls"><select id="homeVoiceSelect" onchange="syncHomeVoiceSelect()"><option value="auto">Tự động chọn giọng Việt</option></select><input id="homeVoiceRate" type="range" min="0.7" max="1.35" step="0.05" value="1" oninput="syncHomeVoiceRate()"></div><div class="nam33-card-actions"><button type="button" onclick="speakLastResult()">▶ Đọc kết quả</button><button type="button" onclick="testVoice()">🔊 Test</button><button type="button" onclick="stopSpeaking()">⏹ Dừng</button></div></article>
-        <article class="mini-card stats-card nam33-stats-card"><h3>THỐNG KÊ CỦA BẠN</h3><div class="ring"><span id="nam33StatPercent">0%</span><small>hoạt động</small></div><ul><li>Phân tích đã thực hiện <b id="statCount">0</b></li><li>Câu hỏi AI <b id="statChatCount">0</b></li><li>Ảnh/file <b id="statImageCount">0</b></li><li>Ngày sử dụng <b id="statDaysUsed">1</b></li></ul><div class="nam33-card-actions"><button type="button" onclick="renderNam33Stats();toast('Đã cập nhật thống kê')">🔄 Cập nhật</button><button type="button" onclick="resetNam33Stats(event)">♻ Reset</button></div></article>
+        <article class="mini-card nam33-history-card"><h3>Lá»ŠCH Sá»¬ PHÃ‚N TÃCH</h3><div id="historyMini"></div><div class="nam33-card-actions"><button type="button" onclick="routeTo('history')">ðŸ“œ Má»Ÿ lá»‹ch sá»­</button><button type="button" onclick="exportHistoryTxt(event)">â¬‡ TXT</button><button type="button" onclick="clearHistory()">ðŸ—‘ XÃ³a</button></div></article>
+        <article class="mini-card nam33-voice-card"><h3>GIá»ŒNG NÃ“I AI</h3><div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><p>Nghe káº¿t quáº£ phÃ¢n tÃ­ch báº±ng giá»ng nÃ³i tháº­t cá»§a trÃ¬nh duyá»‡t.</p><div class="nam33-voice-controls"><select id="homeVoiceSelect" onchange="syncHomeVoiceSelect()"><option value="auto">Tá»± Ä‘á»™ng chá»n giá»ng Viá»‡t</option></select><input id="homeVoiceRate" type="range" min="0.7" max="1.35" step="0.05" value="1" oninput="syncHomeVoiceRate()"></div><div class="nam33-card-actions"><button type="button" onclick="speakLastResult()">â–¶ Äá»c káº¿t quáº£</button><button type="button" onclick="testVoice()">ðŸ”Š Test</button><button type="button" onclick="stopSpeaking()">â¹ Dá»«ng</button></div></article>
+        <article class="mini-card stats-card nam33-stats-card"><h3>THá»NG KÃŠ Cá»¦A Báº N</h3><div class="ring"><span id="nam33StatPercent">0%</span><small>hoáº¡t Ä‘á»™ng</small></div><ul><li>PhÃ¢n tÃ­ch Ä‘Ã£ thá»±c hiá»‡n <b id="statCount">0</b></li><li>CÃ¢u há»i AI <b id="statChatCount">0</b></li><li>áº¢nh/file <b id="statImageCount">0</b></li><li>NgÃ y sá»­ dá»¥ng <b id="statDaysUsed">1</b></li></ul><div class="nam33-card-actions"><button type="button" onclick="renderNam33Stats();toast('ÄÃ£ cáº­p nháº­t thá»‘ng kÃª')">ðŸ”„ Cáº­p nháº­t</button><button type="button" onclick="resetNam33Stats(event)">â™» Reset</button></div></article>
       </div>
     </section>
 
-    <section id="page-deep" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();analyzeDeep()"><h2>🧠 AI Phân Tích Chuyên Sâu PRO</h2><p class="muted">Cung cấp thông tin chi tiết nhất để AI tổng hợp đa lớp và luận giải chuyên sâu.</p><label>Họ tên<input id="deepName" placeholder="Vd: Nguyễn Văn A"></label><label>Ngày tháng năm sinh<input id="deepBirth" type="date"></label><label>Câu hỏi hoặc vấn đề<textarea id="deepAsk" placeholder="Trình bày rõ vấn đề bạn đang gặp phải hoặc điều muốn hỏi thật chi tiết..."></textarea></label><label>Khía cạnh tập trung<select id="deepFocus"><option>Tổng quan cuộc đời & Vận hạn</option><option>Công danh sự nghiệp & Tài lộc</option><option>Tình duyên & Hôn nhân</option><option>Phân tích tâm lý & Lời khuyên</option></select></label><button class="primary">✦ Bắt Đầu Phân Tích Sâu</button></form><article id="deepResult" class="result-panel"><h2>Kết quả phân tích sâu</h2><p>Vui lòng điền thông tin và bấm bắt đầu để AI xử lý.</p></article></div></section>
+    <section id="page-deep" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();analyzeDeep()"><h2>ðŸ§  AI PhÃ¢n TÃ­ch ChuyÃªn SÃ¢u PRO</h2><p class="muted">Cung cáº¥p thÃ´ng tin chi tiáº¿t nháº¥t Ä‘á»ƒ AI tá»•ng há»£p Ä‘a lá»›p vÃ  luáº­n giáº£i chuyÃªn sÃ¢u.</p><label>Há» tÃªn<input id="deepName" placeholder="Vd: Nguyá»…n VÄƒn A"></label><label>NgÃ y thÃ¡ng nÄƒm sinh<input id="deepBirth" type="date"></label><label>CÃ¢u há»i hoáº·c váº¥n Ä‘á»<textarea id="deepAsk" placeholder="TrÃ¬nh bÃ y rÃµ váº¥n Ä‘á» báº¡n Ä‘ang gáº·p pháº£i hoáº·c Ä‘iá»u muá»‘n há»i tháº­t chi tiáº¿t..."></textarea></label><label>KhÃ­a cáº¡nh táº­p trung<select id="deepFocus"><option>Tá»•ng quan cuá»™c Ä‘á»i & Váº­n háº¡n</option><option>CÃ´ng danh sá»± nghiá»‡p & TÃ i lá»™c</option><option>TÃ¬nh duyÃªn & HÃ´n nhÃ¢n</option><option>PhÃ¢n tÃ­ch tÃ¢m lÃ½ & Lá»i khuyÃªn</option></select></label><button class="primary">âœ¦ Báº¯t Äáº§u PhÃ¢n TÃ­ch SÃ¢u</button></form><article id="deepResult" class="result-panel"><h2>Káº¿t quáº£ phÃ¢n tÃ­ch sÃ¢u</h2><p>Vui lÃ²ng Ä‘iá»n thÃ´ng tin vÃ  báº¥m báº¯t Ä‘áº§u Ä‘á»ƒ AI xá»­ lÃ½.</p></article></div></section>
 
-    <section id="page-tuvi" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();generateMystic()"><h2>📜 Tử vi / Luận giải</h2><label>Họ tên<input id="name" placeholder="Đặng Văn Năm"></label><label>Ngày sinh<input id="birthDate" type="date"></label><label>Giờ sinh<input id="birthTime" type="time"></label><label>Giới tính<select id="gender"><option>Nam</option><option>Nữ</option><option>Khác</option></select></label><button class="primary">🤖 AI luận giải</button><button type="button" onclick="localMystic()">🔎 Luận local</button></form><article id="report" class="result-panel"><h2>Kết quả tử vi</h2><p>Nhập thông tin rồi bấm phân tích.</p></article></div></section>
-    <section id="page-love" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();generateLove()"><h2>💕 Tình duyên</h2><label>Tên người 1<input id="loveName1"></label><label>Ngày sinh người 1<input id="loveBirth1" type="date"></label><label>Tên người 2<input id="loveName2"></label><label>Ngày sinh người 2<input id="loveBirth2" type="date"></label><label>Muốn xem kỹ<select id="loveFocus"><option>Tổng quan tình duyên</option><option>Hôn nhân lâu dài</option><option>Điểm dễ xung đột</option><option>Cách hòa hợp</option></select></label><button class="primary">🤖 AI luận tình duyên</button></form><article id="loveResult" class="result-panel"><h2>Kết quả tình duyên</h2><p>Nhập thông tin 2 người để xem.</p></article></div></section>
+    <section id="page-tuvi" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();generateMystic()"><h2>ðŸ“œ Tá»­ vi / Luáº­n giáº£i</h2><label>Há» tÃªn<input id="name" placeholder="Äáº·ng VÄƒn NÄƒm"></label><label>NgÃ y sinh<input id="birthDate" type="date"></label><label>Giá» sinh<input id="birthTime" type="time"></label><label>Giá»›i tÃ­nh<select id="gender"><option>Nam</option><option>Ná»¯</option><option>KhÃ¡c</option></select></label><button class="primary">ðŸ¤– AI luáº­n giáº£i</button><button type="button" onclick="localMystic()">ðŸ”Ž Luáº­n local</button></form><article id="report" class="result-panel"><h2>Káº¿t quáº£ tá»­ vi</h2><p>Nháº­p thÃ´ng tin rá»“i báº¥m phÃ¢n tÃ­ch.</p></article></div></section>
+    <section id="page-love" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();generateLove()"><h2>ðŸ’• TÃ¬nh duyÃªn</h2><label>TÃªn ngÆ°á»i 1<input id="loveName1"></label><label>NgÃ y sinh ngÆ°á»i 1<input id="loveBirth1" type="date"></label><label>TÃªn ngÆ°á»i 2<input id="loveName2"></label><label>NgÃ y sinh ngÆ°á»i 2<input id="loveBirth2" type="date"></label><label>Muá»‘n xem ká»¹<select id="loveFocus"><option>Tá»•ng quan tÃ¬nh duyÃªn</option><option>HÃ´n nhÃ¢n lÃ¢u dÃ i</option><option>Äiá»ƒm dá»… xung Ä‘á»™t</option><option>CÃ¡ch hÃ²a há»£p</option></select></label><button class="primary">ðŸ¤– AI luáº­n tÃ¬nh duyÃªn</button></form><article id="loveResult" class="result-panel"><h2>Káº¿t quáº£ tÃ¬nh duyÃªn</h2><p>Nháº­p thÃ´ng tin 2 ngÆ°á»i Ä‘á»ƒ xem.</p></article></div></section>
 
-    <section id="page-numerology" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();generateNumerology()"><h2>🔢 Thần số học AI</h2><label>Họ và tên đầy đủ<input id="numName" placeholder="Đặng Văn Năm"></label><label>Ngày sinh<input id="numBirth" type="date"></label><label>Muốn xem kỹ<select id="numFocus"><option>Tổng quan cuộc đời</option><option>Tình duyên</option><option>Công việc - tài chính</option><option>Điểm mạnh / điểm yếu</option><option>Năm cá nhân hiện tại</option></select></label><button class="primary">🤖 AI luận thần số học</button><button type="button" onclick="const t=localNumerologyReport(document.getElementById('numName').value,document.getElementById('numBirth').value);document.getElementById('numerologyResult').innerHTML=htmlResult('🔢 Kết quả thần số học local',t);saveHistory('Thần số học local',t)">🔎 Tính local</button></form><article id="numerologyResult" class="result-panel"><h2>Kết quả thần số học</h2><p>Nhập họ tên và ngày sinh để xem.</p></article></div></section>
-    <section id="page-palm" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();analyzeVision('palm')"><h2>🖐 Xem chỉ tay AI</h2><input id="palmImage" type="file" accept="image/*" onchange="previewImage(event,'palmPreview')"><label class="camera-line">📸 Chụp ảnh bàn tay<input id="palmCamera" type="file" accept="image/*" capture="environment" onchange="copyCameraFile(event,'palmImage','palmPreview')"></label><img id="palmPreview" class="preview"><label>Đường nổi bật<select id="palmLine"><option>Sinh đạo</option><option>Trí đạo</option><option>Tâm đạo</option><option>Sự nghiệp</option></select></label><label>Ghi chú<textarea id="palmNote" placeholder="Mô tả thêm nếu ảnh chưa rõ..."></textarea></label><button class="primary">🤖 Phân tích chỉ tay</button></form><article id="palmResult" class="result-panel"><h2>Kết quả xem chỉ tay</h2><p>Tải ảnh rồi bấm phân tích.</p></article></div></section>
-    <section id="page-face" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();analyzeVision('face')"><h2>🙂 Xem tướng AI</h2><input id="faceImage" type="file" accept="image/*" onchange="previewImage(event,'facePreview')"><label class="camera-line">📸 Chụp ảnh khuôn mặt<input id="faceCamera" type="file" accept="image/*" capture="user" onchange="copyCameraFile(event,'faceImage','facePreview')"></label><img id="facePreview" class="preview"><label>Bộ phận muốn xem<select id="facePart"><option>Tổng quan ngũ quan</option><option>Mắt</option><option>Mũi</option><option>Miệng</option><option>Thần thái</option></select></label><label>Ghi chú<textarea id="faceNote"></textarea></label><button class="primary">🤖 Phân tích tướng</button></form><article id="faceResult" class="result-panel"><h2>Kết quả xem tướng</h2><p>Tải ảnh rồi bấm phân tích.</p></article></div></section>
-    <section id="page-astrology" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();simpleTool('astrology')"><h2>🪐 Chiêm tinh</h2><div id="desktopZodiacGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:15px;"></div><input type="hidden" id="zodiac" value=""><label>Câu hỏi<textarea id="astroQuestion" placeholder="Tình duyên/công việc tháng này?"></textarea></label><button class="primary">✨ Xem chiêm tinh</button></form><article id="astrologyResult" class="result-panel"><h2>Kết quả chiêm tinh</h2><p>Nhập cung và câu hỏi.</p></article></div></section>
-    <section id="page-fengshui" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();simpleTool('fengshui')"><h2>☯ Phong thủy</h2><label>Năm sinh<input id="fengYear" placeholder="1995"></label><label>Việc muốn xem<textarea id="fengAsk" placeholder="Màu hợp, hướng hợp, bố trí bàn làm việc..."></textarea></label><button class="primary">☯ Phân tích phong thủy</button></form><article id="fengshuiResult" class="result-panel"><h2>Kết quả phong thủy</h2><p>Nhập thông tin để xem.</p></article></div></section>
-    <section id="page-tarot" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();drawTarotDesktop()"><h2>🃏 Xem bài Tarot</h2><label>Câu hỏi<textarea id="tarotAsk" placeholder="Điều mình cần lời khuyên là..."></textarea></label><div id="desktopTarotCards" style="display:flex;gap:15px;justify-content:center;margin:15px 0;"></div><button class="primary">🃏 Rút bài AI</button></form><article id="tarotResult" class="result-panel"><h2>Kết quả bài Tarot</h2><p>Nhập câu hỏi rồi rút bài.</p></article></div></section>
+    <section id="page-numerology" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();generateNumerology()"><h2>ðŸ”¢ Tháº§n sá»‘ há»c AI</h2><label>Há» vÃ  tÃªn Ä‘áº§y Ä‘á»§<input id="numName" placeholder="Äáº·ng VÄƒn NÄƒm"></label><label>NgÃ y sinh<input id="numBirth" type="date"></label><label>Muá»‘n xem ká»¹<select id="numFocus"><option>Tá»•ng quan cuá»™c Ä‘á»i</option><option>TÃ¬nh duyÃªn</option><option>CÃ´ng viá»‡c - tÃ i chÃ­nh</option><option>Äiá»ƒm máº¡nh / Ä‘iá»ƒm yáº¿u</option><option>NÄƒm cÃ¡ nhÃ¢n hiá»‡n táº¡i</option></select></label><button class="primary">ðŸ¤– AI luáº­n tháº§n sá»‘ há»c</button><button type="button" onclick="const t=localNumerologyReport(document.getElementById('numName').value,document.getElementById('numBirth').value);document.getElementById('numerologyResult').innerHTML=htmlResult('ðŸ”¢ Káº¿t quáº£ tháº§n sá»‘ há»c local',t);saveHistory('Tháº§n sá»‘ há»c local',t)">ðŸ”Ž TÃ­nh local</button></form><article id="numerologyResult" class="result-panel"><h2>Káº¿t quáº£ tháº§n sá»‘ há»c</h2><p>Nháº­p há» tÃªn vÃ  ngÃ y sinh Ä‘á»ƒ xem.</p></article></div></section>
+    <section id="page-palm" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();analyzeVision('palm')"><h2>ðŸ– Xem chá»‰ tay AI</h2><input id="palmImage" type="file" accept="image/*" onchange="previewImage(event,'palmPreview')"><label class="camera-line">ðŸ“¸ Chá»¥p áº£nh bÃ n tay<input id="palmCamera" type="file" accept="image/*" capture="environment" onchange="copyCameraFile(event,'palmImage','palmPreview')"></label><img id="palmPreview" class="preview"><label>ÄÆ°á»ng ná»•i báº­t<select id="palmLine"><option>Sinh Ä‘áº¡o</option><option>TrÃ­ Ä‘áº¡o</option><option>TÃ¢m Ä‘áº¡o</option><option>Sá»± nghiá»‡p</option></select></label><label>Ghi chÃº<textarea id="palmNote" placeholder="MÃ´ táº£ thÃªm náº¿u áº£nh chÆ°a rÃµ..."></textarea></label><button class="primary">ðŸ¤– PhÃ¢n tÃ­ch chá»‰ tay</button></form><article id="palmResult" class="result-panel"><h2>Káº¿t quáº£ xem chá»‰ tay</h2><p>Táº£i áº£nh rá»“i báº¥m phÃ¢n tÃ­ch.</p></article></div></section>
+    <section id="page-face" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();analyzeVision('face')"><h2>ðŸ™‚ Xem tÆ°á»›ng AI</h2><input id="faceImage" type="file" accept="image/*" onchange="previewImage(event,'facePreview')"><label class="camera-line">ðŸ“¸ Chá»¥p áº£nh khuÃ´n máº·t<input id="faceCamera" type="file" accept="image/*" capture="user" onchange="copyCameraFile(event,'faceImage','facePreview')"></label><img id="facePreview" class="preview"><label>Bá»™ pháº­n muá»‘n xem<select id="facePart"><option>Tá»•ng quan ngÅ© quan</option><option>Máº¯t</option><option>MÅ©i</option><option>Miá»‡ng</option><option>Tháº§n thÃ¡i</option></select></label><label>Ghi chÃº<textarea id="faceNote"></textarea></label><button class="primary">ðŸ¤– PhÃ¢n tÃ­ch tÆ°á»›ng</button></form><article id="faceResult" class="result-panel"><h2>Káº¿t quáº£ xem tÆ°á»›ng</h2><p>Táº£i áº£nh rá»“i báº¥m phÃ¢n tÃ­ch.</p></article></div></section>
+    <section id="page-astrology" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();simpleTool('astrology')"><h2>ðŸª ChiÃªm tinh</h2><div id="desktopZodiacGrid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:15px;"></div><input type="hidden" id="zodiac" value=""><label>CÃ¢u há»i<textarea id="astroQuestion" placeholder="TÃ¬nh duyÃªn/cÃ´ng viá»‡c thÃ¡ng nÃ y?"></textarea></label><button class="primary">âœ¨ Xem chiÃªm tinh</button></form><article id="astrologyResult" class="result-panel"><h2>Káº¿t quáº£ chiÃªm tinh</h2><p>Nháº­p cung vÃ  cÃ¢u há»i.</p></article></div></section>
+    <section id="page-fengshui" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();simpleTool('fengshui')"><h2>â˜¯ Phong thá»§y</h2><label>NÄƒm sinh<input id="fengYear" placeholder="1995"></label><label>Viá»‡c muá»‘n xem<textarea id="fengAsk" placeholder="MÃ u há»£p, hÆ°á»›ng há»£p, bá»‘ trÃ­ bÃ n lÃ m viá»‡c..."></textarea></label><button class="primary">â˜¯ PhÃ¢n tÃ­ch phong thá»§y</button></form><article id="fengshuiResult" class="result-panel"><h2>Káº¿t quáº£ phong thá»§y</h2><p>Nháº­p thÃ´ng tin Ä‘á»ƒ xem.</p></article></div></section>
+    <section id="page-tarot" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();drawTarotDesktop()"><h2>ðŸƒ Xem bÃ i Tarot</h2><label>CÃ¢u há»i<textarea id="tarotAsk" placeholder="Äiá»u mÃ¬nh cáº§n lá»i khuyÃªn lÃ ..."></textarea></label><div id="desktopTarotCards" style="display:flex;gap:15px;justify-content:center;margin:15px 0;"></div><button class="primary">ðŸƒ RÃºt bÃ i AI</button></form><article id="tarotResult" class="result-panel"><h2>Káº¿t quáº£ bÃ i Tarot</h2><p>Nháº­p cÃ¢u há»i rá»“i rÃºt bÃ i.</p></article></div></section>
     <section id="page-chat" class="page"><div class="chat-page chat-pro-page">
         <div class="chat-pro-shell">
           <aside class="chat-pro-sidebar">
-            <div class="chat-brand"><span class="brand-orb">✦</span><div><h2>Đặng Năm AI</h2><p>Trợ lý chuyên nghiệp</p></div></div>
-            <button class="new-chat-btn" onclick="newProChat()">＋ Cuộc chat mới</button>
-            <div class="mini-provider-list" id="miniProviderList"><p>Đang tải AI...</p></div>
+            <div class="chat-brand"><span class="brand-orb">âœ¦</span><div><h2>Äáº·ng NÄƒm AI</h2><p>Trá»£ lÃ½ chuyÃªn nghiá»‡p</p></div></div>
+            <button class="new-chat-btn" onclick="newProChat()">ï¼‹ Cuá»™c chat má»›i</button>
+            <div class="mini-provider-list" id="miniProviderList"><p>Äang táº£i AI...</p></div>
             <details class="voice-settings voice-control-pro voice-settings-compact">
-              <summary>🎤 Cài đặt giọng nói</summary>
-              <label class="voice-switch"><input id="voiceReplyToggle" type="checkbox" checked onchange="toggleSpeakReply()"> <span id="voiceReplyLabelText">🔊 Giọng AI đang bật</span></label>
-              <label class="voice-switch"><input id="voiceInputToggle" type="checkbox" checked onchange="toggleVoiceInputEnabled()"> <span id="voiceInputLabelText">🎤 Mic nhập giọng đang bật</span></label>
-              <label><input id="autoListenToggle" type="checkbox" onchange="saveVoicePrefs()"> Tự nghe tiếp sau trả lời</label>
-              <div class="voice-action-row"><button type="button" class="mute-btn" onclick="toggleQuickSpeakReply()">🔊 Bật/Tắt giọng AI</button><button type="button" class="stop-btn" onclick="stopSpeaking()">⛔ Dừng đọc ngay</button></div>
-              <label>Tốc độ đọc<input id="voiceRate" type="range" min="0.7" max="1.35" step="0.05" value="1" onchange="saveVoicePrefs()"></label>
-              <label>Giọng đọc<select id="voiceSelect" onchange="saveVoicePrefs()"><option value="auto">Tự động chọn giọng Việt</option></select></label>
-              <p class="voice-note">Nếu máy chưa có giọng Việt, vào cài đặt ngôn ngữ/giọng nói của Chrome, Android hoặc Windows để thêm Tiếng Việt.</p>
-              <button type="button" onclick="testVoice()">🔊 Test giọng Việt</button>
+              <summary>ðŸŽ¤ CÃ i Ä‘áº·t giá»ng nÃ³i</summary>
+              <label class="voice-switch"><input id="voiceReplyToggle" type="checkbox" checked onchange="toggleSpeakReply()"> <span id="voiceReplyLabelText">ðŸ”Š Giá»ng AI Ä‘ang báº­t</span></label>
+              <label class="voice-switch"><input id="voiceInputToggle" type="checkbox" checked onchange="toggleVoiceInputEnabled()"> <span id="voiceInputLabelText">ðŸŽ¤ Mic nháº­p giá»ng Ä‘ang báº­t</span></label>
+              <label><input id="autoListenToggle" type="checkbox" onchange="saveVoicePrefs()"> Tá»± nghe tiáº¿p sau tráº£ lá»i</label>
+              <div class="voice-action-row"><button type="button" class="mute-btn" onclick="toggleQuickSpeakReply()">ðŸ”Š Báº­t/Táº¯t giá»ng AI</button><button type="button" class="stop-btn" onclick="stopSpeaking()">â›” Dá»«ng Ä‘á»c ngay</button></div>
+              <label>Tá»‘c Ä‘á»™ Ä‘á»c<input id="voiceRate" type="range" min="0.7" max="1.35" step="0.05" value="1" onchange="saveVoicePrefs()"></label>
+              <label>Giá»ng Ä‘á»c<select id="voiceSelect" onchange="saveVoicePrefs()"><option value="auto">Tá»± Ä‘á»™ng chá»n giá»ng Viá»‡t</option></select></label>
+              <p class="voice-note">Náº¿u mÃ¡y chÆ°a cÃ³ giá»ng Viá»‡t, vÃ o cÃ i Ä‘áº·t ngÃ´n ngá»¯/giá»ng nÃ³i cá»§a Chrome, Android hoáº·c Windows Ä‘á»ƒ thÃªm Tiáº¿ng Viá»‡t.</p>
+              <button type="button" onclick="testVoice()">ðŸ”Š Test giá»ng Viá»‡t</button>
             </details>
           </aside>
           <div class="chat-pro-main">
             <div class="mobile-mystic-header">
-              <button class="icon-btn menu-btn" onclick="toggleMenu(true)">☰</button>
+              <button class="icon-btn menu-btn" onclick="toggleMenu(true)">â˜°</button>
               <div class="center-brand">
-                <span class="moon-logo">🌙</span>
-                <h2>Đặng Năm AI</h2>
+                <span class="moon-logo">ðŸŒ™</span>
+                <h2>Äáº·ng NÄƒm AI</h2>
                 <p>AI Chat</p>
               </div>
-              <button class="icon-btn user-btn">👤</button>
+              <button class="icon-btn user-btn">ðŸ‘¤</button>
             </div>
             <div class="mobile-mystic-tabs">
-              <button onclick="routeTo('deep')">✨ Tử vi</button>
-              <button onclick="routeTo('love')">🤍 Tình duyên</button>
-              <button class="active">💬 Chat AI</button>
+              <button onclick="routeTo('deep')">âœ¨ Tá»­ vi</button>
+              <button onclick="routeTo('love')">ðŸ¤ TÃ¬nh duyÃªn</button>
+              <button class="active">ðŸ’¬ Chat AI</button>
             </div>
 
             <div class="chat-pro-head">
-              <div><h2>🤖 AI Chat Pro</h2><p>Nhập bằng bàn phím hoặc giọng nói. AI trả lời text + đọc thành tiếng.</p></div>
-              <div class="chat-head-actions"><button type="button" aria-label="Mở cài đặt AI" title="Mở cài đặt AI" onclick="routeTo('ai')">⚙️ AI Keys</button><button type="button" aria-label="Đọc lại câu trả lời gần nhất" title="Đọc lại câu trả lời gần nhất" onclick="speakLastResult()">🔊 Đọc lại</button></div>
+              <div><h2>ðŸ¤– AI Chat Pro</h2><p>Nháº­p báº±ng bÃ n phÃ­m hoáº·c giá»ng nÃ³i. AI tráº£ lá»i text + Ä‘á»c thÃ nh tiáº¿ng.</p></div>
+              <div class="chat-head-actions"><button type="button" aria-label="Má»Ÿ cÃ i Ä‘áº·t AI" title="Má»Ÿ cÃ i Ä‘áº·t AI" onclick="routeTo('ai')">âš™ï¸ AI Keys</button><button type="button" aria-label="Äá»c láº¡i cÃ¢u tráº£ lá»i gáº§n nháº¥t" title="Äá»c láº¡i cÃ¢u tráº£ lá»i gáº§n nháº¥t" onclick="speakLastResult()">ðŸ”Š Äá»c láº¡i</button></div>
             </div>
             <details class="chat-mobile-settings" open>
-              <summary>⚙️ Tùy chọn AI và chế độ chat</summary>
+              <summary>âš™ï¸ TÃ¹y chá»n AI vÃ  cháº¿ Ä‘á»™ chat</summary>
               <div class="chat-mobile-settings-content">
                 <div class="chat-mode-tabs pro-tabs">
-                  <button id="modeChat" class="active" onclick="setChatMode('chat')">💬 Hỏi đáp</button>
+                  <button id="modeChat" class="active" onclick="setChatMode('chat')">ðŸ’¬ Há»i Ä‘Ã¡p</button>
                 </div>
                 <div class="multi-ai-toolbar pro-toolbar">
                   <label>AI Provider<select id="chatProvider"><option value="auto">Auto Router</option><option value="gemini">Gemini</option><option value="groq">Groq Free/Nhanh</option><option value="openrouter">OpenRouter Free</option><option value="openai">ChatGPT/OpenAI</option><option value="claude">Claude</option><option value="deepseek">DeepSeek</option><option value="grok">Grok</option><option value="qwen">Qwen</option><option value="mistral">Mistral</option></select></label>
-                  <label>Model tùy chọn<input id="chatModel" placeholder="Để trống = Tự động chọn Model cao cấp nhất"></label>
-                  <label>Độ chi tiết<select id="chatAnswerStyle"><option value="detailed" selected>Chi tiết chuyên nghiệp</option><option value="expert">Chuyên gia sâu</option><option value="concise">Ngắn gọn</option></select></label>
-                  <label class="council-toggle"><input id="chatCouncil" type="checkbox"> Hội Đồng AI</label>
+                  <label>Model tÃ¹y chá»n<input id="chatModel" placeholder="Äá»ƒ trá»‘ng = Tá»± Ä‘á»™ng chá»n Model cao cáº¥p nháº¥t"></label>
+                  <label>Äá»™ chi tiáº¿t<select id="chatAnswerStyle"><option value="detailed" selected>Chi tiáº¿t chuyÃªn nghiá»‡p</option><option value="expert">ChuyÃªn gia sÃ¢u</option><option value="concise">Ngáº¯n gá»n</option></select></label>
+                  <label class="council-toggle"><input id="chatCouncil" type="checkbox"> Há»™i Äá»“ng AI</label>
                 </div>
               </div>
             </details>
-            <div id="voiceStatus" class="voice-status">🎙️ Sẵn sàng nhận giọng nói</div>
-            <div id="chatLog" class="chat-log pro-chat-log"><div class="msg ai-welcome"><b>👋 Chào bạn!</b><br>Mình là Đặng Năm AI Pro. Hỏi gì cũng được: app, code, thời tiết, ảnh/file, ý tưởng. Mình sẽ trả lời rõ ràng, đúng trọng tâm hơn.</div></div>
+            <div id="voiceStatus" class="voice-status">ðŸŽ™ï¸ Sáºµn sÃ ng nháº­n giá»ng nÃ³i</div>
+            <div id="chatLog" class="chat-log pro-chat-log"><div class="msg ai-welcome"><b>ðŸ‘‹ ChÃ o báº¡n!</b><br>MÃ¬nh lÃ  Äáº·ng NÄƒm AI Pro. Há»i gÃ¬ cÅ©ng Ä‘Æ°á»£c: app, code, thá»i tiáº¿t, áº£nh/file, Ã½ tÆ°á»Ÿng. MÃ¬nh sáº½ tráº£ lá»i rÃµ rÃ ng, Ä‘Ãºng trá»ng tÃ¢m hÆ¡n.</div></div>
             <div class="chat-upload-bar pro-upload">
-              <label class="upload-chip">📷 Tải ảnh<input id="chatImageInput" type="file" accept="image/*" multiple onchange="handleChatFiles(event)"></label>
-              <label class="upload-chip">📸 Chụp ảnh<input id="chatCameraInput" type="file" accept="image/*" capture="environment" onchange="handleChatFiles(event)"></label>
-              <label class="upload-chip">📎 Tải file<input id="chatFileInput" type="file" accept=".txt,.md,.json,.csv,.html,.css,.js,.pdf,image/*" multiple onchange="handleChatFiles(event)"></label>
-              <button class="clear-attachments" onclick="clearChatAttachments()">Xóa file</button>
+              <label class="upload-chip">ðŸ“· Táº£i áº£nh<input id="chatImageInput" type="file" accept="image/*" multiple onchange="handleChatFiles(event)"></label>
+              <label class="upload-chip">ðŸ“¸ Chá»¥p áº£nh<input id="chatCameraInput" type="file" accept="image/*" capture="environment" onchange="handleChatFiles(event)"></label>
+              <label class="upload-chip">ðŸ“Ž Táº£i file<input id="chatFileInput" type="file" accept=".txt,.md,.json,.csv,.html,.css,.js,.pdf,image/*" multiple onchange="handleChatFiles(event)"></label>
+              <button class="clear-attachments" onclick="clearChatAttachments()">XÃ³a file</button>
             </div>
             <div id="chatAttachments" class="chat-attachments"></div>
             <div class="chat-input pro-input mobile-voice-input">
-              <button id="voiceBtn" class="voice-btn" type="button" onclick="toggleVoiceInput()" title="Bấm để nói">🎤</button>
-              <textarea id="chatText" rows="1" placeholder="Hỏi Đặng Năm AI như ChatGPT/Gemini..." oninput="autoResizeChatText()" onkeydown="handleChatTextKey(event)"></textarea>
-              <button id="voiceReplyQuickBtn" class="quick-voice-btn" type="button" onclick="toggleQuickSpeakReply()" title="Bật/tắt giọng đọc">🔊</button>
-              <button id="stopSpeakQuickBtn" class="quick-stop-btn" type="button" onclick="stopSpeaking()" title="Dừng đọc ngay">⛔</button>
-              <button id="chatSendBtn" type="button" aria-label="Gửi tin nhắn" title="Gửi tin nhắn" onclick="sendChat()">Gửi ✈</button>
+              <button id="voiceBtn" class="voice-btn" type="button" onclick="toggleVoiceInput()" title="Báº¥m Ä‘á»ƒ nÃ³i">ðŸŽ¤</button>
+              <textarea id="chatText" rows="1" placeholder="Há»i Äáº·ng NÄƒm AI nhÆ° ChatGPT/Gemini..." oninput="autoResizeChatText()" onkeydown="handleChatTextKey(event)"></textarea>
+              <button id="voiceReplyQuickBtn" class="quick-voice-btn" type="button" onclick="toggleQuickSpeakReply()" title="Báº­t/táº¯t giá»ng Ä‘á»c">ðŸ”Š</button>
+              <button id="stopSpeakQuickBtn" class="quick-stop-btn" type="button" onclick="stopSpeaking()" title="Dá»«ng Ä‘á»c ngay">â›”</button>
+              <button id="chatSendBtn" type="button" aria-label="Gá»­i tin nháº¯n" title="Gá»­i tin nháº¯n" onclick="sendChat()">Gá»­i âœˆ</button>
             </div>
           </div>
         </div>
       </div></section>
-    <section id="page-ai" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();saveAIKeys()"><h2>🤖 Multi-AI Provider</h2><p class="muted">Nhập API key cá nhân để bật từng AI. Có key nào dùng key đó, không có thì tự ẩn.</p><div id="aiProviderGrid" class="ai-provider-grid"></div><button class="primary">💾 Lưu API Keys</button><button type="button" onclick="loadAIProviders()">🔄 Kiểm tra lại</button><p class="ai-note">Lưu ý: bản demo lưu key trong <code>data/users.json</code>. Chỉ dùng test cá nhân; khi thương mại cần mã hóa hoặc dùng vault.</p></form><article class="result-panel"><h2>🧠 AI Router</h2><div id="aiProviderStatus" class="ai-status-list"><p>Đang tải danh sách AI...</p></div><hr><h3>Chế độ hỗ trợ</h3><ul><li><b>Auto Router</b>: tự chọn AI phù hợp.</li><li><b>Fallback</b>: AI lỗi thì thử AI kế tiếp.</li><li><b>Hội Đồng AI</b>: nhiều AI cùng trả lời rồi hiển thị từng ý kiến.</li></ul><p>Vào trang Chat để chọn Provider hoặc bật Hội Đồng AI.</p></article></div></section>
-    <section id="page-history" class="page"><div class="glass-panel full"><h2>🗂 Lịch sử phân tích</h2><div id="historyList"></div><button onclick="clearHistory()">🧹 Xóa lịch sử</button></div></section>
-    <section id="page-account" class="page"><div class="route-layout account-clean-layout"><form class="glass-panel auth-panel" onsubmit="event.preventDefault();registerAccount()"><h2>👤 Tài khoản</h2><p class="muted">Đăng nhập hoặc đăng ký để lưu hồ sơ, lịch sử chat và cài đặt AI của bạn.</p><div class="social-login-row"><button type="button" class="google-btn" onclick="socialLogin('google')">🔴 Đăng nhập Google</button><button type="button" class="facebook-btn" onclick="socialLogin('facebook')">🔵 Đăng nhập Facebook</button></div><div class="auth-divider"><span>hoặc dùng email</span></div><label>Tên hiển thị<input id="profileName" placeholder="Tên của bạn"></label><label>Email<input id="profileEmail" placeholder="email@example.com"></label><label>Mật khẩu<input id="profilePassword" type="password" placeholder="Tối thiểu 6 ký tự"></label><label>Gói sử dụng<select id="profilePlan"><option>Free</option><option>Pro Demo</option><option>Ultimate Pro</option></select></label><button class="primary">📝 Đăng ký</button><button type="button" onclick="loginAccount()">🔐 Đăng nhập</button><button type="button" onclick="saveAccount()">💾 Lưu hồ sơ</button></form><article class="result-panel account-user-panel"><h2>👤 Tài khoản</h2><div id="accountStatus"><div class="account-warn"><h3>🔐 Chưa đăng nhập</h3><p>Đăng nhập để đồng bộ hồ sơ và cá nhân hóa trải nghiệm AI.</p></div></div><div class="clean-member-actions"><button type="button" onclick="routeTo('chat')">🤖 Mở AI Chat</button><button type="button" onclick="routeTo('ai')">⚙️ Cài đặt AI</button><button type="button" onclick="routeTo('history')">📜 Xem lịch sử</button></div></article></div></section>
-    <nav class="bottom-nav"><button onclick="routeTo('home')">⌂<span>Trang chủ</span></button><button onclick="routeTo('history')">▣<span>Lịch sử</span></button><button class="magic" onclick="quickAsk()">✦</button><button onclick="routeTo('chat')">☻<span>AI Chat</span></button><button onclick="routeTo('account')">♙<span>Tài khoản</span></button></nav>
+    <section id="page-ai" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();saveAIKeys()"><h2>ðŸ¤– Multi-AI Provider</h2><p class="muted">Nháº­p API key cÃ¡ nhÃ¢n Ä‘á»ƒ báº­t tá»«ng AI. CÃ³ key nÃ o dÃ¹ng key Ä‘Ã³, khÃ´ng cÃ³ thÃ¬ tá»± áº©n.</p><div id="aiProviderGrid" class="ai-provider-grid"></div><button class="primary">ðŸ’¾ LÆ°u API Keys</button><button type="button" onclick="loadAIProviders()">ðŸ”„ Kiá»ƒm tra láº¡i</button><p class="ai-note">LÆ°u Ã½: báº£n demo lÆ°u key trong <code>data/users.json</code>. Chá»‰ dÃ¹ng test cÃ¡ nhÃ¢n; khi thÆ°Æ¡ng máº¡i cáº§n mÃ£ hÃ³a hoáº·c dÃ¹ng vault.</p></form><article class="result-panel"><h2>ðŸ§  AI Router</h2><div id="aiProviderStatus" class="ai-status-list"><p>Äang táº£i danh sÃ¡ch AI...</p></div><hr><h3>Cháº¿ Ä‘á»™ há»— trá»£</h3><ul><li><b>Auto Router</b>: tá»± chá»n AI phÃ¹ há»£p.</li><li><b>Fallback</b>: AI lá»—i thÃ¬ thá»­ AI káº¿ tiáº¿p.</li><li><b>Há»™i Äá»“ng AI</b>: nhiá»u AI cÃ¹ng tráº£ lá»i rá»“i hiá»ƒn thá»‹ tá»«ng Ã½ kiáº¿n.</li></ul><p>VÃ o trang Chat Ä‘á»ƒ chá»n Provider hoáº·c báº­t Há»™i Äá»“ng AI.</p></article></div></section>
+    <section id="page-history" class="page"><div class="glass-panel full"><h2>ðŸ—‚ Lá»‹ch sá»­ phÃ¢n tÃ­ch</h2><div id="historyList"></div><button onclick="clearHistory()">ðŸ§¹ XÃ³a lá»‹ch sá»­</button></div></section>
+    <section id="page-account" class="page"><div class="route-layout account-clean-layout"><form class="glass-panel auth-panel" onsubmit="event.preventDefault();registerAccount()"><h2>ðŸ‘¤ TÃ i khoáº£n</h2><p class="muted">ÄÄƒng nháº­p hoáº·c Ä‘Äƒng kÃ½ Ä‘á»ƒ lÆ°u há»“ sÆ¡, lá»‹ch sá»­ chat vÃ  cÃ i Ä‘áº·t AI cá»§a báº¡n.</p><div class="social-login-row"><button type="button" class="google-btn" onclick="socialLogin('google')">ðŸ”´ ÄÄƒng nháº­p Google</button><button type="button" class="facebook-btn" onclick="socialLogin('facebook')">ðŸ”µ ÄÄƒng nháº­p Facebook</button></div><div class="auth-divider"><span>hoáº·c dÃ¹ng email</span></div><label>TÃªn hiá»ƒn thá»‹<input id="profileName" placeholder="TÃªn cá»§a báº¡n"></label><label>Email<input id="profileEmail" placeholder="email@example.com"></label><label>Máº­t kháº©u<input id="profilePassword" type="password" placeholder="Tá»‘i thiá»ƒu 6 kÃ½ tá»±"></label><label>GÃ³i sá»­ dá»¥ng<select id="profilePlan"><option>Free</option><option>Pro Demo</option><option>Ultimate Pro</option></select></label><button class="primary">ðŸ“ ÄÄƒng kÃ½</button><button type="button" onclick="loginAccount()">ðŸ” ÄÄƒng nháº­p</button><button type="button" onclick="saveAccount()">ðŸ’¾ LÆ°u há»“ sÆ¡</button></form><article class="result-panel account-user-panel"><h2>ðŸ‘¤ TÃ i khoáº£n</h2><div id="accountStatus"><div class="account-warn"><h3>ðŸ” ChÆ°a Ä‘Äƒng nháº­p</h3><p>ÄÄƒng nháº­p Ä‘á»ƒ Ä‘á»“ng bá»™ há»“ sÆ¡ vÃ  cÃ¡ nhÃ¢n hÃ³a tráº£i nghiá»‡m AI.</p></div></div><div class="clean-member-actions"><button type="button" onclick="routeTo('chat')">ðŸ¤– Má»Ÿ AI Chat</button><button type="button" onclick="routeTo('ai')">âš™ï¸ CÃ i Ä‘áº·t AI</button><button type="button" onclick="routeTo('history')">ðŸ“œ Xem lá»‹ch sá»­</button></div></article></div></section>
+    <nav class="bottom-nav"><button onclick="routeTo('home')">âŒ‚<span>Trang chá»§</span></button><button onclick="routeTo('history')">â–£<span>Lá»‹ch sá»­</span></button><button class="magic" onclick="quickAsk()">âœ¦</button><button onclick="routeTo('chat')">â˜»<span>AI Chat</span></button><button onclick="routeTo('account')">â™™<span>TÃ i khoáº£n</span></button></nav>
   </main>
   <div id="toast" class="toast"></div>
-  <script src="app.js"></script>
+  <script src="mystic-engine.js"></script><script src="app.js"></script>
 
   <!-- App Download Modal -->
   <div id="appDownloadModal" class="modal-overlay" onclick="if(event.target===this) closeAppModal()">
     <div class="modal-content glass-panel">
-      <button class="close-modal" onclick="closeAppModal()">×</button>
-      <h2 style="margin-top:0; color:#00f0ff;">📱 Tải Ứng Dụng Mobile</h2>
-      <p style="opacity:0.8; font-size:14px;">Quét mã QR dưới đây bằng Camera điện thoại để truy cập và cài đặt ứng dụng Đặng Năm Mystic phiên bản chuẩn App.</p>
+      <button class="close-modal" onclick="closeAppModal()">Ã—</button>
+      <h2 style="margin-top:0; color:#00f0ff;">ðŸ“± Táº£i á»¨ng Dá»¥ng Mobile</h2>
+      <p style="opacity:0.8; font-size:14px;">QuÃ©t mÃ£ QR dÆ°á»›i Ä‘Ã¢y báº±ng Camera Ä‘iá»‡n thoáº¡i Ä‘á»ƒ truy cáº­p vÃ  cÃ i Ä‘áº·t á»©ng dá»¥ng Äáº·ng NÄƒm Mystic phiÃªn báº£n chuáº©n App.</p>
       
       <div style="text-align:center; margin: 20px 0;">
         <div style="background:white; padding:10px; display:inline-block; border-radius:12px;">
@@ -462,14 +462,14 @@
       </div>
       
       <div style="background:rgba(0,0,0,0.3); padding:15px; border-radius:12px; font-size:13px; line-height:1.5;">
-        <b>💡 Hướng dẫn cài đặt:</b><br>
-        1. Quét mã QR hoặc truy cập <b>dangnam.online</b> trên điện thoại.<br>
-        2. Nếu dùng <b>iPhone (Safari)</b>: Chọn nút Chia sẻ (Share) ở cạnh dưới ➝ "Thêm vào MH chính" (Add to Home Screen).<br>
-        3. Nếu dùng <b>Android (Chrome)</b>: Nhấn vào thông báo "Cài đặt ứng dụng" hoặc chọn Menu (3 chấm) ➝ "Thêm vào Màn hình chính".
+        <b>ðŸ’¡ HÆ°á»›ng dáº«n cÃ i Ä‘áº·t:</b><br>
+        1. QuÃ©t mÃ£ QR hoáº·c truy cáº­p <b>dangnam.online</b> trÃªn Ä‘iá»‡n thoáº¡i.<br>
+        2. Náº¿u dÃ¹ng <b>iPhone (Safari)</b>: Chá»n nÃºt Chia sáº» (Share) á»Ÿ cáº¡nh dÆ°á»›i âž "ThÃªm vÃ o MH chÃ­nh" (Add to Home Screen).<br>
+        3. Náº¿u dÃ¹ng <b>Android (Chrome)</b>: Nháº¥n vÃ o thÃ´ng bÃ¡o "CÃ i Ä‘áº·t á»©ng dá»¥ng" hoáº·c chá»n Menu (3 cháº¥m) âž "ThÃªm vÃ o MÃ n hÃ¬nh chÃ­nh".
       </div>
       
       <div style="text-align:center; margin-top: 15px;">
-        <a href="https://www.pwabuilder.com/" target="_blank" style="color:#d800ff; text-decoration:underline; font-size: 12px;">Nhà phát triển: Đóng gói ra file APK qua PWABuilder</a>
+        <a href="https://www.pwabuilder.com/" target="_blank" style="color:#d800ff; text-decoration:underline; font-size: 12px;">NhÃ  phÃ¡t triá»ƒn: ÄÃ³ng gÃ³i ra file APK qua PWABuilder</a>
       </div>
     </div>
   </div>
