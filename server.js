@@ -421,7 +421,7 @@ async function callGeminiText({ apiKey, model, parts, systemPrompt = '', history
         temperature: 0.7,
         topP: 0.85,
         ...(systemPrompt ? { systemInstruction: systemPrompt } : {}),
-        ...(!FREE_MODELS_ONLY ? { tools: [{ googleSearch: {} }] } : {})
+        ...(!FREE_MODELS_ONLY ? { ...(parts.some(p => p.inlineData || p.fileData) ? {} : { tools: [{ googleSearch: {} }] }) } : {})
       }
   }), 90000);
   return response?.text || response?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || "";
@@ -867,7 +867,7 @@ async function tryModels(parts, preferredModel = "auto", systemPrompt = '', hist
         contents: [{ role: "user", parts }],
         config: {
             ...(systemPrompt ? { systemInstruction: systemPrompt, temperature: 0.7, topP: 0.85 } : {}),
-            tools: [{ googleSearch: {} }]
+            ...(parts.some(p => p.inlineData || p.fileData) ? {} : { tools: [{ googleSearch: {} }] })
           }
       }));
       return {
