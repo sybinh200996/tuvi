@@ -734,14 +734,14 @@ function Chat({
     onClick: () => setHistoryOpen(false)
   }, "✕")), /*#__PURE__*/React.createElement("div", {
     className: "drawer-body"
-  }, readJSON('synam_history', []).reverse().map((h, i) => /*#__PURE__*/React.createElement("div", {
+  }, readJSON('synam_history', []).filter(h => h.type === 'AI Chat').reverse().map((h, i) => /*#__PURE__*/React.createElement("div", {
     key: i,
     className: "drawer-item",
     onClick: () => {
       setText(h.content.substring(0, 200));
       setHistoryOpen(false);
     }
-  }, /*#__PURE__*/React.createElement("strong", null, h.type), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("small", null, new Date(h.at).toLocaleString()))), readJSON('synam_history', []).length === 0 && /*#__PURE__*/React.createElement("p", {
+  }, /*#__PURE__*/React.createElement("strong", null, h.type), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("small", null, new Date(h.at).toLocaleString()))), readJSON('synam_history', []).filter(h => h.type === 'AI Chat').length === 0 && /*#__PURE__*/React.createElement("p", {
     style: {
       opacity: 0.5,
       textAlign: 'center'
@@ -788,23 +788,15 @@ function Chat({
   }, /*#__PURE__*/React.createElement("div", {
     className: "chat-head",
     style: {
-      alignItems: "center",
+      alignItems: "flex-start",
       padding: "8px",
-      display: "flex"
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    className: "chat-icon-btn",
-    onClick: () => setHistoryOpen(true)
-  }, "🕒 Lịch sử"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
       display: "flex",
       gap: "8px"
     }
   }, /*#__PURE__*/React.createElement("button", {
+    className: "chat-icon-btn",
+    onClick: () => setHistoryOpen(true)
+  }, "🕒 Lịch sử"), /*#__PURE__*/React.createElement("button", {
     className: "chat-icon-btn",
     onClick: () => {
       if (confirm("Tạo đoạn chat mới?")) setMessages(DEFAULT_MESSAGES);
@@ -812,7 +804,11 @@ function Chat({
   }, "➕ Mới"), /*#__PURE__*/React.createElement("button", {
     className: "chat-icon-btn",
     onClick: () => speak(messages.filter(m => m.role === 'assistant').at(-1)?.text || '')
-  }, "🔊 Đọc"))), /*#__PURE__*/React.createElement("div", {
+  }, "🔊 Đọc"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  })), /*#__PURE__*/React.createElement("div", {
     className: "chat-box",
     ref: boxRef
   }, messages.map((m, i) => /*#__PURE__*/React.createElement("div", {

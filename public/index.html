@@ -403,10 +403,9 @@
               <button class="active">ðŸ’¬ Chat AI</button>
             </div>
 
-            <div class="chat-pro-head" style="align-items:center; padding:8px; display:flex;">
+            <div class="chat-pro-head" style="align-items:flex-start; padding:8px; display:flex; gap:8px;">
                 <button class="chat-icon-btn" onclick="openDesktopHistory()">🕒 Lịch sử</button>
-                <div style="flex:1"></div>
-                <div class="chat-head-actions" style="display:flex; gap:8px;">
+                
                   <button type="button" class="chat-icon-btn" aria-label="Chat mới" onclick="if(confirm('Tạo đoạn chat mới?')){ document.getElementById('chatLog').innerHTML = '<div class=\'msg ai-welcome\'><b>🤖 Chào bạn!</b><br>Mình là Đông Nam AI Pro.</div>'; if(window.chatMessages) window.chatMessages = []; }">➕ Mới</button>
                   <button type="button" class="chat-icon-btn" aria-label="Đọc" onclick="speakLastResult()">🔊 Đọc</button>
                   <button type="button" class="chat-icon-btn" aria-label="Cài đặt AI" onclick="routeTo('ai')">⚙️ Cài đặt</button>
@@ -489,7 +488,7 @@
     <script>
     function openDesktopHistory() {
       try {
-        const h = JSON.parse(localStorage.getItem('synam_history')||'[]').reverse();
+        const h = JSON.parse(localStorage.getItem('synam_history')||'[]').filter(x => x.type === 'AI Chat').reverse();
         const html = h.map(x => '<div class="drawer-item" onclick="document.getElementById(\'chatText\').value=\'' + (x.content||'').replace(/\'/g,\"\\'\").replace(/\n/g,\" \").substring(0,200) + '\'; document.getElementById(\'desktopHistoryDrawer\').style.display=\'none\';"><strong>'+x.type+'</strong><br><small>'+new Date(x.at).toLocaleString()+'</small></div>').join('');
         document.getElementById('desktopHistoryContent').innerHTML = html || '<p style="text-align:center; opacity:0.5;">Chưa có lịch sử</p>';
         document.getElementById('desktopHistoryDrawer').style.display = 'flex';

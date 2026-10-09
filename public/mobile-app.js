@@ -490,25 +490,23 @@ function Chat({ providers }) {
         <div className="history-drawer" onClick={e=>e.stopPropagation()}>
           <div className="drawer-head"><h3>🕒 Lịch sử</h3><button onClick={()=>setHistoryOpen(false)}>✕</button></div>
           <div className="drawer-body">
-            {(readJSON('synam_history',[])).reverse().map((h,i) => (
+            {(readJSON('synam_history',[])).filter(h => h.type === 'AI Chat').reverse().map((h,i) => (
               <div key={i} className="drawer-item" onClick={()=>{ setText(h.content.substring(0, 200)); setHistoryOpen(false); }}>
                 <strong>{h.type}</strong><br/><small>{new Date(h.at).toLocaleString()}</small>
               </div>
             ))}
-            {readJSON('synam_history',[]).length===0 && <p style={{opacity:0.5, textAlign:'center'}}>Chưa có</p>}
+            {readJSON('synam_history',[]).filter(h => h.type === 'AI Chat').length===0 && <p style={{opacity:0.5, textAlign:'center'}}>Chưa có</p>}
           </div>
         </div>
       </div>}
 
     <aside className="chat-side premium-panel"><h2>🧠 AI Router</h2><p>Auto chọn provider có key. Ưu tiên nhanh, chính xác, không lộ model.</p><select value={modelChoice} onChange={e=>setModelChoice(e.target.value)}><option value="auto">Auto Router</option>{providerModelOptions.map(p => <optgroup key={p.id} label={providerGroupLabel(p)} disabled={!p.configured}>{p.modelOptions.map(model => <option key={`${p.id}:${model}`} value={`${p.id}::${model}`}>{model}</option>)}</optgroup>)}</select><select value={answerStyle} onChange={e=>setAnswerStyle(e.target.value)} aria-label="Độ chi tiết câu trả lời"><option value="detailed">Chi tiết chuyên nghiệp</option><option value="expert">Chuyên gia sâu</option><option value="concise">Ngắn gọn</option></select><label className="switch"><input type="checkbox" checked={council} onChange={e=>setCouncil(e.target.checked)} /> Hội Đồng AI</label><button onClick={()=>setMessages(DEFAULT_MESSAGES)}>＋ Chat mới</button><div className="mini-list">{providers.map(p => <span className={p.configured?'ok':''} key={p.id}>{p.configured?'●':'○'} {p.label}{p.freeOnlyBlocked?' (tắt để tránh phí)':''}</span>)}</div></aside>
     <div className="chat-main premium-panel">
-      <div className="chat-head" style={{alignItems:"center", padding:"8px", display:"flex"}}>
+      <div className="chat-head" style={{alignItems:"flex-start", padding:"8px", display:"flex", gap:"8px"}}>
         <button className="chat-icon-btn" onClick={() => setHistoryOpen(true)}>🕒 Lịch sử</button>
+        <button className="chat-icon-btn" onClick={() => { if(confirm("Tạo đoạn chat mới?")) setMessages(DEFAULT_MESSAGES); }}>➕ Mới</button>
+        <button className="chat-icon-btn" onClick={()=>speak(messages.filter(m=>m.role==='assistant').at(-1)?.text || '')}>🔊 Đọc</button>
         <div style={{flex: 1}}></div>
-        <div style={{display:"flex", gap:"8px"}}>
-          <button className="chat-icon-btn" onClick={() => { if(confirm("Tạo đoạn chat mới?")) setMessages(DEFAULT_MESSAGES); }}>➕ Mới</button>
-          <button className="chat-icon-btn" onClick={()=>speak(messages.filter(m=>m.role==='assistant').at(-1)?.text || '')}>🔊 Đọc</button>
-        </div>
       </div>
       <div className="chat-box" ref={boxRef}>{messages.map((m,i) => <div key={i} className={`bubble ${m.role} ${m.loading?'loading':''}`}><div className="avatar">{m.role==='user'?'👤':'✦'}</div><div className="bubble-body">{m.attachments?.length > 0 && <div className="chat-message-files">{m.attachments.map((file,index) => <span key={`${file.name}-${index}`}>📎 {file.name}</span>)}</div>}<div dangerouslySetInnerHTML={{__html: markdownLite(m.text)}} />{m.role==='assistant' && !m.loading && <div className="msg-actions"><button onClick={()=>copy(m.text)}>Copy</button><button onClick={()=>speak(m.text)}>Đọc</button><button onClick={()=>send(lastPrompt)}>Thử lại</button></div>}</div></div>)}</div>
       <div className="chat-composer-panel">

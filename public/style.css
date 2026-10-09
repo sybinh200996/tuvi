@@ -1904,17 +1904,7 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
 }
 
 /* Chat Icon Buttons & History Drawer */
-.chat-icon-btn {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  border-radius: 8px !important;
-  font-size: 11px !important;
-  padding: 6px 12px !important;
-  color: #ddd !important;
-  cursor: pointer;
-  backdrop-filter: blur(5px);
-  white-space: nowrap;
-}
+
 .chat-icon-btn:hover { background: rgba(255, 255, 255, 0.2) !important; }
 
 .history-drawer-overlay {
@@ -1969,3 +1959,15 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
 .drawer-item:hover { background: rgba(255,255,255,0.1); }
 .drawer-item strong { color: #5bc0be; font-size: 13px; }
 .drawer-item small { color: #888; font-size: 11px; }
+
+.chat-icon-btn {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 6px !important;
+  font-size: 11px !important;
+  padding: 5px 10px !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chat-icon-btn:hover { background: rgba(255, 255, 255, 0.1) !important; color: #fff !important; }
