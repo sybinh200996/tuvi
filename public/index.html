@@ -29,190 +29,259 @@
     <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
 
 <style id="chat-mobile-fix">
-/* --- CHAT AI MOBILE REDESIGN (GUARANTEED) --- */
-@media (max-width: 1000px) {
-  /* 1. Clear the background of chat containers to show the image */
+/* Chat AI mobile only: keep the original page background sharp and visible. */
+@media (max-width: 768px) {
   body[data-route="chat"] {
-    background: url('assets/chat-bg-highres.png') center/cover no-repeat fixed !important;
+    background-color: #06112b !important;
+    background-image: url("assets/chat-bg-moon-small-final.png") !important;
+    background-position: center center !important;
+    background-size: cover !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
+    filter: none !important;
   }
-  body[data-route="chat"] .chat-pro-main,
-  body[data-route="chat"] .chat-pro-shell,
+  body[data-route="chat"]::before,
+  body[data-route="chat"] #stars { display: none !important; }
+  body[data-route="chat"] .app,
   body[data-route="chat"] #page-chat {
     background: transparent !important;
-    border: none !important;
+    background-color: transparent !important;
+  }
+
+  :is(body[data-route="chat"], #page-chat) :is(.chat-pro-main, .chat-pro-shell, #page-chat) {
+    background: transparent !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
     box-shadow: none !important;
     backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
   }
-  
-  /* 2. Fix the header from yesterday - make it elegant */
-  body[data-route="chat"] .mobile-mystic-header {
+
+  :is(body[data-route="chat"], #page-chat) :is(.chat-pro-main, .chat-pro-shell, #page-chat)::before,
+  :is(body[data-route="chat"], #page-chat) :is(.chat-pro-main, .chat-pro-shell, #page-chat)::after {
     background: transparent !important;
-    border: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+  }
+
+  :is(body[data-route="chat"], #page-chat) .mobile-mystic-header {
+    background: transparent !important;
+    border: 0 !important;
     box-shadow: none !important;
-    padding: 10px 15px 5px !important;
-    margin-bottom: 0 !important;
+    padding: 8px 14px 4px !important;
   }
-  body[data-route="chat"] .mobile-mystic-header h2 {
-    color: #ffd700 !important;
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.3) !important;
-    font-size: 20px !important;
-  }
-  body[data-route="chat"] .mobile-mystic-header p {
-    color: #fff !important;
-    opacity: 0.8 !important;
-  }
-  
-  /* 3. The Function Tabs (Tử vi, Tình duyên, Chat AI) -> Like Image 1 */
-  body[data-route="chat"] .mobile-mystic-tabs {
+
+  :is(body[data-route="chat"], #page-chat) .mobile-mystic-tabs {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-    backdrop-filter: blur(12px) !important;
-    border-radius: 999px !important;
+    gap: 4px !important;
+    margin: 6px 14px 12px !important;
     padding: 4px !important;
-    margin: 5px 15px 15px 15px !important;
-    border: 1px solid rgba(255,255,255,0.15) !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
-  }
-  body[data-route="chat"] .mobile-mystic-tabs button {
-    flex: 1 !important;
-    background: transparent !important;
-    color: #fff !important;
-    border: none !important;
+    border: 1px solid rgba(255,255,255,.2) !important;
     border-radius: 999px !important;
-    padding: 8px 5px !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    margin: 0 !important;
-    box-shadow: none !important;
-    opacity: 0.8 !important;
-  }
-  body[data-route="chat"] .mobile-mystic-tabs button.active {
-    background: linear-gradient(135deg, #ffd700, #ffb300) !important;
-    color: #000 !important;
-    opacity: 1 !important;
-    font-weight: 700 !important;
-    box-shadow: 0 0 15px rgba(255,215,0,0.3) !important;
+    background: rgba(255,255,255,.10) !important;
+    backdrop-filter: blur(12px) saturate(145%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(145%) !important;
+    box-shadow: 0 5px 18px rgba(0,0,0,.14) !important;
   }
 
-  /* 4. Chat Bubbles (Glassmorphism) */
-  body[data-route="chat"] .pro-chat-log {
+  :is(body[data-route="chat"], #page-chat) .mobile-mystic-tabs button {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 8px 5px !important;
+    border: 1px solid transparent !important;
+    border-radius: 999px !important;
     background: transparent !important;
-    border: none !important;
-    padding: 10px 15px !important;
-    height: 55vh !important;
+    color: rgba(255,255,255,.94) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+    box-shadow: none !important;
   }
-  body[data-route="chat"] .pro-chat-log .msg {
-    backdrop-filter: blur(12px) !important;
-    border: 1px solid rgba(255,255,255,0.15) !important;
-    color: #fff !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1) !important;
-    font-size: 14px !important;
-    line-height: 1.5 !important;
+
+  :is(body[data-route="chat"], #page-chat) .mobile-mystic-tabs button:is(.active, [aria-selected="true"], [aria-current="page"]) {
+    border-color: rgba(255,215,0,.72) !important;
+    background: linear-gradient(135deg, #ffe76a, #ffd700 55%, #f4b400) !important;
+    color: #231900 !important;
+    font-weight: 800 !important;
+    box-shadow: 0 0 18px rgba(255,215,0,.48), inset 0 1px 0 rgba(255,255,255,.45) !important;
+  }
+
+  :is(body[data-route="chat"], #page-chat) .pro-chat-log {
+    background: transparent !important;
+    border-color: transparent !important;
+    padding: 10px 14px !important;
+    overscroll-behavior: contain;
+  }
+
+  :is(body[data-route="chat"], #page-chat) .pro-chat-log .msg {
+    max-width: min(88%, 680px) !important;
+    border: 1px solid rgba(235,244,255,.34) !important;
     border-radius: 18px !important;
+    color: #fff !important;
+    background: rgba(7,16,35,.56) !important;
+    backdrop-filter: blur(16px) saturate(155%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(155%) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.10) !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,.42);
+    font-size: 14px !important;
+    line-height: 1.55 !important;
+    overflow-wrap: anywhere;
   }
-  body[data-route="chat"] .pro-chat-log .msg.me {
-    background: rgba(255, 215, 0, 0.15) !important;
-    border-color: rgba(255, 215, 0, 0.3) !important;
+
+  :is(body[data-route="chat"], #page-chat) .pro-chat-log .msg.me {
+    background: rgba(74,54,9,.52) !important;
+    border-color: rgba(255,215,0,.52) !important;
   }
-  body[data-route="chat"] .pro-chat-log .msg:not(.me) {
-    background: rgba(255, 255, 255, 0.08) !important;
-  }
-  
-  /* 5. Hide settings panel & desktop header */
-  body[data-route="chat"] .chat-mobile-settings, 
-  body[data-route="chat"] .chat-pro-head {
+
+  :is(body[data-route="chat"], #page-chat) :is(.chat-mobile-settings, .chat-pro-head) {
     display: none !important;
   }
 
-  /* 6. Upload Buttons Bar (Tải ảnh, Tải file...) - Compact horizontal row */
-  body[data-route="chat"] .chat-upload-bar.pro-upload {
-    background: transparent !important;
-    border: none !important;
-    padding: 0 15px !important;
-    margin-bottom: 5px !important;
+  :is(body[data-route="chat"], #page-chat) .chat-upload-bar.pro-upload {
     display: flex !important;
-    gap: 8px !important;
-    overflow-x: auto !important;
-    box-shadow: none !important;
-    scrollbar-width: none !important; /* Firefox */
-  }
-  body[data-route="chat"] .chat-upload-bar.pro-upload::-webkit-scrollbar {
-    display: none !important; /* Safari and Chrome */
-  }
-  body[data-route="chat"] .chat-upload-bar.pro-upload .upload-chip, 
-  body[data-route="chat"] .chat-upload-bar.pro-upload .clear-attachments {
-    background: rgba(255,255,255,0.1) !important;
-    backdrop-filter: blur(10px) !important;
-    border: 1px solid rgba(255,255,255,0.2) !important;
-    border-radius: 16px !important;
-    padding: 6px 12px !important;
-    font-size: 12px !important;
-    color: #fff !important;
-    white-space: nowrap !important;
-    box-shadow: none !important;
-    flex-shrink: 0 !important;
-    margin: 0 !important;
-  }
-  
-  /* 7. The Chat Input Bar (Sleek Pill) */
-  body[data-route="chat"] .chat-input.pro-input {
-    background: rgba(30, 30, 40, 0.6) !important;
-    backdrop-filter: blur(15px) !important;
-    border-radius: 30px !important;
-    border: 1px solid rgba(255,255,255,0.2) !important;
-    padding: 5px 10px !important;
-    margin: 5px 15px 15px 15px !important;
-    display: flex !important;
+    flex-flow: row nowrap !important;
     align-items: center !important;
-    gap: 5px !important;
-    grid-template-columns: none !important;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3) !important;
-    flex-wrap: nowrap !important;
-  }
-  body[data-route="chat"] .chat-input.pro-input textarea {
-    background: transparent !important;
-    border: none !important;
-    color: #fff !important;
-    box-shadow: none !important;
-    flex: 1 !important;
-    padding: 8px !important;
-    min-height: 20px !important;
-    font-size: 14px !important;
+    gap: 8px !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    padding: 4px 14px 7px !important;
     margin: 0 !important;
-  }
-  body[data-route="chat"] .chat-input.pro-input button {
+    border: 0 !important;
     background: transparent !important;
-    border: none !important;
     box-shadow: none !important;
-    border-radius: 50% !important;
-    width: 36px !important;
-    height: 36px !important;
-    padding: 0 !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: x proximity;
+  }
+
+  :is(body[data-route="chat"], #page-chat) .chat-upload-bar.pro-upload::-webkit-scrollbar { display: none !important; }
+
+  :is(body[data-route="chat"], #page-chat) .chat-upload-bar.pro-upload :is(.upload-chip, .clear-attachments, button, label) {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-height: 34px !important;
+    margin: 0 !important;
+    padding: 7px 12px !important;
+    border: 1px solid rgba(255,255,255,.22) !important;
+    border-radius: 16px !important;
+    color: #fff !important;
+    background: rgba(255,255,255,.12) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    box-shadow: none !important;
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    scroll-snap-align: start;
+  }
+
+  :is(body[data-route="chat"], #page-chat) .chat-input.pro-input {
     display: flex !important;
+    flex-flow: row nowrap !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: auto !important;
+    margin: 5px 12px max(10px, env(safe-area-inset-bottom)) !important;
+    padding: 5px 7px 5px 12px !important;
+    border: 1px solid rgba(255,255,255,.24) !important;
+    border-radius: 999px !important;
+    background: rgba(20,24,34,.52) !important;
+    backdrop-filter: blur(16px) saturate(140%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
+    box-shadow: 0 8px 25px rgba(0,0,0,.22) !important;
+    grid-template-columns: none !important;
+  }
+
+  :is(body[data-route="chat"], #page-chat) .chat-input.pro-input textarea {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    min-height: 34px !important;
+    max-height: 120px !important;
+    margin: 0 !important;
+    padding: 8px 4px !important;
+    border: 0 !important;
+    outline: 0 !important;
+    color: #fff !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: 15px !important;
+    resize: none !important;
+  }
+
+  :is(body[data-route="chat"], #page-chat) .chat-input.pro-input button {
+    display: flex !important;
+    flex: 0 0 38px !important;
     align-items: center !important;
     justify-content: center !important;
-    color: #ffd700 !important;
-    font-size: 18px !important;
-    min-height: auto !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-height: 38px !important;
     margin: 0 !important;
+    padding: 0 !important;
+    border: 0 !important;
+    border-radius: 50% !important;
+    color: #ffd700 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    font-size: 18px !important;
   }
-  body[data-route="chat"] .chat-input.pro-input #chatSendBtn {
-    background: linear-gradient(135deg, #ffd700, #ffb300) !important;
-    color: #000 !important;
+
+  :is(body[data-route="chat"], #page-chat) .chat-input.pro-input #chatSendBtn {
+    flex: 0 0 38px !important;
+    width: 38px !important;
+    height: 38px !important;
+    min-height: 38px !important;
+    border: 1px solid rgba(255,238,145,.8) !important;
+    border-radius: 50% !important;
+    color: transparent !important;
+    background: linear-gradient(145deg, #ffe76a, #ffd700 65%, #f0aa00) !important;
+    box-shadow: 0 3px 12px rgba(255,190,0,.28) !important;
     font-size: 0 !important;
     position: relative !important;
-    border-radius: 50% !important;
-    width: 36px !important;
-    height: 36px !important;
-    margin: 0 !important;
-    flex-shrink: 0 !important;
   }
-  body[data-route="chat"] .chat-input.pro-input #chatSendBtn::after {
-    content: '\27A4' !important; /* Unicode for arrow */
-    font-size: 16px !important;
-    font-weight: bold !important;
+
+  :is(body[data-route="chat"], #page-chat) .chat-input.pro-input #chatSendBtn::after {
+    content: "➤" !important;
+    color: #241900 !important;
+    font-size: 17px !important;
+    font-weight: 800 !important;
+    line-height: 1 !important;
+  }
+
+  @media (max-width: 379px) {
+    :is(body[data-route="chat"], #page-chat) .chat-upload-bar.pro-upload {
+      width: calc(100vw - 20px) !important;
+      max-width: calc(100vw - 20px) !important;
+      gap: 6px !important;
+      padding: 4px 8px 8px !important;
+      scrollbar-width: thin !important;
+      scrollbar-color: rgba(255,215,0,.72) rgba(255,255,255,.10) !important;
+      scroll-padding-inline: 8px;
+    }
+    :is(body[data-route="chat"], #page-chat) .chat-upload-bar.pro-upload::-webkit-scrollbar {
+      display: block !important;
+      height: 3px !important;
+    }
+    :is(body[data-route="chat"], #page-chat) .chat-upload-bar.pro-upload::-webkit-scrollbar-track {
+      background: rgba(255,255,255,.10) !important;
+      border-radius: 999px !important;
+    }
+    :is(body[data-route="chat"], #page-chat) .chat-upload-bar.pro-upload::-webkit-scrollbar-thumb {
+      background: rgba(255,215,0,.72) !important;
+      border-radius: 999px !important;
+    }
+    :is(body[data-route="chat"], #page-chat) .chat-upload-bar.pro-upload :is(.upload-chip, .clear-attachments, button, label) {
+      min-height: 32px !important;
+      padding: 6px 9px !important;
+      font-size: 11px !important;
+      letter-spacing: -.01em;
+    }
   }
 }
 </style>

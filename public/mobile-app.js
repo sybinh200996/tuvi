@@ -15,8 +15,10 @@ const TABS = [
   { id: 'settings', icon: '⚙️', label: 'AI Keys' }
 ];
 
+const LEGACY_WELCOME = 'Chào Đặng Năm. Mình là Đặng Năm AI Ultra. Bạn có thể hỏi về tử vi, thời tiết, ý tưởng, phân tích lỗi, viết nội dung hoặc code; mình sẽ trả lời rõ ràng và thực tế.';
+const WELCOME_MESSAGE = 'Chào bạn. Mình là Đặng Năm AI Ultra. Bạn có thể hỏi về tử vi, thời tiết, ý tưởng, phân tích lỗi, viết nội dung hoặc code; mình sẽ trả lời rõ ràng và thực tế.';
 const DEFAULT_MESSAGES = [
-  { role: 'assistant', text: 'Chào Đặng Năm. Mình là Đặng Năm AI Ultra. Bạn có thể hỏi về tử vi, thời tiết, ý tưởng, phân tích lỗi, viết nội dung hoặc code; mình sẽ trả lời rõ ràng và thực tế.' }
+  { role: 'assistant', text: WELCOME_MESSAGE }
 ];
 
 function readJSON(key, fallback) {
@@ -35,11 +37,12 @@ function authHeaders() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-async function apiJSON(url, payload, method = 'POST') {
+async function apiJSON(url, payload, method = 'POST', signal) {
   const response = await fetch(url, {
     method,
     headers: { ...(method === 'GET' ? {} : { 'Content-Type': 'application/json' }), ...authHeaders() },
-    body: method === 'GET' ? undefined : JSON.stringify(payload || {})
+    body: method === 'GET' ? undefined : JSON.stringify(payload || {}),
+    ...(signal ? { signal } : {})
   });
   const raw = await response.text();
   let data = {};
@@ -70,6 +73,44 @@ function optimizeImage(file, maxEdge = 1600, quality = 0.82) {
     };
     reader.readAsDataURL(file);
   });
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error(`Không đọc được file ${file.name || ''}.`));
+    reader.readAsDataURL(file);
+  });
+}
+
+function readFileAsText(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || '').slice(0, 12000));
+    reader.onerror = () => reject(new Error(`Không đọc được nội dung ${file.name || ''}.`));
+    reader.readAsText(file);
+  });
+}
+
+async function prepareChatAttachment(file) {
+  if (!file) throw new Error('File đính kèm không hợp lệ.');
+  if (file.size > 12 * 1024 * 1024) throw new Error(`${file.name}: tối đa 12 MB mỗi file.`);
+  const name = String(file.name || 'file');
+  const originalType = String(file.type || 'application/octet-stream').toLowerCase();
+  const isText = originalType.startsWith('text/') || /\.(txt|md|csv|json|xml|html|js|ts|py|log|css)$/i.test(name);
+  if (isText) {
+    return { name, type: originalType, size: file.size, textPreview: await readFileAsText(file) };
+  }
+  if (originalType.startsWith('image/')) {
+    try {
+      const dataUrl = await optimizeImage(file, 1600, 0.82);
+      return { name, type: 'image/jpeg', size: file.size, dataUrl };
+    } catch {
+      return { name, type: originalType, size: file.size, dataUrl: await readFileAsDataUrl(file) };
+    }
+  }
+  return { name, type: originalType, size: file.size, dataUrl: await readFileAsDataUrl(file) };
 }
 
 
@@ -120,11 +161,23 @@ function App() {
       {tab === 'settings' && <Settings providers={providers} reload={loadProviders} />}
     </section>
     <nav className="bottom-nav">
-      <button onClick={() => setTab('home')} className={tab==='home'?'active':''}>⌂<span>Trang chủ</span></button>
-      <button onClick={() => alert('Tính năng Lịch sử đang phát triển!')} className={tab==='history'?'active':''}>▣<span>Lịch sử</span></button>
-      <button className="magic" onClick={() => setTab('chat')}>✦</button>
-      <button onClick={() => setTab('chat')} className={tab==='chat'?'active':''}>☻<span>AI Chat</span></button>
-      <button onClick={() => setTab('settings')} className={tab==='settings'?'active':''}>♙<span>Tài khoản</span></button>
+      <button aria-label="Trang chủ" onClick={() => setTab('home')} className={tab==='home'?'active':''}>
+        <svg className="bottom-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7"/><path d="M5.5 9v11h13V9M9.5 20v-6h5v6"/></svg>
+        <span>Trang chủ</span>
+      </button>
+      <button aria-label="Lịch sử" onClick={() => alert('Tính năng Lịch sử đang phát triển!')} className={tab==='history'?'active':''}>
+        <svg className="bottom-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8.5A8.5 8.5 0 1 1 4 17"/><path d="M3.5 3.5v5h5M12 7v5l3 2"/></svg>
+        <span>Lịch sử</span>
+      </button>
+      <button className="magic" aria-label="Mở AI Chat" title="Mở AI Chat" onClick={() => setTab('chat')}>✦</button>
+      <button aria-label="AI Chat" onClick={() => setTab('chat')} className={tab==='chat'?'active':''}>
+        <svg className="bottom-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2 1.2-4.1A7.5 7.5 0 1 1 20 11.5Z"/><path d="M8 11.5h.01M12 11.5h.01M16 11.5h.01"/></svg>
+        <span>AI Chat</span>
+      </button>
+      <button aria-label="Tài khoản" onClick={() => setTab('settings')} className={tab==='settings'?'active':''}>
+        <svg className="bottom-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.5"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0M5 21h14"/></svg>
+        <span>Tài khoản</span>
+      </button>
     </nav>
   </main>;
 }
@@ -191,15 +244,43 @@ function Home({ setTab, providers }) {
 function Chat({ providers }) {
   const [messages, setMessages] = useState(() => {
     const saved = readJSON('nam44_messages', DEFAULT_MESSAGES);
-    return Array.isArray(saved) && saved.length ? saved.slice(-50) : DEFAULT_MESSAGES;
+    return Array.isArray(saved) && saved.length
+      ? saved.slice(-50).map(m => m?.role === 'assistant' && m.text === LEGACY_WELCOME ? { ...m, text: WELCOME_MESSAGE } : m)
+      : DEFAULT_MESSAGES;
   });
   const [text, setText] = useState('');
-  const [provider, setProvider] = useState('auto');
+  const [modelChoice, setModelChoice] = useState('auto');
   const [answerStyle, setAnswerStyle] = useState('detailed');
   const [council, setCouncil] = useState(false);
   const [busy, setBusy] = useState(false);
   const [lastPrompt, setLastPrompt] = useState('');
+  const [attachments, setAttachments] = useState([]);
+  const [fileNotice, setFileNotice] = useState('');
+  const [voiceStatus, setVoiceStatus] = useState('');
+  const [listening, setListening] = useState(false);
+  const [voiceCountdown, setVoiceCountdown] = useState(0);
   const boxRef = useRef(null);
+  const imageInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const recognitionRef = useRef(null);
+  const voiceTranscriptRef = useRef('');
+  const draftRef = useRef('');
+  const countdownTimerRef = useRef(null);
+  const requestAbortRef = useRef(null);
+
+  function clearVoiceCountdown(notice = '') {
+    if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+    countdownTimerRef.current = null;
+    setVoiceCountdown(0);
+    if (notice) setVoiceStatus(notice);
+  }
+
+  useEffect(() => () => {
+    if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
+    try { recognitionRef.current?.abort(); } catch {}
+    requestAbortRef.current?.abort?.();
+  }, []);
   
   useEffect(() => {
     const quickAsk = localStorage.getItem('synam_quick_ask');
@@ -211,30 +292,184 @@ function Chat({ providers }) {
 
   useEffect(() => { localStorage.setItem('nam44_messages', JSON.stringify(messages.slice(-50))); boxRef.current?.scrollTo({ top: boxRef.current.scrollHeight, behavior: 'smooth' }); }, [messages]);
 
+  function addFiles(fileList) {
+    const picked = Array.from(fileList || []);
+    if (!picked.length) return;
+    let totalBytes = attachments.reduce((sum, item) => sum + item.file.size, 0);
+    const accepted = [];
+    const notices = [];
+    for (const file of picked) {
+      if (attachments.length + accepted.length >= 6) { notices.push('Mỗi lượt tối đa 6 file.'); break; }
+      if (file.size > 12 * 1024 * 1024) { notices.push(`${file.name}: file vượt quá 12 MB.`); continue; }
+      if (totalBytes + file.size > 14 * 1024 * 1024) { notices.push('Tổng dung lượng file tối đa 14 MB/lượt.'); continue; }
+      totalBytes += file.size;
+      accepted.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2)}`, file });
+    }
+    if (accepted.length) setAttachments(current => [...current, ...accepted]);
+    setFileNotice(notices.join(' '));
+  }
+
+  function removeFile(id) {
+    setAttachments(current => current.filter(item => item.id !== id));
+    setFileNotice('');
+  }
+
+  function startDictation() {
+    clearVoiceCountdown();
+    setVoiceStatus('');
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setVoiceStatus('Trình duyệt này chưa hỗ trợ micro trong trang. Bạn có thể dùng micro trên bàn phím điện thoại.');
+      return;
+    }
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'vi-VN';
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      voiceTranscriptRef.current = '';
+      recognition.onstart = () => { setListening(true); setVoiceStatus('Đang nghe tiếng Việt…'); };
+      recognition.onresult = event => {
+        const finalText = Array.from(event.results || []).slice(event.resultIndex || 0)
+          .filter(result => result.isFinal).map(result => result[0]?.transcript || '').join(' ').trim();
+        if (!finalText) return;
+        voiceTranscriptRef.current = [voiceTranscriptRef.current, finalText].filter(Boolean).join(' ').trim();
+        const nextDraft = [draftRef.current, finalText].filter(Boolean).join(' ').trim();
+        draftRef.current = nextDraft;
+        setText(nextDraft);
+      };
+      recognition.onerror = event => {
+        setListening(false);
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') setVoiceStatus('Chưa có quyền dùng micro. Hãy cho phép micro rồi thử lại.');
+        else if (!voiceTranscriptRef.current) setVoiceStatus('Chưa nhận được giọng nói. Hãy thử lại.');
+      };
+      recognition.onend = () => {
+        setListening(false);
+        recognitionRef.current = null;
+        if (!voiceTranscriptRef.current.trim()) {
+          setVoiceStatus(current => current === 'Đang nghe tiếng Việt…' ? 'Chưa nhận được giọng nói. Hãy thử lại.' : current);
+          return;
+        }
+        setVoiceStatus('Đã nhận giọng nói.');
+        let remaining = 3;
+        setVoiceCountdown(remaining);
+        countdownTimerRef.current = setInterval(() => {
+          remaining -= 1;
+          if (remaining <= 0) {
+            clearInterval(countdownTimerRef.current);
+            countdownTimerRef.current = null;
+            setVoiceCountdown(0);
+            setVoiceStatus('');
+            const spoken = draftRef.current.trim();
+            if (spoken) send(spoken);
+          } else setVoiceCountdown(remaining);
+        }, 1000);
+      };
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (error) {
+      setListening(false);
+      setVoiceStatus(`Không mở được micro: ${error.message || 'hãy thử lại.'}`);
+    }
+  }
+
+  function stopDictation() {
+    setVoiceStatus('Đã dừng micro.');
+    try { recognitionRef.current?.stop(); } catch {}
+  }
+
+  function stopResponse() {
+    try { requestAbortRef.current?.abort?.(); } catch {}
+  }
+
   async function send(customText) {
     const content = (customText ?? text).trim();
-    if (!content || busy) return;
-    setText(''); setLastPrompt(content); setBusy(true);
-    const next = [...messages, { role: 'user', text: content }];
+    if ((!content && !attachments.length) || busy) return;
+    clearVoiceCountdown();
+    setVoiceStatus('');
+    setText(''); draftRef.current = '';
+    const requestText = content || 'Hãy phân tích nội dung các tệp đính kèm và trả lời bằng tiếng Việt.';
+    setLastPrompt(content || 'Hãy phân tích lại các tệp đính kèm đã gửi.');
+    setBusy(true);
+    const fileMeta = attachments.map(item => ({ name: item.file.name, type: item.file.type || 'file', size: item.file.size }));
+    const userText = content || 'Đã gửi tệp đính kèm.';
+    const next = [...messages, { role: 'user', text: userText, attachments: fileMeta }];
     setMessages([...next, { role: 'assistant', text: 'Đang suy nghĩ kỹ và kiểm tra ngữ cảnh…', loading: true }]);
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+    requestAbortRef.current = controller;
     try {
-      const data = await apiJSON('/api/multi-ai/chat', { message: content, history: next.slice(-20), provider, council, answerStyle });
+      const [selectedProvider, selectedModel] = modelChoice === 'auto' ? ['auto', ''] : modelChoice.split('::');
+      let data;
+      if (attachments.length) {
+        const files = await Promise.all(attachments.map(item => prepareChatAttachment(item.file)));
+        data = await apiJSON('/api/chat-ai', {
+          message: content,
+          attachments: files,
+          history: next.slice(-20),
+          answerStyle,
+          geminiModel: selectedProvider === 'gemini' ? selectedModel : 'auto'
+        }, 'POST', controller?.signal);
+        setAttachments([]);
+        setFileNotice('');
+      } else {
+        data = await apiJSON('/api/multi-ai/chat', {
+          message: requestText, history: next.slice(-20), provider: selectedProvider,
+          model: selectedModel, council, answerStyle
+        }, 'POST', controller?.signal);
+      }
       const answer = data.reply || data.text || 'AI chưa trả về nội dung.';
       setMessages([...next, { role: 'assistant', text: answer, meta: data.label || 'Đặng Năm AI' }]);
     } catch (e) {
-      setMessages([...next, { role: 'assistant', text: `⚠️ ${e.message}\n\nGợi ý: vào tab AI Keys kiểm tra CLAUDE_API_KEY / ANTHROPIC_API_KEY / GEMINI_API_KEY hoặc chọn provider khác.` }]);
-    } finally { setBusy(false); }
+      if (e.name === 'AbortError') setMessages([...next, { role: 'assistant', text: 'Đã dừng phản hồi.' }]);
+      else {
+        if (content) { draftRef.current = content; setText(current => current || content); }
+        const freeModeError = /chế độ chỉ dùng model API miễn phí|tránh phát sinh phí/i.test(e.message || '');
+        const extra = freeModeError ? '' : '\n\nNếu gửi ảnh/file, server cần có Gemini API key; bạn cũng có thể kiểm tra cấu hình ở AI Keys.';
+        setMessages([...next, { role: 'assistant', text: `⚠️ ${e.message}${extra}` }]);
+      }
+    } finally {
+      if (requestAbortRef.current === controller) requestAbortRef.current = null;
+      setBusy(false);
+    }
   }
 
   function copy(t) { navigator.clipboard?.writeText(t); }
   function speak(t) { try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(t); u.lang='vi-VN'; speechSynthesis.speak(u); } catch {} }
 
+  const providerGroupLabel = p => `${p.label}${p.freeOnlyBlocked ? ' · tắt để tránh phí' : p.configured ? '' : ' · chưa cấu hình'}`;
+  const providerModelOptions = providers.map(p => ({
+    ...p,
+    modelOptions: Array.from(new Set([...(p.models || []), p.model].filter(Boolean)))
+  }));
+
   return <section className="chat-layout">
-    <aside className="chat-side premium-panel"><h2>🧠 AI Router</h2><p>Auto chọn provider có key. Ưu tiên nhanh, chính xác, không lộ model.</p><select value={provider} onChange={e=>setProvider(e.target.value)}><option value="auto">Auto Router</option>{providers.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}</select><select value={answerStyle} onChange={e=>setAnswerStyle(e.target.value)} aria-label="Độ chi tiết câu trả lời"><option value="detailed">Chi tiết chuyên nghiệp</option><option value="expert">Chuyên gia sâu</option><option value="concise">Ngắn gọn</option></select><label className="switch"><input type="checkbox" checked={council} onChange={e=>setCouncil(e.target.checked)} /> Hội Đồng AI</label><button onClick={()=>setMessages(DEFAULT_MESSAGES)}>＋ Chat mới</button><div className="mini-list">{providers.map(p => <span className={p.configured?'ok':''} key={p.id}>{p.configured?'●':'○'} {p.label}</span>)}</div></aside>
+    <aside className="chat-side premium-panel"><h2>🧠 AI Router</h2><p>Auto chọn provider có key. Ưu tiên nhanh, chính xác, không lộ model.</p><select value={modelChoice} onChange={e=>setModelChoice(e.target.value)}><option value="auto">Auto Router</option>{providerModelOptions.map(p => <optgroup key={p.id} label={providerGroupLabel(p)} disabled={!p.configured}>{p.modelOptions.map(model => <option key={`${p.id}:${model}`} value={`${p.id}::${model}`}>{model}</option>)}</optgroup>)}</select><select value={answerStyle} onChange={e=>setAnswerStyle(e.target.value)} aria-label="Độ chi tiết câu trả lời"><option value="detailed">Chi tiết chuyên nghiệp</option><option value="expert">Chuyên gia sâu</option><option value="concise">Ngắn gọn</option></select><label className="switch"><input type="checkbox" checked={council} onChange={e=>setCouncil(e.target.checked)} /> Hội Đồng AI</label><button onClick={()=>setMessages(DEFAULT_MESSAGES)}>＋ Chat mới</button><div className="mini-list">{providers.map(p => <span className={p.configured?'ok':''} key={p.id}>{p.configured?'●':'○'} {p.label}{p.freeOnlyBlocked?' (tắt để tránh phí)':''}</span>)}</div></aside>
     <div className="chat-main premium-panel">
       <div className="chat-head"><div><h2>🤖 AI Chat Ultra</h2><p>Chat box hiện đại, copy, đọc, thử lại, giữ ngữ cảnh.</p></div><button onClick={()=>speak(messages.filter(m=>m.role==='assistant').at(-1)?.text || '')}>🔊 Đọc</button></div>
-      <div className="chat-box" ref={boxRef}>{messages.map((m,i) => <div key={i} className={`bubble ${m.role} ${m.loading?'loading':''}`}><div className="avatar">{m.role==='user'?'👤':'✦'}</div><div className="bubble-body"><div dangerouslySetInnerHTML={{__html: markdownLite(m.text)}} />{m.role==='assistant' && !m.loading && <div className="msg-actions"><button onClick={()=>copy(m.text)}>Copy</button><button onClick={()=>speak(m.text)}>Đọc</button><button onClick={()=>send(lastPrompt)}>Thử lại</button></div>}</div></div>)}</div>
-      <div className="composer chat-pill-composer"><textarea value={text} onChange={e=>setText(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}} placeholder="Nhắn AI như ChatGPT..." rows="1"/><button className="pill-send-btn" disabled={busy} onClick={()=>send()}>{busy?'…':'Gửi ✈'}</button></div>
+      <div className="chat-box" ref={boxRef}>{messages.map((m,i) => <div key={i} className={`bubble ${m.role} ${m.loading?'loading':''}`}><div className="avatar">{m.role==='user'?'👤':'✦'}</div><div className="bubble-body">{m.attachments?.length > 0 && <div className="chat-message-files">{m.attachments.map((file,index) => <span key={`${file.name}-${index}`}>📎 {file.name}</span>)}</div>}<div dangerouslySetInnerHTML={{__html: markdownLite(m.text)}} />{m.role==='assistant' && !m.loading && <div className="msg-actions"><button onClick={()=>copy(m.text)}>Copy</button><button onClick={()=>speak(m.text)}>Đọc</button><button onClick={()=>send(lastPrompt)}>Thử lại</button></div>}</div></div>)}</div>
+      <div className="chat-composer-panel">
+        <div className="chat-model-row"><label htmlFor="chat-model-choice">Model AI</label><select id="chat-model-choice" value={modelChoice} onChange={e=>setModelChoice(e.target.value)}><option value="auto">Auto · Multi-AI</option>{providerModelOptions.map(p => <optgroup key={p.id} label={providerGroupLabel(p)} disabled={!p.configured}>{p.modelOptions.map(model => <option key={`${p.id}:${model}`} value={`${p.id}::${model}`}>{model}</option>)}</optgroup>)}</select></div>
+        <div className="composer chat-pill-composer">
+          {attachments.length > 0 && <div className="chat-attachment-list">{attachments.map(item => <span className="chat-file-chip" key={item.id}>{item.file.type.startsWith('image/')?'🖼️':'📄'} {item.file.name}<button type="button" aria-label={`Xóa ${item.file.name}`} title={`Xóa ${item.file.name}`} onClick={()=>removeFile(item.id)}>×</button></span>)}</div>}
+          {fileNotice && <div className="chat-file-notice" role="status">{fileNotice}</div>}
+          {attachments.length > 0 && modelChoice !== 'auto' && !modelChoice.startsWith('gemini::') && <div className="chat-attachment-note">Ảnh/file hiện được phân tích qua Gemini đa phương thức.</div>}
+          {voiceStatus && <div className="chat-voice-status" role="status">{voiceStatus}{voiceCountdown > 0 && <> <b>Gửi sau {voiceCountdown}s</b> <button type="button" onClick={()=>clearVoiceCountdown('Đã hủy tự động gửi.')}>Hủy</button></>}</div>}
+          <textarea value={text} onChange={e=>{draftRef.current=e.target.value;if(voiceCountdown)clearVoiceCountdown('Đã hủy tự động gửi do bạn chỉnh sửa nội dung.');setText(e.target.value);}} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}} placeholder="Nhập tin nhắn..." aria-label="Tin nhắn gửi AI" rows="1" />
+          <div className="chat-composer-bottom">
+            <div className="chat-upload-bar pro-upload mobile-chat-uploads">
+              <button type="button" onClick={()=>imageInputRef.current?.click()}>📎 <span>Tải ảnh</span></button>
+              <button type="button" onClick={()=>cameraInputRef.current?.click()}>📷 <span>Chụp ảnh</span></button>
+              <button type="button" onClick={()=>fileInputRef.current?.click()}>📄 <span>Tải file</span></button>
+              {attachments.length > 0 && <button type="button" className="chat-clear-files" onClick={()=>{setAttachments([]);setFileNotice('');}}>Xóa hết</button>}
+              <input ref={imageInputRef} className="chat-hidden-input" type="file" accept="image/*" multiple onChange={e=>{addFiles(e.target.files);e.target.value='';}} />
+              <input ref={cameraInputRef} className="chat-hidden-input" type="file" accept="image/*" capture="environment" onChange={e=>{addFiles(e.target.files);e.target.value='';}} />
+              <input ref={fileInputRef} className="chat-hidden-input" type="file" accept="image/*,.pdf,.txt,.md,.csv,.json,.xml,.html,.js,.ts,.py,.log,.css,.doc,.docx,.xls,.xlsx" multiple onChange={e=>{addFiles(e.target.files);e.target.value='';}} />
+            </div>
+            {listening ? <button type="button" className="chat-mic-btn is-listening" aria-label="Dừng ghi âm" title="Dừng ghi âm" onClick={stopDictation}>■</button> : <button type="button" className="chat-mic-btn" aria-label="Nhập bằng giọng nói" title="Nhập bằng giọng nói" disabled={busy} onClick={startDictation}>🎙</button>}
+            <button type="button" className={`pill-send-btn ${busy?'is-stop':''}`} aria-label={busy?'Dừng phản hồi':'Gửi tin nhắn'} title={busy?'Dừng phản hồi':'Gửi tin nhắn'} onClick={busy?stopResponse:()=>send()}>{busy?'■':'➤'}</button>
+          </div>
+        </div>
+      </div>
     </div>
   </section>;
 }

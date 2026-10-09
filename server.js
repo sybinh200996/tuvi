@@ -185,46 +185,51 @@ function publicUser(user) {
 }
 
 
+const FREE_MODELS_ONLY = String(process.env.FREE_MODELS_ONLY || "false").toLowerCase() === "true";
+// Strict no-cost route: OpenRouter documents this router as free-priced; Gemini's
+// free tier depends on the Google project billing tier and cannot be enforced by API request.
+const FREE_MODELS_BY_PROVIDER = Object.freeze({ openrouter: ["openrouter/free"] });
+
 const AI_PROVIDERS = {
   gemini: {
-    label: "Google Gemini Pro",
+    label: "Google Gemini (API tier cần xác minh)",
     keyEnv: "GEMINI_API_KEY",
     modelEnv: "GEMINI_MODEL",
-    defaultModel: "gemini-2.5-pro",
-    models: ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-pro-exp-02-05"],
-    freeHint: "Google AI Studio có free tier cho Gemini Pro."
+    defaultModel: "gemini-3.8-flash",
+    models: ["gemini-3.8-flash", "gemini-3.7-flash"],
+    freeHint: "Có free tier, nhưng key/project có thể dùng paid tier; hiện bị khóa trong strict free mode."
   },
   groq: {
-    label: "Groq Llama 3",
+    label: "Groq",
     keyEnv: "GROQ_API_KEY",
     modelEnv: "GROQ_MODEL",
     defaultModel: "llama-3.3-70b-versatile",
     models: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant", "mixtral-8x7b-32768"],
-    freeHint: "Trả lời cực nhanh, quota miễn phí."
+    freeHint: "Bị khóa trong strict free mode vì model catalog hiện công bố giá/Enterprise access."
   },
   openrouter: {
-    label: "OpenRouter Pro",
+    label: "OpenRouter Free",
     keyEnv: "OPENROUTER_API_KEY",
     modelEnv: "OPENROUTER_MODEL",
-    defaultModel: "anthropic/claude-3.7-sonnet",
-    models: ["anthropic/claude-3.7-sonnet", "openai/gpt-4o", "deepseek/deepseek-r1", "meta-llama/llama-3.3-70b-instruct"],
-    freeHint: "Sử dụng các model pro qua OpenRouter."
+    defaultModel: "openrouter/free",
+    models: ["openrouter/free"],
+    freeHint: "Router miễn phí; model được chọn trong nhóm free có thể thay đổi theo khả dụng."
   },
   openai: {
     label: "ChatGPT Pro",
     keyEnv: "OPENAI_API_KEY",
     modelEnv: "OPENAI_MODEL",
-    defaultModel: "gpt-4o",
-    models: ["gpt-4o", "gpt-4.5-preview", "o1", "o3-mini"],
+    defaultModel: "gpt-6.1-sol",
+    models: ["gpt-6-astra", "gpt-6.1-sol", "gpt-6-luna", "gpt-4o"],
     freeHint: "Cần API key OpenAI trả phí."
   },
   claude: {
-    label: "Anthropic Claude Pro",
-    keyEnv: "CLAUDE_API_KEY",
-    modelEnv: "CLAUDE_MODEL",
-    defaultModel: "claude-3-7-sonnet-latest",
-    models: ["claude-3-7-sonnet-latest", "claude-3-5-sonnet-latest", "claude-3-opus-latest"],
-    freeHint: "Claude 3.7 Sonnet mới nhất, thông minh vượt trội."
+    label: "Anthropic Claude API (paid)",
+    keyEnv: "ANTHROPIC_API_KEY",
+    modelEnv: "ANTHROPIC_MODEL",
+    defaultModel: "claude-opus-5-5",
+    models: ["claude-fable-5-1", "claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5"],
+    freeHint: "API tính phí; bị khóa trong strict free mode."
   },
   deepseek: {
     label: "DeepSeek Pro",
@@ -270,8 +275,9 @@ function maskKey(key = "") {
 function pickProviderKey(provider, user = null) {
   const info = AI_PROVIDERS[provider];
   if (!info) return "";
+  if (FREE_MODELS_ONLY && !FREE_MODELS_BY_PROVIDER[provider]) return "";
   if (provider === "claude") {
-    return user?.aiKeys?.[provider] || process.env.CLAUDE_API_KEY || process.env.ANTHROPIC_API_KEY || "";
+    return user?.aiKeys?.[provider] || process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY || "";
   }
   return user?.aiKeys?.[provider] || process.env[info.keyEnv] || "";
 }
@@ -279,19 +285,34 @@ function pickProviderKey(provider, user = null) {
 function pickProviderModel(provider, requestedModel = "", user = null) {
   const info = AI_PROVIDERS[provider];
   if (!info) return requestedModel || "";
-  return requestedModel || user?.aiModels?.[provider] || process.env[info.modelEnv] || info.defaultModel;
+  if (FREE_MODELS_ONLY) {
+    const allowed = FREE_MODELS_BY_PROVIDER[provider] || [];
+    if (!allowed.length) return "";
+    if (requestedModel && !allowed.includes(requestedModel)) {
+      throw new Error(`Model ${requestedModel} bị chặn trong chế độ chỉ dùng API miễn phí.`);
+    }
+    const candidates = [requestedModel, user?.aiModels?.[provider], process.env[info.modelEnv]];
+    return candidates.find(candidate => candidate && allowed.includes(candidate)) || allowed[0];
+  }
+  const envModel = process.env[info.modelEnv] || (provider === "claude" ? process.env.CLAUDE_MODEL : "");
+  return requestedModel || user?.aiModels?.[provider] || envModel || info.defaultModel;
 }
 
 function enabledProvidersForUser(user = null) {
   return Object.entries(AI_PROVIDERS).map(([id, info]) => {
-    const key = pickProviderKey(id, user);
+    const freeOnlyBlocked = FREE_MODELS_ONLY && !FREE_MODELS_BY_PROVIDER[id];
+    const key = freeOnlyBlocked ? "" : pickProviderKey(id, user);
+    const models = FREE_MODELS_ONLY ? (FREE_MODELS_BY_PROVIDER[id] || []) : info.models;
+    let model = "";
+    try { model = models.length ? pickProviderModel(id, "", user) : ""; } catch { model = models[0] || ""; }
     return {
       id,
       label: info.label,
       configured: Boolean(key),
+      freeOnlyBlocked,
       maskedKey: maskKey(key),
-      model: pickProviderModel(id, "", user),
-      models: info.models,
+      model,
+      models,
       freeHint: info.freeHint
     };
   });
@@ -300,11 +321,12 @@ function enabledProvidersForUser(user = null) {
 function autoProviderOrder(message = "", preferred = "auto", user = null) {
   const text = String(message || "").toLowerCase();
   let order;
-  if (preferred && preferred !== "auto") order = [preferred, "groq", "openrouter", "gemini", "deepseek", "qwen", "openai", "claude", "grok", "mistral"];
-  else if (/code|lập trình|debug|node|react|javascript|python|api|server/.test(text)) order = ["groq", "openrouter", "claude", "openai", "deepseek", "gemini", "qwen", "mistral", "grok"];
-  else if (/ảnh|image|vision|pdf|file|phân tích ảnh|xem tướng|chỉ tay/.test(text)) order = ["gemini", "openai", "claude", "qwen", "grok", "deepseek", "groq", "openrouter"];
-  else if (/rẻ|free|miễn phí|tiết kiệm/.test(text)) order = ["groq", "openrouter", "gemini", "deepseek", "qwen", "mistral", "openai", "claude", "grok"];
-  else order = ["groq", "openrouter", "gemini", "openai", "claude", "deepseek", "qwen", "mistral", "grok"];
+  // Chọn hãng cụ thể nghĩa là chỉ gọi hãng đó; không tự âm thầm chuyển hãng.
+  if (preferred && preferred !== "auto") order = [preferred];
+  else if (/ảnh|image|vision|pdf|file|phân tích ảnh|xem tướng|chỉ tay/.test(text)) order = ["gemini", "openai", "claude", "qwen", "grok", "deepseek", "groq", "openrouter", "mistral"];
+  else if (/code|lập trình|debug|node|react|javascript|python|api|server/.test(text)) order = ["openai", "claude", "gemini", "deepseek", "groq", "openrouter", "qwen", "mistral", "grok"];
+  else if (/rẻ|free|miễn phí|tiết kiệm/.test(text)) order = ["groq", "gemini", "deepseek", "openrouter", "qwen", "mistral", "openai", "claude", "grok"];
+  else order = ["gemini", "openai", "claude", "deepseek", "openrouter", "groq", "qwen", "mistral", "grok"];
   return uniqueModels(order).filter(id => AI_PROVIDERS[id] && pickProviderKey(id, user));
 }
 
@@ -312,20 +334,43 @@ function partsToPrompt(parts) {
   return (parts || []).map(part => part?.text || "").filter(Boolean).join("\n\n").trim();
 }
 
-async function callOpenAICompatible({ provider, apiKey, model, prompt, systemPrompt = '' }) {
-  const base = provider === "groq" ? "https://api.groq.com/openai/v1" :
-               provider === "openrouter" ? "https://openrouter.ai/api/v1" :
-               provider === "deepseek" ? "https://api.deepseek.com" :
-               provider === "grok" ? "https://api.x.ai/v1" :
-               provider === "qwen" ? "https://dashscope-intl.aliyuncs.com/compatible-mode/v1" :
-               provider === "mistral" ? "https://api.mistral.ai/v1" :
-               "https://api.openai.com/v1";
+async function callOpenAIResponses({ apiKey, model, prompt, systemPrompt = "" }) {
+  const response = await withTimeout(fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
+    body: JSON.stringify({
+      model,
+      ...(systemPrompt ? { instructions: systemPrompt } : {}),
+      input: [{ role: "user", content: [{ type: "input_text", text: prompt }] }],
+      max_output_tokens: 5000
+    })
+  }), 90000);
+  const json = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(json?.error?.message || json?.message || `OpenAI Responses API HTTP ${response.status}`);
+  const outputText = json?.output_text || (json?.output || []).flatMap(item => item?.content || [])
+    .filter(item => item?.type === "output_text" || item?.type === "text")
+    .map(item => item.text || "").join("\n").trim();
+  if (!outputText) throw new Error("OpenAI Responses API trả về rỗng hoặc không có output_text.");
+  return outputText;
+}
+
+async function callOpenAICompatible({ provider, apiKey, model, prompt, systemPrompt = "" }) {
+  const endpoints = {
+    groq: "https://api.groq.com/openai/v1",
+    openrouter: "https://openrouter.ai/api/v1",
+    deepseek: "https://api.deepseek.com",
+    grok: "https://api.x.ai/v1",
+    qwen: "https://dashscope-intl.aliyuncs.com/compatible-mode/v1",
+    mistral: "https://api.mistral.ai/v1"
+  };
+  const base = endpoints[provider];
+  if (!base) throw new Error(`Chưa có endpoint tương thích cho provider ${provider}.`);
   const response = await withTimeout(fetch(`${base}/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${apiKey}`,
-      ...(provider === "openrouter" ? { "HTTP-Referer": "https://synam-ai.local", "X-Title": "Dang Nam Mystic AI" } : {})
+      ...(provider === "openrouter" ? { "HTTP-Referer": process.env.OPENROUTER_SITE_URL || "https://synam-ai.local", "X-Title": "Dang Nam Mystic AI" } : {})
     },
     body: JSON.stringify({
       model,
@@ -338,8 +383,10 @@ async function callOpenAICompatible({ provider, apiKey, model, prompt, systemPro
     })
   }), 90000);
   const json = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(json?.error?.message || json?.message || `HTTP ${response.status}`);
-  return json?.choices?.[0]?.message?.content || json?.choices?.[0]?.text || "";
+  if (!response.ok) throw new Error(json?.error?.message || json?.message || `${provider} API HTTP ${response.status}`);
+  const text = json?.choices?.[0]?.message?.content || json?.choices?.[0]?.text || "";
+  if (!text) throw new Error(`${provider} API trả về nội dung rỗng.`);
+  return text;
 }
 
 async function callClaude({ apiKey, model, prompt, systemPrompt = '' }) {
@@ -363,6 +410,7 @@ async function callClaude({ apiKey, model, prompt, systemPrompt = '' }) {
 }
 
 async function callGeminiText({ apiKey, model, parts, systemPrompt = '' }) {
+  if (FREE_MODELS_ONLY && !FREE_MODELS_BY_PROVIDER.gemini) throw new Error("Google Gemini bị tắt trong chế độ chỉ dùng model API miễn phí để tránh phát sinh phí.");
   const client = apiKey === process.env.GEMINI_API_KEY && ai ? ai : new GoogleGenAI({ apiKey });
   const response = await withTimeout(client.models.generateContent({
     model,
@@ -372,35 +420,62 @@ async function callGeminiText({ apiKey, model, parts, systemPrompt = '' }) {
       topP: 0.85,
       ...(systemPrompt ? { systemInstruction: systemPrompt } : {})
     },
-    tools: [{ googleSearch: {} }]
+    ...(!FREE_MODELS_ONLY ? { tools: [{ googleSearch: {} }] } : {})
   }), 90000);
   return response?.text || response?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || "";
 }
 
-async function callAIProvider({ provider, model, prompt, parts, user, systemPrompt = '' }) {
+async function callAIProvider({ provider, model = "", prompt, parts, user, systemPrompt = "" }) {
   const info = AI_PROVIDERS[provider];
   if (!info) throw new Error(`Provider không hỗ trợ: ${provider}`);
   const apiKey = pickProviderKey(provider, user);
-  if (!apiKey) throw new Error(`${info.label} chưa có API key.`);
-  const finalModel = pickProviderModel(provider, model, user);
-  if (provider === "gemini") {
-    const finalParts = parts?.length ? parts : [{ text: prompt }];
-    return { provider, label: info.label, model: finalModel, text: await callGeminiText({ apiKey, model: finalModel, parts: finalParts, systemPrompt }) };
+  if (!apiKey) {
+    if (FREE_MODELS_ONLY && !FREE_MODELS_BY_PROVIDER[provider]) throw new Error(`${info.label} bị tắt trong chế độ chỉ dùng model API miễn phí.`);
+    throw new Error(`${info.label} chưa có API key.`);
   }
-  if (provider === "claude") return { provider, label: info.label, model: finalModel, text: await callClaude({ apiKey, model: finalModel, prompt, systemPrompt }) };
-  return { provider, label: info.label, model: finalModel, text: await callOpenAICompatible({ provider, apiKey, model: finalModel, prompt, systemPrompt }) };
+  const finalModel = pickProviderModel(provider, model, user);
+  let text;
+  // Mỗi hãng có adapter và giao thức riêng; tuyệt đối không gửi model ID sang hãng khác.
+  if (provider === "openai") {
+    text = await callOpenAIResponses({ apiKey, model: finalModel, prompt, systemPrompt });
+  } else if (provider === "claude") {
+    text = await callClaude({ apiKey, model: finalModel, prompt, systemPrompt });
+  } else if (provider === "gemini") {
+    const finalParts = parts?.length ? parts : [{ text: prompt }];
+    text = await callGeminiText({ apiKey, model: finalModel, parts: finalParts, systemPrompt });
+  } else {
+    text = await callOpenAICompatible({ provider, apiKey, model: finalModel, prompt, systemPrompt });
+  }
+  return { provider, label: info.label, model: finalModel, text };
 }
 
-async function tryMultiAI({ prompt, parts, preferredProvider = "auto", requestedModel = "", user = null, council = false, systemPrompt = '' }) {
+async function tryMultiAI({ prompt, parts, preferredProvider = "auto", requestedModel = "", user = null, council = false, systemPrompt = "" }) {
   const attempts = [];
+  // Hỗ trợ selector cũ dạng "provider::model" nhưng tách rõ hai giá trị ở backend.
+  requestedModel = String(requestedModel || "");
+  if (requestedModel.includes("::")) {
+    const [selectorProvider, ...modelParts] = requestedModel.split("::");
+    if (preferredProvider === "auto" && AI_PROVIDERS[selectorProvider]) preferredProvider = selectorProvider;
+    requestedModel = modelParts.join("::");
+  }
+  const explicitProvider = preferredProvider && preferredProvider !== "auto";
   const order = autoProviderOrder(prompt, preferredProvider, user);
-  if (!order.length) throw new Error("Chưa có AI provider nào được cấu hình. Hãy vào Cài đặt AI để nhập API key hoặc thêm key trong .env.");
+  if (!order.length) {
+    if (explicitProvider) {
+      const err = new Error(FREE_MODELS_ONLY && !FREE_MODELS_BY_PROVIDER[preferredProvider]
+        ? `Provider ${preferredProvider} bị tắt trong chế độ chỉ dùng model API miễn phí.`
+        : `Provider ${preferredProvider} chưa được cấu hình API key.`);
+      err.provider = preferredProvider;
+      throw err;
+    }
+    throw new Error("Chưa có AI provider miễn phí nào được cấu hình. Kiểm tra OPENROUTER_API_KEY hoặc chế độ miễn phí.");
+  }
   if (council) {
     const results = [];
     for (const provider of order.slice(0, 5)) {
       try {
-        const result = await callAIProvider({ provider, model: requestedModel, prompt, parts, user, systemPrompt });
-        results.push(result);
+        // Council dùng model cấu hình riêng của từng hãng, không tái sử dụng model selector.
+        results.push(await callAIProvider({ provider, prompt, parts, user, systemPrompt }));
       } catch (error) {
         attempts.push({ provider, error: cleanError(error, provider) });
       }
@@ -411,18 +486,24 @@ async function tryMultiAI({ prompt, parts, preferredProvider = "auto", requested
       throw err;
     }
     const text = results.map((r, idx) => `## Ý kiến AI ${idx + 1}\n${hideModelLeakServer(r.text)}`).join("\n\n---\n\n");
-    return { provider: "council", label: "Hội Đồng AI", text, results: results.map(r => ({ label: 'Đặng Năm AI', text: hideModelLeakServer(r.text) })), attempts };
+    return { provider: "council", label: "Hội Đồng AI", text, results: results.map(r => ({ label: r.label, provider: r.provider, model: r.model, text: hideModelLeakServer(r.text) })), attempts };
   }
   let lastError;
+  let lastErrorProvider = "";
   for (const provider of order) {
     try {
-      return await callAIProvider({ provider, model: requestedModel, prompt, parts, user, systemPrompt });
+      // Model do người dùng chọn chỉ áp dụng khi provider khớp. Auto fallback dùng model riêng từng hãng.
+      const modelForProvider = explicitProvider ? requestedModel : "";
+      return await callAIProvider({ provider, model: modelForProvider, prompt, parts, user, systemPrompt });
     } catch (error) {
       attempts.push({ provider, error: cleanError(error, provider) });
       lastError = error;
+      lastErrorProvider = provider;
+      if (explicitProvider) break;
     }
   }
   const err = lastError || new Error("Không AI nào phản hồi được.");
+  if (lastErrorProvider && !err.provider) err.provider = lastErrorProvider;
   err.attempts = attempts;
   throw err;
 }
@@ -432,10 +513,10 @@ const ai = process.env.GEMINI_API_KEY
   : null;
 
 const DEFAULT_MODELS = [
-  "gemini-2.5-flash",
-  "gemini-2.5-flash-lite",
-  "gemini-2.0-flash",
-  "gemini-2.0-flash-lite"
+  "gemini-3.1-pro-preview",
+  "gemini-3.8-flash",
+  "gemini-2.5-pro",
+  "gemini-2.5-flash"
 ];
 
 function uniqueModels(list) {
@@ -760,7 +841,8 @@ function fixedLunarProfile(person = {}, idx = 1) {
 function cleanError(error, provider = '') {
   const msg = error?.message || "Có lỗi không xác định.";
   const lower = msg.toLowerCase();
-  const label = AI_PROVIDERS?.[provider]?.label || 'Gemini';
+  const label = AI_PROVIDERS?.[provider]?.label || 'AI';
+  if (lower.includes("bị tắt trong chế độ chỉ dùng") || lower.includes("free-only")) return msg;
   if (msg.includes("TIMEOUT_GEMINI")) return `${label} phản hồi quá lâu. Kiểm tra mạng, quota hoặc thử lại bằng model nhẹ hơn.`;
   if (lower.includes("api key") || lower.includes("apikey") || lower.includes("permission") || lower.includes("unauthorized")) return `${label} API key sai, thiếu quyền hoặc chưa được cấu hình đúng.`;
   if (lower.includes("quota") || lower.includes("rate") || lower.includes("429")) return `${label} hết quota hoặc đang bị giới hạn tốc độ. Hãy thử lại sau hoặc đổi provider khác.`;
@@ -770,6 +852,7 @@ function cleanError(error, provider = '') {
 }
 
 async function tryModels(parts, preferredModel = "auto", systemPrompt = '') {
+  if (FREE_MODELS_ONLY && !FREE_MODELS_BY_PROVIDER.gemini) throw new Error("Google Gemini bị tắt trong chế độ chỉ dùng model API miễn phí để tránh phát sinh phí.");
   let lastError;
   const modelOrder = resolveModelOrder(preferredModel);
   const attempts = [];
@@ -1066,7 +1149,9 @@ app.post("/api/multi-ai/chat", async (req, res) => {
 ${professionalAssistantPolicy(selectedStyle)}
 
 NGUYÊN TẮC AN TOÀN VÀ TRUNG THỰC:
-- BẠN ĐƯỢC KẾT NỐI VỚI GOOGLE SEARCH. Đối với các câu hỏi về thông tin hiện tại (giá cả, tin tức, công nghệ, sản phẩm mới nhất, giá iPhone...), BẠN BẮT BUỘC PHẢI DÙNG CÔNG CỤ TÌM KIẾM GOOGLE SEARCH để lấy thông tin thực tế từ mạng internet trước khi trả lời. Tuyệt đối không tự suy diễn thông tin. Năm hiện tại là 2026.
+${FREE_MODELS_ONLY
+  ? "- Không có công cụ tìm kiếm trực tuyến trong chế độ miễn phí. Với thông tin thời gian thực, hãy nói rõ chưa thể xác minh thay vì đoán."
+  : "- BẠN ĐƯỢC KẾT NỐI VỚI GOOGLE SEARCH. Đối với các câu hỏi về thông tin hiện tại, hãy dùng công cụ tìm kiếm Google Search trước khi trả lời. Năm hiện tại là 2026."}
 - Không bịa dữ kiện, nguồn, kết quả đo lường, quyền truy cập, hành động đã thực hiện hoặc thông tin thời gian thực.
 - Với y tế, pháp lý, tài chính, bảo mật và quyết định quan trọng, chỉ cung cấp thông tin tham khảo, nêu rủi ro và khuyến nghị tìm chuyên gia khi cần.
 - Với tử vi, tướng số, chỉ tay và phong thủy, trình bày như nội dung tham khảo văn hóa/tự phản tỉnh, không phán chắc số phận, sức khỏe, tài sản hay hôn nhân.
@@ -1103,9 +1188,9 @@ CÂU HỎI MỚI:
 ${cleanMessage}`;
     const result = await tryMultiAI({ prompt, parts: [{ text: prompt }], preferredProvider: provider || process.env.DEFAULT_AI_PROVIDER || "auto", requestedModel: model, user, council: Boolean(council), systemPrompt });
     result.text = hideModelLeakServer(result.text);
-    res.json({ ok: true, provider: 'synam', label: 'Đặng Năm AI', answerStyle: selectedStyle, text: result.text });
+    res.json({ ok: true, provider: result.provider, label: 'Đặng Năm AI', model: result.model, answerStyle: selectedStyle, text: result.text });
   } catch (error) {
-    res.status(500).json({ ok: false, error: cleanError(error), attempts: error.attempts || [] });
+    res.status(500).json({ ok: false, error: cleanError(error, error.provider || ""), attempts: error.attempts || [] });
   }
 });
 
@@ -1390,6 +1475,7 @@ function imageModelOrder(preferredModel) {
 }
 
 async function tryImageModels(parts, preferredModel = "auto") {
+  if (FREE_MODELS_ONLY && !FREE_MODELS_BY_PROVIDER.gemini) throw new Error("Tạo/phân tích ảnh bằng Gemini đang tắt trong chế độ chỉ dùng model API miễn phí để tránh phát sinh phí.");
   let lastError;
   const attempts = [];
   for (const model of imageModelOrder(preferredModel)) {

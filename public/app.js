@@ -965,9 +965,30 @@ window.addEventListener('DOMContentLoaded',()=>{
 
 
 // NAM45: đăng ký PWA sau khi trang đã tải, không chặn giao diện nếu browser không hỗ trợ.
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js').catch(() => {}));
+// SYNAM_SW_REFRESH: force a fresh SW check; the new worker activates and removes stale app caches.
+function synamRefreshServiceWorker() {
+  if (!('serviceWorker' in navigator) || !window.isSecureContext) return;
+  let didReload = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (didReload) return;
+    didReload = true;
+    window.location.reload();
+  }, { once: true });
+  navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' })
+    .then(async registration => {
+      await registration.update();
+      if (registration.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      registration.addEventListener('updatefound', () => {
+        const installing = registration.installing;
+        installing?.addEventListener('statechange', () => {
+          if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+            registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
+          }
+        });
+      });
+    }).catch(error => console.warn('Service Worker update check failed:', error));
 }
+window.addEventListener('load', synamRefreshServiceWorker, { once: true });
 
 async function analyzeDeep() {
   setLoading('deepResult', true);

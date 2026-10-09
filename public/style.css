@@ -1880,3 +1880,25 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
     font-weight: bold !important;
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* Desktop welcome message glass blur v5. */
+@media (min-width: 769px) {
+  body[data-route="chat"] .pro-chat-log .msg.ai-welcome {
+    background: rgba(24,34,54,.12) !important;
+    backdrop-filter: blur(26px) saturate(155%) !important;
+    -webkit-backdrop-filter: blur(26px) saturate(155%) !important;
+  }
+}
