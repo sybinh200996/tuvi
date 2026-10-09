@@ -1,5 +1,14 @@
 ﻿const { useEffect, useMemo, useRef, useState } = React;
 
+
+function saveHistory(type, content) {
+  try {
+    const list = JSON.parse(localStorage.getItem('synam_history') || '[]');
+    list.unshift({ type, content, at: new Date().toLocaleString('vi-VN') });
+    localStorage.setItem('synam_history', JSON.stringify(list.slice(0, 80)));
+  } catch(e){}
+}
+
 const TABS = [
   { id: 'home', icon: '✨', label: 'Trang chủ' },
   { id: 'horoscope', icon: '🔮', label: 'Tử vi' },
@@ -125,6 +134,35 @@ function markdownLite(text = '') {
   return safe.replace(/\n/g, '<br/>');
 }
 
+
+function HistoryTool() {
+  const [list, setList] = useState([]);
+  useEffect(() => {
+    try { setList(JSON.parse(localStorage.getItem('synam_history') || '[]')); } catch(e){}
+  }, []);
+  function clearHist() {
+    if(confirm('Xóa toàn bộ lịch sử?')) { localStorage.removeItem('synam_history'); setList([]); }
+  }
+  return <section className="tool-grid">
+    <div className="premium-panel" style={{padding: '15px'}}>
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+        <h2 style={{margin:0}}>⏳ Lịch sử</h2>
+        {list.length > 0 && <button onClick={clearHist} className="ghost" style={{padding: '6px 12px', fontSize:'12px'}}>Xóa hết</button>}
+      </div>
+      <div style={{marginTop: '15px', display:'flex', flexDirection:'column', gap:'12px'}}>
+        {list.length === 0 ? <p style={{color:'var(--muted)'}}>Chưa có lịch sử nào.</p> : list.map((item, i) => (
+          <div key={i} style={{background:'rgba(255,255,255,0.08)', padding:'12px', borderRadius:'12px'}}>
+            <div style={{display:'flex', justifyContent:'space-between', marginBottom:'8px', fontSize:'12px', color:'var(--brand)'}}>
+              <b>{item.type}</b> <span>{item.at}</span>
+            </div>
+            <div style={{fontSize:'14px', lineHeight:'1.5', whiteSpace:'pre-wrap', maxHeight: '200px', overflowY: 'auto'}}>{item.content}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>;
+}
+
 function App() {
   const [tab, setTab] = useState('home');
   const [health, setHealth] = useState('Đang kiểm tra AI...');
@@ -158,14 +196,15 @@ function App() {
       {tab === 'multi' && <Chat providers={providers} />}
       {tab === 'fengshui' && <FengShuiTool />}
       {tab === 'tarot' && <TarotTool />}
-      {tab === 'settings' && <Settings providers={providers} reload={loadProviders} />}
+      {tab === 'history' && <HistoryTool />}
+        {tab === 'settings' && <Settings providers={providers} reload={loadProviders} />}
     </section>
     <nav className="bottom-nav">
       <button aria-label="Trang chủ" onClick={() => setTab('home')} className={tab==='home'?'active':''}>
         <svg className="bottom-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7"/><path d="M5.5 9v11h13V9M9.5 20v-6h5v6"/></svg>
         <span>Trang chủ</span>
       </button>
-      <button aria-label="Lịch sử" onClick={() => alert('Tính năng Lịch sử đang phát triển!')} className={tab==='history'?'active':''}>
+      <button aria-label="Lịch sử" onClick={() => setTab('history')} className={tab==='history'?'active':''}>
         <svg className="bottom-nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8.5A8.5 8.5 0 1 1 4 17"/><path d="M3.5 3.5v5h5M12 7v5l3 2"/></svg>
         <span>Lịch sử</span>
       </button>
@@ -563,12 +602,12 @@ function VisionTool({ mode, title, icon }) {
         : { mode, image, faceImage: image, facePart: 'Tổng quan ngũ quan', faceNote: note };
       setResult('AI đang phân tích ảnh...');
       const d = await apiJSON('/api/vision-ai', payload);
-      setResult(d.text || d.reply || 'Không có kết quả.');
+      setResult(d.text || d.reply || 'Không có kết quả.'); saveHistory(title, d.text || d.reply || 'Không có kết quả.');
     } catch(e) { 
       const fb = window.MysticEngine ? 
         (mode === 'palm' ? window.MysticEngine.Palmistry.analyze(note, '') : window.MysticEngine.Face.analyze(note, ''))
         : (mode === 'palm' ? '### Lỗi tải Mystic Engine - Chỉ Tay' : '### Lỗi tải Mystic Engine - Tướng Mặt');
-      setResult(fb);
+      setResult(fb); saveHistory(title + ' local', fb);
     }
   }
 
@@ -596,11 +635,11 @@ function VisionTool({ mode, title, icon }) {
 
 function LoveTool() {
   const [a,setA]=useState(''); const [b,setB]=useState(''); const [out,setOut]=useState('Nhập thông tin hai người để luận giải.');
-  async function run(){ setOut('Đang tính bằng code và AI luận giải...'); try{const d=await apiJSON('/api/love-ai',{ persons:[{name:'Người 1',birthDate:a},{name:'Người 2',birthDate:b}]}); setOut(d.text||d.reply||'Không có kết quả');}catch(e){setOut('⚠️ '+e.message)} }
+  async function run(){ setOut('Đang tính bằng code và AI luận giải...'); try{const d=await apiJSON('/api/love-ai',{ persons:[{name:'Người 1',birthDate:a},{name:'Người 2',birthDate:b}]}); setOut(d.text||d.reply||'Không có kết quả'); saveHistory('Tình duyên', d.text||d.reply||'Không có kết quả');}catch(e){setOut('⚠️ '+e.message)} }
   return <section className="tool-grid"><div className="premium-panel"><h2>💞 Tình duyên</h2><input value={a} onChange={e=>setA(e.target.value)} placeholder="Ngày sinh người 1: 01/01/2000"/><input value={b} onChange={e=>setB(e.target.value)} placeholder="Ngày sinh người 2: 02/02/2004"/><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>;
 }
-function TuviTool() { const [name,setName]=useState(''); const [dob,setDob]=useState(''); const [time,setTime]=useState(''); const [gender,setGender]=useState('Nam'); const [out,setOut]=useState('Nhập thông tin để luận giải.'); async function run(){ setOut('Đang tải...'); try{const d=await apiJSON('/api/mystic-ai',{name,birthDate:dob,birthTime:time,gender, localReport: window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : '' }); setOut(d.text||d.reply||'Không có kết quả');}catch(e){setOut(window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : '⚠️ Lỗi: '+e.message)} } return <section className="tool-grid"><div className="premium-panel"><h2>📜 Tử vi / Thần số</h2><input value={name} onChange={e=>setName(e.target.value)} placeholder="Họ và tên"/><input value={dob} onChange={e=>setDob(e.target.value)} type="date"/><input value={time} onChange={e=>setTime(e.target.value)} type="time"/><select value={gender} onChange={e=>setGender(e.target.value)}><option>Nam</option><option>Nữ</option></select><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>; }
-  function SimpleTool({kind,title,icon,preset='',placeholder='Bạn muốn hỏi điều gì?'}){const [q,setQ]=useState('');const [out,setOut]=useState('Nhập nội dung rồi bấm luận giải.');async function run(){setOut('AI đang luận giải...');try{const d=await apiJSON('/api/multi-ai/chat',{message:`${preset||title} ${q}`, provider:'auto'});setOut(d.text||d.reply||'Không có kết quả')}catch(e){setOut('⚠️ '+e.message)}}return <section className="tool-grid"><div className="premium-panel"><h2>{icon} {title}</h2><textarea value={q} onChange={e=>setQ(e.target.value)} placeholder={placeholder}/><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>}
+function TuviTool() { const [name,setName]=useState(''); const [dob,setDob]=useState(''); const [time,setTime]=useState(''); const [gender,setGender]=useState('Nam'); const [out,setOut]=useState('Nhập thông tin để luận giải.'); async function run(){ setOut('Đang tải...'); try{const d=await apiJSON('/api/mystic-ai',{name,birthDate:dob,birthTime:time,gender, localReport: window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : '' }); setOut(d.text||d.reply||'Không có kết quả'); saveHistory('Tình duyên', d.text||d.reply||'Không có kết quả');}catch(e){setOut(window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : '⚠️ Lỗi: '+e.message)} } return <section className="tool-grid"><div className="premium-panel"><h2>📜 Tử vi / Thần số</h2><input value={name} onChange={e=>setName(e.target.value)} placeholder="Họ và tên"/><input value={dob} onChange={e=>setDob(e.target.value)} type="date"/><input value={time} onChange={e=>setTime(e.target.value)} type="time"/><select value={gender} onChange={e=>setGender(e.target.value)}><option>Nam</option><option>Nữ</option></select><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>; }
+  function SimpleTool({kind,title,icon,preset='',placeholder='Bạn muốn hỏi điều gì?'}){const [q,setQ]=useState('');const [out,setOut]=useState('Nhập nội dung rồi bấm luận giải.');async function run(){setOut('AI đang luận giải...');try{const d=await apiJSON('/api/multi-ai/chat',{message:`${preset||title} ${q}`, provider:'auto'});setOut(d.text||d.reply||'Không có kết quả'); saveHistory(title, d.text||d.reply||'Không có kết quả');}catch(e){setOut('⚠️ '+e.message)}}return <section className="tool-grid"><div className="premium-panel"><h2>{icon} {title}</h2><textarea value={q} onChange={e=>setQ(e.target.value)} placeholder={placeholder}/><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>}
 
 function AstrologyTool(){
   const zodiacs = [
@@ -625,7 +664,7 @@ function AstrologyTool(){
     setOut('AI đang luận giải...');
     try{
       const d=await apiJSON('/api/multi-ai/chat',{provider:'auto',message:`Luận chiêm tinh theo cung hoàng đạo, thời điểm hiện tại và câu hỏi sau: Cung ${selected}. Câu hỏi: ${q}`});
-      setOut(d.text||d.reply||'Không có kết quả');
+      setOut(d.text||d.reply||'Không có kết quả'); saveHistory('Tình duyên', d.text||d.reply||'Không có kết quả');
     }catch(e){
       setOut('⚠️ '+e.message);
     }

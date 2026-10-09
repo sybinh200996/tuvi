@@ -4,6 +4,17 @@ const {
   useRef,
   useState
 } = React;
+function saveHistory(type, content) {
+  try {
+    const list = JSON.parse(localStorage.getItem('synam_history') || '[]');
+    list.unshift({
+      type,
+      content,
+      at: new Date().toLocaleString('vi-VN')
+    });
+    localStorage.setItem('synam_history', JSON.stringify(list.slice(0, 80)));
+  } catch (e) {}
+}
 const TABS = [{
   id: 'home',
   icon: '✨',
@@ -188,6 +199,79 @@ function markdownLite(text = '') {
   const safe = String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   return safe.replace(/\n/g, '<br/>');
 }
+function HistoryTool() {
+  const [list, setList] = useState([]);
+  useEffect(() => {
+    try {
+      setList(JSON.parse(localStorage.getItem('synam_history') || '[]'));
+    } catch (e) {}
+  }, []);
+  function clearHist() {
+    if (confirm('Xóa toàn bộ lịch sử?')) {
+      localStorage.removeItem('synam_history');
+      setList([]);
+    }
+  }
+  return /*#__PURE__*/React.createElement("section", {
+    className: "tool-grid"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "premium-panel",
+    style: {
+      padding: '15px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("h2", {
+    style: {
+      margin: 0
+    }
+  }, "⏳ Lịch sử"), list.length > 0 && /*#__PURE__*/React.createElement("button", {
+    onClick: clearHist,
+    className: "ghost",
+    style: {
+      padding: '6px 12px',
+      fontSize: '12px'
+    }
+  }, "Xóa hết")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: '15px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '12px'
+    }
+  }, list.length === 0 ? /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: 'var(--muted)'
+    }
+  }, "Chưa có lịch sử nào.") : list.map((item, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      background: 'rgba(255,255,255,0.08)',
+      padding: '12px',
+      borderRadius: '12px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      marginBottom: '8px',
+      fontSize: '12px',
+      color: 'var(--brand)'
+    }
+  }, /*#__PURE__*/React.createElement("b", null, item.type), " ", /*#__PURE__*/React.createElement("span", null, item.at)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: '14px',
+      lineHeight: '1.5',
+      whiteSpace: 'pre-wrap',
+      maxHeight: '200px',
+      overflowY: 'auto'
+    }
+  }, item.content))))));
+}
 function App() {
   const [tab, setTab] = useState('home');
   const [health, setHealth] = useState('Đang kiểm tra AI...');
@@ -233,7 +317,7 @@ function App() {
     icon: "🙂"
   }), tab === 'love' && /*#__PURE__*/React.createElement(LoveTool, null), tab === 'horoscope' && /*#__PURE__*/React.createElement(TuviTool, null), tab === 'astrology' && /*#__PURE__*/React.createElement(AstrologyTool, null), tab === 'numerology' && /*#__PURE__*/React.createElement(NumerologyTool, null), tab === 'multi' && /*#__PURE__*/React.createElement(Chat, {
     providers: providers
-  }), tab === 'fengshui' && /*#__PURE__*/React.createElement(FengShuiTool, null), tab === 'tarot' && /*#__PURE__*/React.createElement(TarotTool, null), tab === 'settings' && /*#__PURE__*/React.createElement(Settings, {
+  }), tab === 'fengshui' && /*#__PURE__*/React.createElement(FengShuiTool, null), tab === 'tarot' && /*#__PURE__*/React.createElement(TarotTool, null), tab === 'history' && /*#__PURE__*/React.createElement(HistoryTool, null), tab === 'settings' && /*#__PURE__*/React.createElement(Settings, {
     providers: providers,
     reload: loadProviders
   })), /*#__PURE__*/React.createElement("nav", {
@@ -252,7 +336,7 @@ function App() {
     d: "M5.5 9v11h13V9M9.5 20v-6h5v6"
   })), /*#__PURE__*/React.createElement("span", null, "Trang chủ")), /*#__PURE__*/React.createElement("button", {
     "aria-label": "Lịch sử",
-    onClick: () => alert('Tính năng Lịch sử đang phát triển!'),
+    onClick: () => setTab('history'),
     className: tab === 'history' ? 'active' : ''
   }, /*#__PURE__*/React.createElement("svg", {
     className: "bottom-nav-icon",
@@ -1050,9 +1134,11 @@ function VisionTool({
       setResult('AI đang phân tích ảnh...');
       const d = await apiJSON('/api/vision-ai', payload);
       setResult(d.text || d.reply || 'Không có kết quả.');
+      saveHistory(title, d.text || d.reply || 'Không có kết quả.');
     } catch (e) {
       const fb = window.MysticEngine ? mode === 'palm' ? window.MysticEngine.Palmistry.analyze(note, '') : window.MysticEngine.Face.analyze(note, '') : mode === 'palm' ? '### Lỗi tải Mystic Engine - Chỉ Tay' : '### Lỗi tải Mystic Engine - Tướng Mặt';
       setResult(fb);
+      saveHistory(title + ' local', fb);
     }
   }
   const hint = mode === 'palm' ? '* Mẹo: Chụp rõ toàn bộ lòng bàn tay, đủ sáng, không bị bóng râm che khuất.' : '* Mẹo: Chụp chính diện, rõ 5 ngũ quan, đủ sáng, không đeo kính và không che trán.';
@@ -1128,6 +1214,7 @@ function LoveTool() {
         }]
       });
       setOut(d.text || d.reply || 'Không có kết quả');
+      saveHistory('Tình duyên', d.text || d.reply || 'Không có kết quả');
     } catch (e) {
       setOut('⚠️ ' + e.message);
     }
@@ -1168,6 +1255,7 @@ function TuviTool() {
         localReport: window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : ''
       });
       setOut(d.text || d.reply || 'Không có kết quả');
+      saveHistory('Tình duyên', d.text || d.reply || 'Không có kết quả');
     } catch (e) {
       setOut(window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : '⚠️ Lỗi: ' + e.message);
     }
@@ -1215,6 +1303,7 @@ function SimpleTool({
         provider: 'auto'
       });
       setOut(d.text || d.reply || 'Không có kết quả');
+      saveHistory(title, d.text || d.reply || 'Không có kết quả');
     } catch (e) {
       setOut('⚠️ ' + e.message);
     }
@@ -1296,6 +1385,7 @@ function AstrologyTool() {
         message: `Luận chiêm tinh theo cung hoàng đạo, thời điểm hiện tại và câu hỏi sau: Cung ${selected}. Câu hỏi: ${q}`
       });
       setOut(d.text || d.reply || 'Không có kết quả');
+      saveHistory('Tình duyên', d.text || d.reply || 'Không có kết quả');
     } catch (e) {
       setOut('⚠️ ' + e.message);
     }
