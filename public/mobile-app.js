@@ -307,6 +307,7 @@ function Chat({ providers }) {
   const voiceTranscriptRef = useRef('');
   const draftRef = useRef('');
   const countdownTimerRef = useRef(null);
+    const sendRef = useRef(null);
   const requestAbortRef = useRef(null);
 
   function clearVoiceCountdown(notice = '') {
@@ -401,7 +402,7 @@ function Chat({ providers }) {
             setVoiceCountdown(0);
             setVoiceStatus('');
             const spoken = draftRef.current.trim();
-            if (spoken) send(spoken);
+            if (spoken) sendRef.current(spoken);
           } else setVoiceCountdown(remaining);
         }, 1000);
       };
@@ -422,7 +423,8 @@ function Chat({ providers }) {
     try { requestAbortRef.current?.abort?.(); } catch {}
   }
 
-  async function send(customText) {
+  sendRef.current = send;
+    async function send(customText) {
     const content = (customText ?? text).trim();
     if ((!content && !attachments.length) || busy) return;
     clearVoiceCountdown();
@@ -443,6 +445,7 @@ function Chat({ providers }) {
       if (attachments.length) {
         const files = await Promise.all(attachments.map(item => prepareChatAttachment(item.file)));
         data = await apiJSON('/api/chat-ai', {
+            geminiModel: 'gemini-2.5-flash-lite',
           message: content,
           attachments: files,
           history: next.slice(-20),
@@ -620,8 +623,8 @@ function VisionTool({ mode, title, icon }) {
     try {
       const image = await optimizeImage(file);
       const payload = mode === 'palm'
-        ? { mode, image, palmImage: image, palmLine: 'Tổng quan đường tay', palmNote: note }
-        : { mode, image, faceImage: image, facePart: 'Tổng quan ngũ quan', faceNote: note };
+        ? { mode, image, palmImage: image, palmLine: 'Tổng quan đường tay', palmNote: note, geminiModel: 'gemini-2.5-flash-lite' }
+        : { mode, image, faceImage: image, facePart: 'Tổng quan ngũ quan', faceNote: note, geminiModel: 'gemini-2.5-flash-lite' };
       setResult('AI đang phân tích ảnh...');
       const d = await apiJSON('/api/vision-ai', payload);
       setResult(d.text || d.reply || 'Không có kết quả.'); saveHistory(title, d.text || d.reply || 'Không có kết quả.');
@@ -657,11 +660,11 @@ function VisionTool({ mode, title, icon }) {
 
 function LoveTool() {
   const [a,setA]=useState(''); const [b,setB]=useState(''); const [out,setOut]=useState('Nhập thông tin hai người để luận giải.');
-  async function run(){ setOut('Đang tính bằng code và AI luận giải...'); try{const d=await apiJSON('/api/love-ai',{ persons:[{name:'Người 1',birthDate:a},{name:'Người 2',birthDate:b}]}); setOut(d.text||d.reply||'Không có kết quả'); saveHistory('Tình duyên', d.text||d.reply||'Không có kết quả');}catch(e){setOut('⚠️ '+e.message)} }
+  async function run(){ setOut('Đang tính bằng code và AI luận giải...'); try{const d=await apiJSON('/api/love-ai',{ geminiModel: 'gemini-2.5-flash-lite', persons:[{name:'Người 1',birthDate:a},{name:'Người 2',birthDate:b}]}); setOut(d.text||d.reply||'Không có kết quả'); saveHistory('Tình duyên', d.text||d.reply||'Không có kết quả');}catch(e){setOut('⚠️ '+e.message)} }
   return <section className="tool-grid"><div className="premium-panel"><h2>💞 Tình duyên</h2><input value={a} onChange={e=>setA(e.target.value)} placeholder="Ngày sinh người 1: 01/01/2000"/><input value={b} onChange={e=>setB(e.target.value)} placeholder="Ngày sinh người 2: 02/02/2004"/><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>;
 }
-function TuviTool() { const [name,setName]=useState(''); const [dob,setDob]=useState(''); const [time,setTime]=useState(''); const [gender,setGender]=useState('Nam'); const [out,setOut]=useState('Nhập thông tin để luận giải.'); async function run(){ setOut('Đang tải...'); try{const d=await apiJSON('/api/mystic-ai',{name,birthDate:dob,birthTime:time,gender, localReport: window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : '' }); setOut(d.text||d.reply||'Không có kết quả'); saveHistory('Tình duyên', d.text||d.reply||'Không có kết quả');}catch(e){setOut(window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : '⚠️ Lỗi: '+e.message)} } return <section className="tool-grid"><div className="premium-panel"><h2>📜 Tử vi / Thần số</h2><input value={name} onChange={e=>setName(e.target.value)} placeholder="Họ và tên"/><input value={dob} onChange={e=>setDob(e.target.value)} type="date"/><input value={time} onChange={e=>setTime(e.target.value)} type="time"/><select value={gender} onChange={e=>setGender(e.target.value)}><option>Nam</option><option>Nữ</option></select><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>; }
-  function SimpleTool({kind,title,icon,preset='',placeholder='Bạn muốn hỏi điều gì?'}){const [q,setQ]=useState('');const [out,setOut]=useState('Nhập nội dung rồi bấm luận giải.');async function run(){setOut('AI đang luận giải...');try{const d=await apiJSON('/api/multi-ai/chat',{message:`${preset||title} ${q}`, provider:'auto'});setOut(d.text||d.reply||'Không có kết quả'); saveHistory(title, d.text||d.reply||'Không có kết quả');}catch(e){setOut('⚠️ '+e.message)}}return <section className="tool-grid"><div className="premium-panel"><h2>{icon} {title}</h2><textarea value={q} onChange={e=>setQ(e.target.value)} placeholder={placeholder}/><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>}
+function TuviTool() { const [name,setName]=useState(''); const [dob,setDob]=useState(''); const [time,setTime]=useState(''); const [gender,setGender]=useState('Nam'); const [out,setOut]=useState('Nhập thông tin để luận giải.'); async function run(){ setOut('Đang tải...'); try{const d=await apiJSON('/api/mystic-ai',{name,birthDate:dob,birthTime:time,gender, geminiModel: 'gemini-2.5-flash-lite', localReport: window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : '' }); setOut(d.text||d.reply||'Không có kết quả'); saveHistory('Tình duyên', d.text||d.reply||'Không có kết quả');}catch(e){setOut(window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : '⚠️ Lỗi: '+e.message)} } return <section className="tool-grid"><div className="premium-panel"><h2>📜 Tử vi / Thần số</h2><input value={name} onChange={e=>setName(e.target.value)} placeholder="Họ và tên"/><input value={dob} onChange={e=>setDob(e.target.value)} type="date"/><input value={time} onChange={e=>setTime(e.target.value)} type="time"/><select value={gender} onChange={e=>setGender(e.target.value)}><option>Nam</option><option>Nữ</option></select><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>; }
+  function SimpleTool({kind,title,icon,preset='',placeholder='Bạn muốn hỏi điều gì?'}){const [q,setQ]=useState('');const [out,setOut]=useState('Nhập nội dung rồi bấm luận giải.');async function run(){setOut('AI đang luận giải...');try{const d=await apiJSON('/api/multi-ai/chat',{message:`${preset||title} ${q}`, provider:'auto', model:'gemini-2.5-flash-lite'});setOut(d.text||d.reply||'Không có kết quả'); saveHistory(title, d.text||d.reply||'Không có kết quả');}catch(e){setOut('⚠️ '+e.message)}}return <section className="tool-grid"><div className="premium-panel"><h2>{icon} {title}</h2><textarea value={q} onChange={e=>setQ(e.target.value)} placeholder={placeholder}/><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>}
 
 function AstrologyTool(){
   const zodiacs = [
@@ -685,7 +688,7 @@ function AstrologyTool(){
     if(!selected) return setOut('⚠️ Vui lòng chọn cung hoàng đạo của bạn.');
     setOut('AI đang luận giải...');
     try{
-      const d=await apiJSON('/api/multi-ai/chat',{provider:'auto',message:`Luận chiêm tinh theo cung hoàng đạo, thời điểm hiện tại và câu hỏi sau: Cung ${selected}. Câu hỏi: ${q}`});
+      const d=await apiJSON('/api/multi-ai/chat',{provider:'auto',model:'gemini-2.5-flash-lite',message:`Luận chiêm tinh theo cung hoàng đạo, thời điểm hiện tại và câu hỏi sau: Cung ${selected}. Câu hỏi: ${q}`});
       setOut(d.text||d.reply||'Không có kết quả'); saveHistory('Tình duyên', d.text||d.reply||'Không có kết quả');
     }catch(e){
       setOut('⚠️ '+e.message);
@@ -728,7 +731,7 @@ function TarotTool(){
     const deck=[...cards].sort(()=>Math.random()-.5).slice(0,3); setPicked(deck); setOut('AI đang luận 3 lá bài...');
     const deckNames = deck.map(c=>c.name);
     try{
-      const d=await apiJSON('/api/multi-ai/chat',{provider:'auto',message:`Xem bài tarot tham khảo. Câu hỏi: ${q}. Ba lá: ${deckNames.join(', ')}. Hãy luận rõ: hiện tại, lời khuyên, kết quả gần.`});
+      const d=await apiJSON('/api/multi-ai/chat',{provider:'auto',model:'gemini-2.5-flash-lite',message:`Xem bài tarot tham khảo. Câu hỏi: ${q}. Ba lá: ${deckNames.join(', ')}. Hãy luận rõ: hiện tại, lời khuyên, kết quả gần.`});
       setOut(d.text||d.reply||deckNames.join('\n'));
     }catch(e){
       setOut(`### 🃏 Ba lá bài\n- ${deckNames.join('\n- ')}\n\nLời khuyên: xem như tham khảo để bình tĩnh lựa chọn, không quyết định thay thực tế.`);
@@ -739,7 +742,7 @@ function TarotTool(){
 function NumerologyTool(){
   const [name,setName]=useState(''); const [birth,setBirth]=useState(''); const [out,setOut]=useState('Nhập họ tên và ngày sinh để tính thần số học.');
   function sumDigits(v){let n=String(v).replace(/\D/g,'').split('').reduce((a,b)=>a+Number(b),0); while(n>9 && ![11,22,33].includes(n)) n=String(n).split('').reduce((a,b)=>a+Number(b),0); return n||0}
-  async function run(){const life=sumDigits(birth); setOut('Đang tính local và AI luận giải...'); try{const d=await apiJSON('/api/multi-ai/chat',{provider:'auto',message:`Thần số học cho tên ${name||'chưa nhập'}, ngày sinh ${birth||'chưa nhập'}, số chủ đạo local là ${life}. Luận rõ tính cách, tình duyên, công việc, lời khuyên.`}); setOut(d.text||d.reply||`Số chủ đạo: ${life}`)}catch(e){setOut(`### 🔢 Kết quả local
+  async function run(){const life=sumDigits(birth); setOut('Đang tính local và AI luận giải...'); try{const d=await apiJSON('/api/multi-ai/chat',{provider:'auto',model:'gemini-2.5-flash-lite',message:`Thần số học cho tên ${name||'chưa nhập'}, ngày sinh ${birth||'chưa nhập'}, số chủ đạo local là ${life}. Luận rõ tính cách, tình duyên, công việc, lời khuyên.`}); setOut(d.text||d.reply||`Số chủ đạo: ${life}`)}catch(e){setOut(`### 🔢 Kết quả local
 - Họ tên: ${name||'Chưa nhập'}
 - Ngày sinh: ${birth||'Chưa nhập'}
 - Số chủ đạo: ${life||'Chưa đủ dữ liệu'}
@@ -765,7 +768,7 @@ function DeepTool() {
     setBusy(true);
     setResult('AI đang tổng hợp dữ liệu đa lớp và phân tích sâu...');
     try {
-      const data = await apiJSON('/api/deep-ai', form);
+      const data = await apiJSON('/api/deep-ai', { ...form, geminiModel: 'gemini-2.5-flash-lite' });
       setResult(data.text || data.reply || 'Không có kết quả trả về.');
     } catch(e) {
       setResult('Lỗi: ' + e.message);

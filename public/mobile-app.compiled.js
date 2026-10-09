@@ -492,6 +492,7 @@ function Chat({
   const voiceTranscriptRef = useRef('');
   const draftRef = useRef('');
   const countdownTimerRef = useRef(null);
+  const sendRef = useRef(null);
   const requestAbortRef = useRef(null);
   function clearVoiceCountdown(notice = '') {
     if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
@@ -600,7 +601,7 @@ function Chat({
             setVoiceCountdown(0);
             setVoiceStatus('');
             const spoken = draftRef.current.trim();
-            if (spoken) send(spoken);
+            if (spoken) sendRef.current(spoken);
           } else setVoiceCountdown(remaining);
         }, 1000);
       };
@@ -622,6 +623,7 @@ function Chat({
       requestAbortRef.current?.abort?.();
     } catch {}
   }
+  sendRef.current = send;
   async function send(customText) {
     const content = (customText ?? text).trim();
     if (!content && !attachments.length || busy) return;
@@ -656,6 +658,7 @@ function Chat({
       if (attachments.length) {
         const files = await Promise.all(attachments.map(item => prepareChatAttachment(item.file)));
         data = await apiJSON('/api/chat-ai', {
+          geminiModel: 'gemini-2.5-flash-lite',
           message: content,
           attachments: files,
           history: next.slice(-20),
@@ -1171,13 +1174,15 @@ function VisionTool({
         image,
         palmImage: image,
         palmLine: 'Tổng quan đường tay',
-        palmNote: note
+        palmNote: note,
+        geminiModel: 'gemini-2.5-flash-lite'
       } : {
         mode,
         image,
         faceImage: image,
         facePart: 'Tổng quan ngũ quan',
-        faceNote: note
+        faceNote: note,
+        geminiModel: 'gemini-2.5-flash-lite'
       };
       setResult('AI đang phân tích ảnh...');
       const d = await apiJSON('/api/vision-ai', payload);
@@ -1253,6 +1258,7 @@ function LoveTool() {
     setOut('Đang tính bằng code và AI luận giải...');
     try {
       const d = await apiJSON('/api/love-ai', {
+        geminiModel: 'gemini-2.5-flash-lite',
         persons: [{
           name: 'Người 1',
           birthDate: a
@@ -1300,6 +1306,7 @@ function TuviTool() {
         birthDate: dob,
         birthTime: time,
         gender,
+        geminiModel: 'gemini-2.5-flash-lite',
         localReport: window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : ''
       });
       setOut(d.text || d.reply || 'Không có kết quả');
@@ -1348,7 +1355,8 @@ function SimpleTool({
     try {
       const d = await apiJSON('/api/multi-ai/chat', {
         message: `${preset || title} ${q}`,
-        provider: 'auto'
+        provider: 'auto',
+        model: 'gemini-2.5-flash-lite'
       });
       setOut(d.text || d.reply || 'Không có kết quả');
       saveHistory(title, d.text || d.reply || 'Không có kết quả');
@@ -1430,6 +1438,7 @@ function AstrologyTool() {
     try {
       const d = await apiJSON('/api/multi-ai/chat', {
         provider: 'auto',
+        model: 'gemini-2.5-flash-lite',
         message: `Luận chiêm tinh theo cung hoàng đạo, thời điểm hiện tại và câu hỏi sau: Cung ${selected}. Câu hỏi: ${q}`
       });
       setOut(d.text || d.reply || 'Không có kết quả');
@@ -1540,6 +1549,7 @@ function TarotTool() {
     try {
       const d = await apiJSON('/api/multi-ai/chat', {
         provider: 'auto',
+        model: 'gemini-2.5-flash-lite',
         message: `Xem bài tarot tham khảo. Câu hỏi: ${q}. Ba lá: ${deckNames.join(', ')}. Hãy luận rõ: hiện tại, lời khuyên, kết quả gần.`
       });
       setOut(d.text || d.reply || deckNames.join('\n'));
@@ -1604,6 +1614,7 @@ function NumerologyTool() {
     try {
       const d = await apiJSON('/api/multi-ai/chat', {
         provider: 'auto',
+        model: 'gemini-2.5-flash-lite',
         message: `Thần số học cho tên ${name || 'chưa nhập'}, ngày sinh ${birth || 'chưa nhập'}, số chủ đạo local là ${life}. Luận rõ tính cách, tình duyên, công việc, lời khuyên.`
       });
       setOut(d.text || d.reply || `Số chủ đạo: ${life}`);
@@ -1664,7 +1675,10 @@ function DeepTool() {
     setBusy(true);
     setResult('AI đang tổng hợp dữ liệu đa lớp và phân tích sâu...');
     try {
-      const data = await apiJSON('/api/deep-ai', form);
+      const data = await apiJSON('/api/deep-ai', {
+        ...form,
+        geminiModel: 'gemini-2.5-flash-lite'
+      });
       setResult(data.text || data.reply || 'Không có kết quả trả về.');
     } catch (e) {
       setResult('Lỗi: ' + e.message);
