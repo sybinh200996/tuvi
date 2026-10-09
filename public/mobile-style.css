@@ -262,7 +262,7 @@ body {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    justify-content: center !important;
+    
     background: transparent !important;
     border: none !important;
     color: rgba(255,255,255,0.5) !important;
@@ -495,7 +495,7 @@ html, body {
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
-  justify-content: center !important;
+  
   gap: 4px !important;
   padding: 0 !important;
 }
@@ -522,7 +522,7 @@ html, body {
   border: 3px solid rgba(255, 255, 255, 0.2) !important;
   display: flex !important;
   align-items: center !important;
-  justify-content: center !important;
+  
   justify-self: center !important;
 }
 
@@ -705,7 +705,7 @@ html, body {
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
-    justify-content: center !important;
+    
     gap: 3px !important;
     margin: 0 auto !important;
     width: 100% !important;
@@ -922,7 +922,7 @@ html, body {
   .chat-layout { display: block !important; min-width: 0 !important; }
   .chat-side { display: none !important; }
   .chat-main { border: 0 !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; }
-  .chat-head { padding: 8px 14px !important; border: 0 !important; background: transparent !important; justify-content: center !important; }
+  .chat-head { padding: 8px 14px !important; border: 0 !important; background: transparent !important;  }
   .chat-head h2 { color: #ffe3a2 !important; text-shadow: 0 2px 14px rgba(0,0,0,.65) !important; }
   .chat-head p { display: none !important; }
   .chat-box { background: transparent !important; padding: 12px 12px 18px !important; }
@@ -1510,3 +1510,15 @@ html, body {
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
   }
 }
+
+.chat-icon-btn {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 6px !important;
+  font-size: 11px !important;
+  padding: 5px 10px !important;
+  color: rgba(255, 255, 255, 0.8) !important;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chat-icon-btn:hover { background: rgba(255, 255, 255, 0.1) !important; color: #fff !important; }
