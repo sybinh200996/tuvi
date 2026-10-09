@@ -1026,8 +1026,9 @@ function VisionTool({
   title,
   icon
 }) {
-  const [result, setResult] = useState('Upload ảnh rồi bấm phân tích.');
+  const [result, setResult] = useState('Vui lòng tải ảnh lên để bắt đầu.');
   const [file, setFile] = useState(null);
+  const [note, setNote] = useState('');
   async function run() {
     if (!file) return setResult('Bạn cần chọn ảnh trước nhé.');
     setResult('Đang tối ưu ảnh và chuẩn bị phân tích...');
@@ -1038,33 +1039,75 @@ function VisionTool({
         image,
         palmImage: image,
         palmLine: 'Tổng quan đường tay',
-        palmNote: ''
+        palmNote: note
       } : {
         mode,
         image,
         faceImage: image,
         facePart: 'Tổng quan ngũ quan',
-        faceNote: ''
+        faceNote: note
       };
       setResult('AI đang phân tích ảnh...');
       const d = await apiJSON('/api/vision-ai', payload);
       setResult(d.text || d.reply || 'Không có kết quả.');
     } catch (e) {
-      setResult('⚠️ ' + e.message);
+      const fb = window.MysticEngine ? mode === 'palm' ? window.MysticEngine.Palmistry.analyze(note, '') : window.MysticEngine.Face.analyze(note, '') : mode === 'palm' ? '### Lỗi tải Mystic Engine - Chỉ Tay' : '### Lỗi tải Mystic Engine - Tướng Mặt';
+      setResult(fb);
     }
   }
+  const hint = mode === 'palm' ? '* Mẹo: Chụp rõ toàn bộ lòng bàn tay, đủ sáng, không bị bóng râm che khuất.' : '* Mẹo: Chụp chính diện, rõ 5 ngũ quan, đủ sáng, không đeo kính và không che trán.';
   return /*#__PURE__*/React.createElement("section", {
     className: "tool-grid"
   }, /*#__PURE__*/React.createElement("div", {
     className: "premium-panel"
-  }, /*#__PURE__*/React.createElement("h2", null, icon, " ", title), /*#__PURE__*/React.createElement("input", {
+  }, /*#__PURE__*/React.createElement("h2", null, icon, " ", title), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: '0.85em',
+      color: '#ffd700',
+      marginBottom: '15px',
+      fontStyle: 'italic'
+    }
+  }, hint), /*#__PURE__*/React.createElement("div", {
+    style: {
+      margin: '10px 0',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '10px'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
     type: "file",
     accept: "image/*",
-    onChange: e => setFile(e.target.files?.[0])
-  }), /*#__PURE__*/React.createElement("button", {
+    onChange: e => setFile(e.target.files?.[0]),
+    style: {
+      width: '100%',
+      padding: '10px',
+      background: 'rgba(255,255,255,0.08)',
+      borderRadius: '12px',
+      color: '#fff'
+    }
+  }), /*#__PURE__*/React.createElement("textarea", {
+    value: note,
+    onChange: e => setNote(e.target.value),
+    placeholder: "Ghi chú thêm (Mình quan tâm sự nghiệp...)",
+    style: {
+      width: '100%',
+      minHeight: '60px',
+      padding: '10px',
+      background: 'rgba(255,255,255,0.08)',
+      borderRadius: '12px',
+      color: '#fff',
+      border: 'none',
+      resize: 'none'
+    }
+  })), /*#__PURE__*/React.createElement("button", {
     className: "primary",
+    style: {
+      width: '100%',
+      marginTop: '5px',
+      height: '44px'
+    },
     onClick: run
-  }, "Phân tích")), /*#__PURE__*/React.createElement(Result, {
+  }, "✨ Phân tích ngay")), /*#__PURE__*/React.createElement(Result, {
     text: result
   }));
 }
