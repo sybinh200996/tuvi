@@ -11,7 +11,7 @@ const TABS = [
   { id: 'chat', icon: '⚡', label: 'AI Chat' },
   { id: 'multi', icon: '🌌', label: 'Multi AI' },
   { id: 'fengshui', icon: '☯️', label: 'Phong thủy' },
-  { id: 'tarot', icon: '🃏', label: 'Bói bài' },
+  { id: 'tarot', icon: '🃏', label: 'Xem bài Tarot' },
   { id: 'settings', icon: '⚙️', label: 'AI Keys' }
 ];
 
@@ -179,7 +179,7 @@ function Home({ setTab, providers }) {
     ['💬','AI Chat Pro','Trả lời có nhớ ngữ cảnh, copy, đọc giọng nói.', 'chat'],
     ['🤖','Multi AI','Tự chọn Claude, Gemini, Groq, OpenRouter, ChatGPT, Grok.', 'multi'],
     ['☯️','Phong thủy','Màu hợp, hướng hợp, bố trí phòng/bàn làm việc.', 'fengshui'],
-    ['🃏','Bói bài / Đổi bài','Bốc bài tham khảo và đổi bài nhanh.', 'tarot'],
+    ['🃏','Xem bài Tarot','Bốc bài tham khảo và đổi bài nhanh.', 'tarot'],
     ['⚙️','Cài đặt','Quản lý tài khoản và thiết lập AI.', 'settings']
   ];
   return <div className="home-grid">
@@ -342,18 +342,30 @@ function SimpleTool({kind,title,icon,preset='',placeholder='Bạn muốn hỏi �
 function AstrologyTool(){return <SimpleTool kind="astrology" title="Chiêm tinh" icon="🪐" preset="Luận chiêm tinh theo cung hoàng đạo, thời điểm hiện tại và câu hỏi sau:" placeholder="Ví dụ: Song Tử, tình duyên tháng này thế nào?"/>}
 function FengShuiTool(){return <SimpleTool kind="fengshui" title="Phong thủy" icon="☯️" preset="Phân tích phong thủy thực tế, màu hợp, hướng hợp, bố trí không gian theo thông tin sau:" placeholder="Ví dụ: sinh năm 1995, muốn xem hướng bàn làm việc và màu hợp."/>}
 function TarotTool(){
-  const cards=['The Fool - Khởi đầu mới','The Magician - Chủ động tạo cơ hội','The High Priestess - Lắng nghe trực giác','The Lovers - Lựa chọn trong tình cảm','The Chariot - Tiến lên quyết đoán','Strength - Bình tĩnh và mềm mỏng','The Hermit - Cần thời gian suy ngẫm','Wheel of Fortune - Vận trình đang xoay chuyển','The Star - Hy vọng và chữa lành','The Sun - Rõ ràng, vui vẻ, tích cực'];
-  const [q,setQ]=useState(''); const [picked,setPicked]=useState([]); const [out,setOut]=useState('Nhập câu hỏi rồi bấm bốc bài. Có thể bấm Đổi bài để bốc lại.');
+  const cards=[
+    {name: 'The Fool - Khởi đầu', img: 'https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg'},
+    {name: 'The Magician - Chủ động', img: 'https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg'},
+    {name: 'The High Priestess - Trực giác', img: 'https://upload.wikimedia.org/wikipedia/commons/8/88/RWS_Tarot_02_High_Priestess.jpg'},
+    {name: 'The Lovers - Tình cảm', img: 'https://upload.wikimedia.org/wikipedia/commons/3/3a/TheLovers.jpg'},
+    {name: 'The Chariot - Quyết đoán', img: 'https://upload.wikimedia.org/wikipedia/commons/9/9b/RWS_Tarot_07_Chariot.jpg'},
+    {name: 'Strength - Bình tĩnh', img: 'https://upload.wikimedia.org/wikipedia/commons/f/f5/RWS_Tarot_08_Strength.jpg'},
+    {name: 'The Hermit - Suy ngẫm', img: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/RWS_Tarot_09_Hermit.jpg'},
+    {name: 'Wheel of Fortune - Vận trình', img: 'https://upload.wikimedia.org/wikipedia/commons/3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg'},
+    {name: 'The Star - Hy vọng', img: 'https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_17_Star.jpg'},
+    {name: 'The Sun - Tích cực', img: 'https://upload.wikimedia.org/wikipedia/commons/1/17/RWS_Tarot_19_Sun.jpg'}
+  ];
+  const [q,setQ]=useState(''); const [picked,setPicked]=useState([]); const [out,setOut]=useState('Nhập câu hỏi rồi bấm trải bài. Bạn có thể bấm Đổi bài để bốc lại.');
   async function draw(){
     const deck=[...cards].sort(()=>Math.random()-.5).slice(0,3); setPicked(deck); setOut('AI đang luận 3 lá bài...');
+    const deckNames = deck.map(c=>c.name);
     try{
-      const d=await apiJSON('/api/multi-ai/chat',{provider:'auto',message:`Bói bài tarot tham khảo, không khẳng định tuyệt đối. Câu hỏi: ${q}. Ba lá: ${deck.join(', ')}. Hãy luận rõ: hiện tại, lời khuyên, kết quả gần.`});
-      setOut(d.text||d.reply||deck.join('\n'));
+      const d=await apiJSON('/api/multi-ai/chat',{provider:'auto',message:`Xem bài tarot tham khảo. Câu hỏi: ${q}. Ba lá: ${deckNames.join(', ')}. Hãy luận rõ: hiện tại, lời khuyên, kết quả gần.`});
+      setOut(d.text||d.reply||deckNames.join('\n'));
     }catch(e){
-      setOut(`### 🃏 Ba lá bài\n- ${deck.join('\n- ')}\n\nLời khuyên: xem như tham khảo để bình tĩnh lựa chọn, không quyết định thay thực tế.`);
+      setOut(`### 🃏 Ba lá bài\n- ${deckNames.join('\n- ')}\n\nLời khuyên: xem như tham khảo để bình tĩnh lựa chọn, không quyết định thay thực tế.`);
     }
   }
-  return <section className="tool-grid"><div className="premium-panel"><h2>🃏 Bói bài / Đổi bài</h2><textarea value={q} onChange={e=>setQ(e.target.value)} placeholder="Bạn muốn hỏi điều gì?"/><button className="primary" onClick={draw}>{picked.length?'🔄 Đổi bài':'🃏 Bốc bài'}</button><div className="tarot-cards">{picked.map(c=><span key={c}>{c}</span>)}</div></div><Result text={out}/></section>
+  return <section className="tool-grid"><div className="premium-panel"><h2>🃏 Xem bài Tarot</h2><textarea value={q} onChange={e=>setQ(e.target.value)} placeholder="Bạn muốn hỏi điều gì?"/><button className="primary" onClick={draw}>{picked.length?'🔄 Đổi bài':'🃏 Trải bài Tarot'}</button><div className="tarot-cards" style={{display:'flex',gap:'10px',justifyContent:'center',marginTop:'15px'}}>{picked.map(c=><div key={c.name} style={{flex:1,textAlign:'center'}}><img src={c.img} style={{width:'100%',borderRadius:'8px',boxShadow:'0 4px 8px rgba(0,0,0,0.5)'}}/><div style={{fontSize:'12px',marginTop:'8px',color:'#ffd700'}}>{c.name}</div></div>)}</div></div><Result text={out}/></section>
 }
 function NumerologyTool(){
   const [name,setName]=useState(''); const [birth,setBirth]=useState(''); const [out,setOut]=useState('Nhập họ tên và ngày sinh để tính thần số học.');
