@@ -339,7 +339,52 @@ function LoveTool() {
 }
 function SimpleTool({kind,title,icon,preset='',placeholder='Bạn muốn hỏi điều gì?'}){const [q,setQ]=useState('');const [out,setOut]=useState('Nhập nội dung rồi bấm luận giải.');async function run(){setOut('AI đang luận giải...');try{const d=await apiJSON('/api/multi-ai/chat',{message:`${preset||title} ${q}`, provider:'auto'});setOut(d.text||d.reply||'Không có kết quả')}catch(e){setOut('⚠️ '+e.message)}}return <section className="tool-grid"><div className="premium-panel"><h2>{icon} {title}</h2><textarea value={q} onChange={e=>setQ(e.target.value)} placeholder={placeholder}/><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>}
 
-function AstrologyTool(){return <SimpleTool kind="astrology" title="Chiêm tinh" icon="🪐" preset="Luận chiêm tinh theo cung hoàng đạo, thời điểm hiện tại và câu hỏi sau:" placeholder="Ví dụ: Song Tử, tình duyên tháng này thế nào?"/>}
+function AstrologyTool(){
+  const zodiacs = [
+    {id:'Bạch Dương', icon:'♈', date:'21/03 - 19/04'},
+    {id:'Kim Ngưu', icon:'♉', date:'20/04 - 20/05'},
+    {id:'Song Tử', icon:'♊', date:'21/05 - 21/06'},
+    {id:'Cự Giải', icon:'♋', date:'22/06 - 22/07'},
+    {id:'Sư Tử', icon:'♌', date:'23/07 - 22/08'},
+    {id:'Xử Nữ', icon:'♍', date:'23/08 - 22/09'},
+    {id:'Thiên Bình', icon:'♎', date:'23/09 - 23/10'},
+    {id:'Thiên Yết', icon:'♏', date:'24/10 - 22/11'},
+    {id:'Nhân Mã', icon:'♐', date:'23/11 - 21/12'},
+    {id:'Ma Kết', icon:'♑', date:'22/12 - 19/01'},
+    {id:'Bảo Bình', icon:'♒', date:'20/01 - 18/02'},
+    {id:'Song Ngư', icon:'♓', date:'19/02 - 20/03'}
+  ];
+  const [selected, setSelected] = useState('');
+  const [q,setQ] = useState('');
+  const [out,setOut] = useState('Chọn cung hoàng đạo và nhập câu hỏi.');
+  async function run(){
+    if(!selected) return setOut('⚠️ Vui lòng chọn cung hoàng đạo của bạn.');
+    setOut('AI đang luận giải...');
+    try{
+      const d=await apiJSON('/api/multi-ai/chat',{provider:'auto',message:`Luận chiêm tinh theo cung hoàng đạo, thời điểm hiện tại và câu hỏi sau: Cung ${selected}. Câu hỏi: ${q}`});
+      setOut(d.text||d.reply||'Không có kết quả');
+    }catch(e){
+      setOut('⚠️ '+e.message);
+    }
+  }
+  return <section className="tool-grid">
+    <div className="premium-panel">
+      <h2>🪐 Chiêm tinh</h2>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(3, 1fr)',gap:'8px',marginBottom:'15px'}}>
+        {zodiacs.map(z => (
+          <div key={z.id} onClick={()=>setSelected(z.id)} style={{background: selected===z.id?'rgba(255,215,0,0.2)':'rgba(255,255,255,0.05)', border: selected===z.id?'1px solid #ffd700':'1px solid transparent', borderRadius:'8px', padding:'10px 5px', textAlign:'center', cursor:'pointer'}}>
+            <div style={{fontSize:'24px'}}>{z.icon}</div>
+            <div style={{fontSize:'12px', fontWeight:'bold', marginTop:'4px', color:'#fff'}}>{z.id}</div>
+            <div style={{fontSize:'10px', color:'#aaa', marginTop:'2px'}}>{z.date}</div>
+          </div>
+        ))}
+      </div>
+      <textarea value={q} onChange={e=>setQ(e.target.value)} placeholder="Tình duyên/công việc tháng này thế nào?"/>
+      <button className="primary" onClick={run}>✨ Xem chiêm tinh</button>
+    </div>
+    <Result text={out}/>
+  </section>;
+}
 function FengShuiTool(){return <SimpleTool kind="fengshui" title="Phong thủy" icon="☯️" preset="Phân tích phong thủy thực tế, màu hợp, hướng hợp, bố trí không gian theo thông tin sau:" placeholder="Ví dụ: sinh năm 1995, muốn xem hướng bàn làm việc và màu hợp."/>}
 function TarotTool(){
   const cards=[

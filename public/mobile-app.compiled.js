@@ -755,13 +755,120 @@ function SimpleTool({
   }));
 }
 function AstrologyTool() {
-  return /*#__PURE__*/React.createElement(SimpleTool, {
-    kind: "astrology",
-    title: "Chiêm tinh",
-    icon: "🪐",
-    preset: "Luận chiêm tinh theo cung hoàng đạo, thời điểm hiện tại và câu hỏi sau:",
-    placeholder: "Ví dụ: Song Tử, tình duyên tháng này thế nào?"
-  });
+  const zodiacs = [{
+    id: 'Bạch Dương',
+    icon: '♈',
+    date: '21/03 - 19/04'
+  }, {
+    id: 'Kim Ngưu',
+    icon: '♉',
+    date: '20/04 - 20/05'
+  }, {
+    id: 'Song Tử',
+    icon: '♊',
+    date: '21/05 - 21/06'
+  }, {
+    id: 'Cự Giải',
+    icon: '♋',
+    date: '22/06 - 22/07'
+  }, {
+    id: 'Sư Tử',
+    icon: '♌',
+    date: '23/07 - 22/08'
+  }, {
+    id: 'Xử Nữ',
+    icon: '♍',
+    date: '23/08 - 22/09'
+  }, {
+    id: 'Thiên Bình',
+    icon: '♎',
+    date: '23/09 - 23/10'
+  }, {
+    id: 'Thiên Yết',
+    icon: '♏',
+    date: '24/10 - 22/11'
+  }, {
+    id: 'Nhân Mã',
+    icon: '♐',
+    date: '23/11 - 21/12'
+  }, {
+    id: 'Ma Kết',
+    icon: '♑',
+    date: '22/12 - 19/01'
+  }, {
+    id: 'Bảo Bình',
+    icon: '♒',
+    date: '20/01 - 18/02'
+  }, {
+    id: 'Song Ngư',
+    icon: '♓',
+    date: '19/02 - 20/03'
+  }];
+  const [selected, setSelected] = useState('');
+  const [q, setQ] = useState('');
+  const [out, setOut] = useState('Chọn cung hoàng đạo và nhập câu hỏi.');
+  async function run() {
+    if (!selected) return setOut('⚠️ Vui lòng chọn cung hoàng đạo của bạn.');
+    setOut('AI đang luận giải...');
+    try {
+      const d = await apiJSON('/api/multi-ai/chat', {
+        provider: 'auto',
+        message: `Luận chiêm tinh theo cung hoàng đạo, thời điểm hiện tại và câu hỏi sau: Cung ${selected}. Câu hỏi: ${q}`
+      });
+      setOut(d.text || d.reply || 'Không có kết quả');
+    } catch (e) {
+      setOut('⚠️ ' + e.message);
+    }
+  }
+  return /*#__PURE__*/React.createElement("section", {
+    className: "tool-grid"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "premium-panel"
+  }, /*#__PURE__*/React.createElement("h2", null, "🪐 Chiêm tinh"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(3, 1fr)',
+      gap: '8px',
+      marginBottom: '15px'
+    }
+  }, zodiacs.map(z => /*#__PURE__*/React.createElement("div", {
+    key: z.id,
+    onClick: () => setSelected(z.id),
+    style: {
+      background: selected === z.id ? 'rgba(255,215,0,0.2)' : 'rgba(255,255,255,0.05)',
+      border: selected === z.id ? '1px solid #ffd700' : '1px solid transparent',
+      borderRadius: '8px',
+      padding: '10px 5px',
+      textAlign: 'center',
+      cursor: 'pointer'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: '24px'
+    }
+  }, z.icon), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: '12px',
+      fontWeight: 'bold',
+      marginTop: '4px',
+      color: '#fff'
+    }
+  }, z.id), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: '10px',
+      color: '#aaa',
+      marginTop: '2px'
+    }
+  }, z.date)))), /*#__PURE__*/React.createElement("textarea", {
+    value: q,
+    onChange: e => setQ(e.target.value),
+    placeholder: "Tình duyên/công việc tháng này thế nào?"
+  }), /*#__PURE__*/React.createElement("button", {
+    className: "primary",
+    onClick: run
+  }, "✨ Xem chiêm tinh")), /*#__PURE__*/React.createElement(Result, {
+    text: out
+  }));
 }
 function FengShuiTool() {
   return /*#__PURE__*/React.createElement(SimpleTool, {

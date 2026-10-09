@@ -1036,3 +1036,48 @@ async function drawTarotDesktop() {
     setLoading(id, false);
   }
 }
+
+const zodiacs = [
+  {id:'Bạch Dương', icon:'♈', date:'21/03 - 19/04'},
+  {id:'Kim Ngưu', icon:'♉', date:'20/04 - 20/05'},
+  {id:'Song Tử', icon:'♊', date:'21/05 - 21/06'},
+  {id:'Cự Giải', icon:'♋', date:'22/06 - 22/07'},
+  {id:'Sư Tử', icon:'♌', date:'23/07 - 22/08'},
+  {id:'Xử Nữ', icon:'♍', date:'23/08 - 22/09'},
+  {id:'Thiên Bình', icon:'♎', date:'23/09 - 23/10'},
+  {id:'Thiên Yết', icon:'♏', date:'24/10 - 22/11'},
+  {id:'Nhân Mã', icon:'♐', date:'23/11 - 21/12'},
+  {id:'Ma Kết', icon:'♑', date:'22/12 - 19/01'},
+  {id:'Bảo Bình', icon:'♒', date:'20/01 - 18/02'},
+  {id:'Song Ngư', icon:'♓', date:'19/02 - 20/03'}
+];
+
+function renderDesktopZodiac() {
+  const grid = $('desktopZodiacGrid');
+  if(!grid) return;
+  grid.innerHTML = zodiacs.map(z => `
+    <div class="zodiac-item" onclick="selectZodiac('${z.id}')" id="zodiac-${z.id}" style="background:rgba(255,255,255,0.05); border:1px solid transparent; border-radius:8px; padding:10px 5px; text-align:center; cursor:pointer; transition:0.3s;">
+      <div style="font-size:24px;">${z.icon}</div>
+      <div style="font-size:13px; font-weight:bold; margin-top:4px; color:#fff;">${z.id}</div>
+      <div style="font-size:11px; color:#aaa; margin-top:2px;">${z.date}</div>
+    </div>
+  `).join('');
+}
+
+function selectZodiac(id) {
+  $('zodiac').value = id;
+  zodiacs.forEach(z => {
+    const el = $('zodiac-' + z.id);
+    if(el) {
+      if(z.id === id) {
+        el.style.background = 'rgba(255,215,0,0.2)';
+        el.style.borderColor = '#ffd700';
+      } else {
+        el.style.background = 'rgba(255,255,255,0.05)';
+        el.style.borderColor = 'transparent';
+      }
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', renderDesktopZodiac);
