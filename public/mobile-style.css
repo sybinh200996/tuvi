@@ -1479,3 +1479,34 @@ html, body {
     -webkit-backdrop-filter: none !important;
   }
 }
+
+/* USER REQUEST: Fix bleeding chat behind composer and restore bubble frames */
+@media (max-width: 768px) {
+  /* Restore frame for bubbles so they don't look weird */
+  .chat-layout .bubble-body {
+    background: rgba(255,255,255,0.03) !important;
+    border: 1px solid rgba(255,255,255,0.15) !important;
+    border-radius: 18px !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    padding: 10px 14px !important;
+  }
+  .chat-layout .bubble.user .bubble-body {
+    background: rgba(255,215,0,0.05) !important;
+    border: 1px solid rgba(255,215,0,0.2) !important;
+  }
+  
+  /* Make composer panel solid glass so text doesn't bleed underneath */
+  .chat-layout .chat-composer-panel {
+    background: rgba(7, 15, 32, 0.95) !important;
+    border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    backdrop-filter: blur(20px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+  }
+  
+  /* Ensure composer text area inside is distinct */
+  .chat-layout .chat-composer-panel .composer.chat-pill-composer {
+    background: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  }
+}
