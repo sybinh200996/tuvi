@@ -64,10 +64,14 @@
     grid-template-columns: 1fr !important;
   }
 }
- 
- / *   M o b i l e   B a n n e r   A d j u s t m e n t s   * /  
- @ m e d i a   ( m a x - w i d t h :   9 0 0 p x )   {   . h e r o   {   g r i d - t e m p l a t e - c o l u m n s :   2 8 %   1 f r   2 8 %   ! i m p o r t a n t ;   m i n - h e i g h t :   1 4 0 p x   ! i m p o r t a n t ;   }   . h e r o - i m g   {   m i n - h e i g h t :   1 4 0 p x   ! i m p o r t a n t ;   d i s p l a y :   f l e x ;   a l i g n - i t e m s :   c e n t e r ;   j u s t i f y - c o n t e n t :   c e n t e r ;   }   . h e r o - i m g   i m g   {   o b j e c t - f i t :   c o n t a i n   ! i m p o r t a n t ;   h e i g h t :   1 0 0 %   ! i m p o r t a n t ;   m a x - w i d t h :   1 0 0 % ;   }   }  
- @ m e d i a   ( m a x - w i d t h :   5 2 0 p x )   {   . h e r o   {   m i n - h e i g h t :   1 2 5 p x   ! i m p o r t a n t ;   }   . h e r o - i m g   {   m i n - h e i g h t :   1 2 5 p x   ! i m p o r t a n t ;   }   . h e r o   h 1   {   f o n t - s i z e :   2 0 p x   ! i m p o r t a n t ;   }   }  
+
+ 
+ / *   M o b i l e   B a n n e r   A d j u s t m e n t s   * / 
+ 
+ @ m e d i a   ( m a x - w i d t h :   9 0 0 p x )   {   . h e r o   {   g r i d - t e m p l a t e - c o l u m n s :   2 8 %   1 f r   2 8 %   ! i m p o r t a n t ;   m i n - h e i g h t :   1 4 0 p x   ! i m p o r t a n t ;   }   . h e r o - i m g   {   m i n - h e i g h t :   1 4 0 p x   ! i m p o r t a n t ;   d i s p l a y :   f l e x ;   a l i g n - i t e m s :   c e n t e r ;   j u s t i f y - c o n t e n t :   c e n t e r ;   }   . h e r o - i m g   i m g   {   o b j e c t - f i t :   c o n t a i n   ! i m p o r t a n t ;   h e i g h t :   1 0 0 %   ! i m p o r t a n t ;   m a x - w i d t h :   1 0 0 % ;   }   } 
+ 
+ @ m e d i a   ( m a x - w i d t h :   5 2 0 p x )   {   . h e r o   {   m i n - h e i g h t :   1 2 5 p x   ! i m p o r t a n t ;   }   . h e r o - i m g   {   m i n - h e i g h t :   1 2 5 p x   ! i m p o r t a n t ;   }   . h e r o   h 1   {   f o n t - s i z e :   2 0 p x   ! i m p o r t a n t ;   }   } 
+ 
  
 /* Neon Mystical Theme */
 :root {
@@ -467,11 +471,7 @@ html, body {
 }
 
 /* --- CLEAN BOTTOM NAV --- */
-.bottom-nav {
-  position: fixed !important;
-  z-index: 200 !important;
-  left: 10px !important;
-  right: 10px !important;
+.bottom-nav { position: fixed !important; z-index: 200 !important; left: 0px !important; right: 0px !important; border-radius: 24px 24px 0 0 !important; border-left: none !important; border-right: none !important; border-bottom: none !important;
   bottom: 10px !important;
   height: 72px !important;
   border: 1px solid rgba(107, 173, 255, 0.35) !important;
@@ -829,7 +829,7 @@ html, body {
   }
 }
 @media (max-width: 379px) {
-  .composer.chat-pill-composer { left: 7px !important; right: 7px !important; }
+  .composer.chat-pill-composer { left: 0px !important; right: 0px !important; }
 }
 
 
@@ -847,7 +847,7 @@ html, body {
   }
 }
 @media (max-width: 379px) {
-  .composer.chat-pill-composer { left: 7px !important; right: 7px !important; }
+  .composer.chat-pill-composer { left: 0px !important; right: 0px !important; }
 }
 
 
@@ -865,7 +865,7 @@ html, body {
   }
 }
 @media (max-width: 379px) {
-  .composer.chat-pill-composer { left: 7px !important; right: 7px !important; }
+  .composer.chat-pill-composer { left: 0px !important; right: 0px !important; }
 }
 
 
@@ -965,7 +965,7 @@ html, body {
     border-color: rgba(255,215,0,.56) !important;
   }
   .chat-layout .composer.chat-pill-composer {
-    position: fixed !important; left: 10px !important; right: 10px !important;
+    position: fixed !important; left: 0px !important; right: 0px !important;
     bottom: calc(94px + env(safe-area-inset-bottom, 0px)) !important;
     z-index: 30 !important; margin: 0 !important;
   }
@@ -973,7 +973,7 @@ html, body {
   .chat-layout .chat-box { padding-bottom: 116px !important; }
 }
 @media (max-width: 379px) {
-  .chat-layout .composer.chat-pill-composer { left: 7px !important; right: 7px !important; }
+  .chat-layout .composer.chat-pill-composer { left: 0px !important; right: 0px !important; }
   .chat-layout .bubble-body { padding: 11px 12px !important; }
 }
 
@@ -987,15 +987,15 @@ html, body {
     background-position: center center !important; background-size: cover !important;
     background-repeat: no-repeat !important; background-attachment: scroll !important;
   }
-  .app-shell { width: 100% !important; max-width: 100% !important; min-width: 0 !important; padding-left: 10px !important; padding-right: 10px !important; }
+  .app-shell { width: 100% !important; max-width: 100% !important; min-width: 0 !important; padding-left: 0px !important; padding-right: 0px !important; overflow-x: hidden; }
   .workspace, .chat-layout, .chat-main, .chat-box { min-width: 0 !important; max-width: 100% !important; }
   .chat-layout .chat-box { overflow-x: hidden !important; overflow-y: auto !important; }
   .chat-layout .tab-rail button { min-width: 0 !important; font-size: clamp(10px, 3.2vw, 13px) !important; }
   .chat-layout .chat-head h2 { font-size: clamp(18px, 5vw, 24px) !important; }
   .chat-layout .bubble { max-width: 94% !important; min-width: 0 !important; }
   .chat-layout .bubble-body { overflow-wrap: anywhere !important; font-size: clamp(13px, 3.7vw, 15px) !important; }
-  .chat-layout .composer.chat-pill-composer { left: 10px !important; right: 10px !important; }
-  .bottom-nav { left: 10px !important; right: 10px !important; }
+  .chat-layout .composer.chat-pill-composer { left: 0px !important; right: 0px !important; }
+  .bottom-nav { left: 0px !important; right: 0px !important; }
 }
 @supports (left: env(safe-area-inset-left)) {
   @media (max-width: 768px) {
@@ -1004,12 +1004,12 @@ html, body {
   }
 }
 @media (max-width: 360px) {
-  .app-shell { padding-left: 7px !important; padding-right: 7px !important; }
+  .app-shell { padding-left: 0px !important; padding-right: 0px !important; }
   .chat-layout .tab-rail { gap: 2px !important; margin-left: 7px !important; margin-right: 7px !important; }
   .chat-layout .tab-rail button { padding-left: 2px !important; padding-right: 2px !important; font-size: 10px !important; }
   .chat-layout .chat-head { padding-left: 8px !important; padding-right: 8px !important; }
-  .chat-layout .composer.chat-pill-composer { left: 7px !important; right: 7px !important; }
-  .bottom-nav { left: 7px !important; right: 7px !important; }
+  .chat-layout .composer.chat-pill-composer { left: 0px !important; right: 0px !important; }
+  .bottom-nav { left: 0px !important; right: 0px !important; }
 }
 
 
@@ -1022,15 +1022,15 @@ html, body {
     background-position: center center !important; background-size: cover !important;
     background-repeat: no-repeat !important; background-attachment: scroll !important;
   }
-  .app-shell { width: 100% !important; max-width: 100% !important; min-width: 0 !important; padding-left: 10px !important; padding-right: 10px !important; }
+  .app-shell { width: 100% !important; max-width: 100% !important; min-width: 0 !important; padding-left: 0px !important; padding-right: 0px !important; overflow-x: hidden; }
   .workspace, .chat-layout, .chat-main, .chat-box { min-width: 0 !important; max-width: 100% !important; }
   .chat-layout .chat-box { overflow-x: hidden !important; overflow-y: auto !important; }
   .chat-layout .tab-rail button { min-width: 0 !important; font-size: clamp(10px, 3.2vw, 13px) !important; }
   .chat-layout .chat-head h2 { font-size: clamp(18px, 5vw, 24px) !important; }
   .chat-layout .bubble { max-width: 94% !important; min-width: 0 !important; }
   .chat-layout .bubble-body { overflow-wrap: anywhere !important; font-size: clamp(13px, 3.7vw, 15px) !important; }
-  .chat-layout .composer.chat-pill-composer { left: 10px !important; right: 10px !important; }
-  .bottom-nav { left: 10px !important; right: 10px !important; }
+  .chat-layout .composer.chat-pill-composer { left: 0px !important; right: 0px !important; }
+  .bottom-nav { left: 0px !important; right: 0px !important; }
 }
 @supports (left: env(safe-area-inset-left)) {
   @media (max-width: 768px) {
@@ -1039,20 +1039,20 @@ html, body {
   }
 }
 @media (max-width: 360px) {
-  .app-shell { padding-left: 7px !important; padding-right: 7px !important; }
+  .app-shell { padding-left: 0px !important; padding-right: 0px !important; }
   .chat-layout .tab-rail { gap: 2px !important; margin-left: 7px !important; margin-right: 7px !important; }
   .chat-layout .tab-rail button { padding-left: 2px !important; padding-right: 2px !important; font-size: 10px !important; }
   .chat-layout .chat-head { padding-left: 8px !important; padding-right: 8px !important; }
-  .chat-layout .composer.chat-pill-composer { left: 7px !important; right: 7px !important; }
-  .bottom-nav { left: 7px !important; right: 7px !important; }
+  .chat-layout .composer.chat-pill-composer { left: 0px !important; right: 0px !important; }
+  .bottom-nav { left: 0px !important; right: 0px !important; }
 }
 @media (max-width: 300px) {
-  .app-shell { padding-left: 4px !important; padding-right: 4px !important; }
+  .app-shell { padding-left: 0px !important; padding-right: 0px !important; }
   .chat-layout .tab-rail { gap: 1px !important; margin-left: 4px !important; margin-right: 4px !important; padding: 3px !important; }
   .chat-layout .tab-rail button { font-size: 9px !important; }
   .chat-layout .bubble-body { padding: 8px 9px !important; }
-  .chat-layout .composer.chat-pill-composer { left: 4px !important; right: 4px !important; }
-  .bottom-nav { left: 4px !important; right: 4px !important; }
+  .chat-layout .composer.chat-pill-composer { left: 0px !important; right: 0px !important; }
+  .bottom-nav { left: 0px !important; right: 0px !important; }
 }
 
 
@@ -1065,7 +1065,7 @@ html, body {
     background-position: center center !important; background-size: cover !important;
     background-repeat: no-repeat !important; background-attachment: scroll !important;
   }
-  .app-shell { width: 100% !important; max-width: 100% !important; min-width: 0 !important; padding-left: 10px !important; padding-right: 10px !important; }
+  .app-shell { width: 100% !important; max-width: 100% !important; min-width: 0 !important; padding-left: 0px !important; padding-right: 0px !important; overflow-x: hidden; }
   .workspace, .chat-layout, .chat-main, .chat-box { min-width: 0 !important; max-width: 100% !important; }
   .tab-rail { display: flex !important; gap: 6px !important; overflow-x: auto !important; -webkit-overflow-scrolling: touch; border-radius: 999px !important; background: rgba(15,22,42,.50) !important; }
   .tab-rail button { flex: 0 0 auto !important; min-width: 78px !important; border-radius: 999px !important; white-space: nowrap !important; }
@@ -1075,8 +1075,8 @@ html, body {
   .chat-layout .chat-head h2 { font-size: clamp(18px, 5vw, 24px) !important; }
   .chat-layout .bubble { max-width: 94% !important; min-width: 0 !important; }
   .chat-layout .bubble-body { overflow-wrap: anywhere !important; font-size: clamp(13px, 3.7vw, 15px) !important; }
-  .chat-layout .composer.chat-pill-composer { left: 10px !important; right: 10px !important; }
-  .bottom-nav { left: 10px !important; right: 10px !important; }
+  .chat-layout .composer.chat-pill-composer { left: 0px !important; right: 0px !important; }
+  .bottom-nav { left: 0px !important; right: 0px !important; }
 }
 @supports (left: env(safe-area-inset-left)) {
   @media (max-width: 768px) {
@@ -1085,27 +1085,27 @@ html, body {
   }
 }
 @media (max-width: 360px) {
-  .app-shell { padding-left: 7px !important; padding-right: 7px !important; }
+  .app-shell { padding-left: 0px !important; padding-right: 0px !important; }
   .chat-layout .tab-rail { gap: 2px !important; margin-left: 7px !important; margin-right: 7px !important; }
   .chat-layout .tab-rail button { padding-left: 2px !important; padding-right: 2px !important; font-size: 10px !important; }
   .chat-layout .chat-head { padding-left: 8px !important; padding-right: 8px !important; }
-  .chat-layout .composer.chat-pill-composer { left: 7px !important; right: 7px !important; }
-  .bottom-nav { left: 7px !important; right: 7px !important; }
+  .chat-layout .composer.chat-pill-composer { left: 0px !important; right: 0px !important; }
+  .bottom-nav { left: 0px !important; right: 0px !important; }
 }
 @media (max-width: 300px) {
-  .app-shell { padding-left: 4px !important; padding-right: 4px !important; }
+  .app-shell { padding-left: 0px !important; padding-right: 0px !important; }
   .chat-layout .tab-rail { gap: 1px !important; margin-left: 4px !important; margin-right: 4px !important; padding: 3px !important; }
   .chat-layout .tab-rail button { font-size: 9px !important; }
   .chat-layout .bubble-body { padding: 8px 9px !important; }
-  .chat-layout .composer.chat-pill-composer { left: 4px !important; right: 4px !important; }
-  .bottom-nav { left: 4px !important; right: 4px !important; }
+  .chat-layout .composer.chat-pill-composer { left: 0px !important; right: 0px !important; }
+  .bottom-nav { left: 0px !important; right: 0px !important; }
 }
 
 
 /* Mobile Chat controls: attachments, AI model, dictation and stop. */
 @media (max-width: 768px) {
   .chat-composer-panel {
-    position: fixed !important; left: 10px !important; right: 10px !important;
+    position: fixed !important; left: 0px !important; right: 0px !important;
     bottom: calc(94px + env(safe-area-inset-bottom, 0px)) !important;
     z-index: 40 !important; display: flex !important; flex-direction: column !important; gap: 6px !important;
     max-height: calc(100vh - 150px) !important; overflow-y: auto !important;
@@ -1146,14 +1146,14 @@ html, body {
   }
 }
 @media (max-width: 360px) {
-  .chat-composer-panel { left: 7px !important; right: 7px !important; padding: 7px !important; }
+  .chat-composer-panel { left: 0px !important; right: 0px !important; padding: 7px !important; }
   .mobile-chat-uploads { gap: 4px !important; }
   .mobile-chat-uploads button { padding-inline: 8px !important; font-size: 11px !important; }
   .chat-attach-quick, .chat-mic-btn { flex-basis: 33px !important; width: 33px !important; min-width: 33px !important; height: 33px !important; }
   .chat-layout .chat-box { padding-bottom: 270px !important; }
 }
 @media (max-width: 300px) {
-  .chat-composer-panel { left: 4px !important; right: 4px !important; }
+  .chat-composer-panel { left: 0px !important; right: 0px !important; }
   .mobile-chat-uploads button { padding-inline: 6px !important; font-size: 10px !important; }
   .chat-model-row { gap: 5px !important; }
 }
@@ -1162,7 +1162,7 @@ html, body {
 /* Mobile Chat controls: attachments, AI model, dictation and stop v2 inside composer. */
 @media (max-width: 768px) {
   .chat-composer-panel {
-    position: fixed !important; left: 10px !important; right: 10px !important;
+    position: fixed !important; left: 0px !important; right: 0px !important;
     bottom: calc(94px + env(safe-area-inset-bottom, 0px)) !important;
     z-index: 40 !important; display: flex !important; flex-direction: column !important; gap: 6px !important;
     max-height: calc(100vh - 150px) !important; overflow-y: auto !important;
@@ -1203,14 +1203,14 @@ html, body {
   }
 }
 @media (max-width: 360px) {
-  .chat-composer-panel { left: 7px !important; right: 7px !important; padding: 7px !important; }
+  .chat-composer-panel { left: 0px !important; right: 0px !important; padding: 7px !important; }
   .mobile-chat-uploads { gap: 4px !important; }
   .mobile-chat-uploads button { padding-inline: 8px !important; font-size: 11px !important; }
   .chat-attach-quick, .chat-mic-btn { flex-basis: 33px !important; width: 33px !important; min-width: 33px !important; height: 33px !important; }
   .chat-layout .chat-box { padding-bottom: 270px !important; }
 }
 @media (max-width: 300px) {
-  .chat-composer-panel { left: 4px !important; right: 4px !important; }
+  .chat-composer-panel { left: 0px !important; right: 0px !important; }
   .mobile-chat-uploads button { padding-inline: 6px !important; font-size: 10px !important; }
   .chat-model-row { gap: 5px !important; }
 }
@@ -1448,3 +1448,6 @@ html, body {
     text-shadow: 0 0 1px rgba(98,255,123,.82), 0 0 5px rgba(98,255,123,.34), 0 1px 2px rgba(0,0,0,.98) !important;
   }
 }
+
+/* Add edge padding for internal elements now that app-shell has 0 padding */
+@media(max-width:768px) { .home-grid, .workspace { padding-left: 10px !important; padding-right: 10px !important; } .feature-card { border-radius: 16px !important; } }
