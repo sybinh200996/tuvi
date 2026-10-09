@@ -759,9 +759,18 @@ function Chat({
     className: "chat-main premium-panel"
   }, /*#__PURE__*/React.createElement("div", {
     className: "chat-head"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", null, "🤖 AI Chat Ultra"), /*#__PURE__*/React.createElement("p", null, "Chat box hiện đại, copy, đọc, thử lại, giữ ngữ cảnh.")), /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", null, "🤖 AI Chat Ultra"), /*#__PURE__*/React.createElement("p", null, "Chat box hiện đại, copy, đọc, thử lại, giữ ngữ cảnh.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: "8px"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      if (confirm("Tạo đoạn chat mới?")) setMessages(DEFAULT_MESSAGES);
+    }
+  }, "➕ Mới"), /*#__PURE__*/React.createElement("button", {
     onClick: () => speak(messages.filter(m => m.role === 'assistant').at(-1)?.text || '')
-  }, "🔊 Đọc")), /*#__PURE__*/React.createElement("div", {
+  }, "🔊 Đọc"))), /*#__PURE__*/React.createElement("div", {
     className: "chat-box",
     ref: boxRef
   }, messages.map((m, i) => /*#__PURE__*/React.createElement("div", {
