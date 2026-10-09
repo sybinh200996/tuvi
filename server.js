@@ -416,11 +416,11 @@ async function callGeminiText({ apiKey, model, parts, systemPrompt = '' }) {
     model,
     contents: [{ role: "user", parts }],
     config: {
-      temperature: 0.7,
-      topP: 0.85,
-      ...(systemPrompt ? { systemInstruction: systemPrompt } : {})
-    },
-    ...(!FREE_MODELS_ONLY ? { tools: [{ googleSearch: {} }] } : {})
+        temperature: 0.7,
+        topP: 0.85,
+        ...(systemPrompt ? { systemInstruction: systemPrompt } : {}),
+        ...(!FREE_MODELS_ONLY ? { tools: [{ googleSearch: {} }] } : {})
+      }
   }), 90000);
   return response?.text || response?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || "";
 }
@@ -617,7 +617,7 @@ function directDateTimeAnswer(message = '') {
 
   // Không chặn các câu hỏi cần AI/API trả lời như thời tiết, lịch sự kiện, dự báo, giá cả...
   // Lỗi cũ: câu "dự báo thời tiết 3 ngày" có chữ "ngày" nên bị local date handler nuốt mất.
-  const needsLiveOrKnowledgeAnswer = /(thời tiết|thoi tiet|dự báo|du bao|nhiệt độ|nhiet do|mưa|mua|nắng|nang|bão|bao|gió|gio|độ ẩm|do am|khí hậu|khi hau|lịch thi đấu|lich thi dau|tin tức|tin tuc|giá|gia|tỷ giá|ty gia|tử vi|tu vi|chỉ tay|chi tay|xem tướng|xem tuong|chiêm tinh|chiem tinh|thần số học|than so hoc|luận giải|luan giai|phân tích|phan tich|tình duyên|tinh duyen)/i.test(q);
+    return /(thời tiết|thoi tiet|dự báo|du bao|nhiệt độ|nhiet do|trời có mưa|trời có nắng|mưa không|nắng không|có bão|co bao)/i.test(q);
   if (needsLiveOrKnowledgeAnswer) return null;
 
   const asksDate = /(hôm nay|hom nay|ngày mai|ngay mai|ngày kia|ngay kia|hôm qua|hom qua|thứ mấy|thu may|ngày bao nhiêu|ngay bao nhieu|mấy giờ|may gio|bây giờ|bay gio|giờ hiện tại|gio hien tai)/i.test(q);
@@ -639,7 +639,7 @@ function directDateTimeAnswer(message = '') {
 function isWeatherQuestion(message = '') {
   const q = String(message || '').toLowerCase();
   // Chỉ bắt các từ khóa chắc chắn là hỏi thời tiết để tránh AI nhận nhầm các câu như "mua bán", "bao nhiêu", "giờ này"
-  return /(thời tiết|thoi tiet|dự báo thời tiết|du bao thoi tiet|nhiệt độ ngoài trời|nhiet do ngoai troi)/i.test(q);
+    return /(thời tiết|thoi tiet|dự báo|du bao|nhiệt độ|nhiet do|trời có mưa|trời có nắng|mưa không|nắng không|có bão|co bao)/i.test(q);
 }
 
 
@@ -863,8 +863,10 @@ async function tryModels(parts, preferredModel = "auto", systemPrompt = '') {
       const response = await withTimeout(ai.models.generateContent({
         model,
         contents: [{ role: "user", parts }],
-        ...(systemPrompt ? { config: { systemInstruction: systemPrompt, temperature: 0.7, topP: 0.85 } } : {}),
-        tools: [{ googleSearch: {} }]
+        config: {
+            ...(systemPrompt ? { systemInstruction: systemPrompt, temperature: 0.7, topP: 0.85 } : {}),
+            tools: [{ googleSearch: {} }]
+          }
       }));
       return {
         model,
