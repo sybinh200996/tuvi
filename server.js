@@ -325,7 +325,7 @@ async function callOpenAICompatible({ provider, apiKey, model, prompt, systemPro
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${apiKey}`,
-      ...(provider === "openrouter" ? { "HTTP-Referer": "https://synam-ai.local", "X-Title": "Đặng Năm Mystic AI" } : {})
+      ...(provider === "openrouter" ? { "HTTP-Referer": "https://synam-ai.local", "X-Title": "Dang Nam Mystic AI" } : {})
     },
     body: JSON.stringify({
       model,
