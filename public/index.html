@@ -403,10 +403,15 @@
               <button class="active">ðŸ’¬ Chat AI</button>
             </div>
 
-            <div class="chat-pro-head">
-              <div><h2>ðŸ¤– AI Chat Pro</h2><p>Nháº­p báº±ng bÃ n phÃ­m hoáº·c giá»ng nÃ³i. AI tráº£ lá»i text + Ä‘á»c thÃ nh tiáº¿ng.</p></div>
-              <div class="chat-head-actions"><button type="button" aria-label="Chat mới" title="Chat mới" onclick="if(confirm('Tạo đoạn chat mới?')){ document.getElementById('chatLog').innerHTML = '<div class=\'msg ai-welcome\'><b>🤖 Chào bạn!</b><br>Mình là Đông Nam AI Pro.</div>'; if(window.chatMessages) window.chatMessages = []; }">➕ Mới</button><button type="button" aria-label="Má»Ÿ cÃ i Ä‘áº·t AI" title="Má»Ÿ cÃ i Ä‘áº·t AI" onclick="routeTo('ai')">âš™ï¸ AI Keys</button><button type="button" aria-label="Äá»c láº¡i cÃ¢u tráº£ lá»i gáº§n nháº¥t" title="Äá»c láº¡i cÃ¢u tráº£ lá»i gáº§n nháº¥t" onclick="speakLastResult()">ðŸ”Š Äá»c láº¡i</button></div>
-            </div>
+            <div class="chat-pro-head" style="align-items:center; padding:8px; display:flex;">
+                <button class="chat-icon-btn" onclick="openDesktopHistory()">🕒 Lịch sử</button>
+                <div style="flex:1"></div>
+                <div class="chat-head-actions" style="display:flex; gap:8px;">
+                  <button type="button" class="chat-icon-btn" aria-label="Chat mới" onclick="if(confirm('Tạo đoạn chat mới?')){ document.getElementById('chatLog').innerHTML = '<div class=\'msg ai-welcome\'><b>🤖 Chào bạn!</b><br>Mình là Đông Nam AI Pro.</div>'; if(window.chatMessages) window.chatMessages = []; }">➕ Mới</button>
+                  <button type="button" class="chat-icon-btn" aria-label="Đọc" onclick="speakLastResult()">🔊 Đọc</button>
+                  <button type="button" class="chat-icon-btn" aria-label="Cài đặt AI" onclick="routeTo('ai')">⚙️ Cài đặt</button>
+                </div>
+              </div>
             <details class="chat-mobile-settings" open>
               <summary>âš™ï¸ TÃ¹y chá»n AI vÃ  cháº¿ Ä‘á»™ chat</summary>
               <div class="chat-mobile-settings-content">
@@ -474,5 +479,23 @@
     </div>
   </div>
 
+
+    <div id="desktopHistoryDrawer" class="history-drawer-overlay" style="display:none;" onclick="this.style.display='none'">
+      <div class="history-drawer" onclick="event.stopPropagation()">
+        <div class="drawer-head"><h3>🕒 Lịch sử Chat</h3><button onclick="document.getElementById('desktopHistoryDrawer').style.display='none'">✕</button></div>
+        <div class="drawer-body" id="desktopHistoryContent"></div>
+      </div>
+    </div>
+    <script>
+    function openDesktopHistory() {
+      try {
+        const h = JSON.parse(localStorage.getItem('synam_history')||'[]').reverse();
+        const html = h.map(x => '<div class="drawer-item" onclick="document.getElementById(\'chatText\').value=\'' + (x.content||'').replace(/\'/g,\"\\'\").replace(/\n/g,\" \").substring(0,200) + '\'; document.getElementById(\'desktopHistoryDrawer\').style.display=\'none\';"><strong>'+x.type+'</strong><br><small>'+new Date(x.at).toLocaleString()+'</small></div>').join('');
+        document.getElementById('desktopHistoryContent').innerHTML = html || '<p style="text-align:center; opacity:0.5;">Chưa có lịch sử</p>';
+        document.getElementById('desktopHistoryDrawer').style.display = 'flex';
+      } catch(e) { console.error(e); }
+    }
+    </script>
+    
 </body>
 </html>

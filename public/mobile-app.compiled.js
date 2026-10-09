@@ -472,6 +472,7 @@ function Chat({
       text: WELCOME_MESSAGE
     } : m) : DEFAULT_MESSAGES;
   });
+  const [historyOpen, setHistoryOpen] = useState(false);
   const [text, setText] = useState('');
   const [modelChoice, setModelChoice] = useState('auto');
   const [answerStyle, setAnswerStyle] = useState('detailed');
@@ -718,7 +719,31 @@ function Chat({
   }));
   return /*#__PURE__*/React.createElement("section", {
     className: "chat-layout"
-  }, /*#__PURE__*/React.createElement("aside", {
+  }, historyOpen && /*#__PURE__*/React.createElement("div", {
+    className: "history-drawer-overlay",
+    onClick: () => setHistoryOpen(false)
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "history-drawer",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "drawer-head"
+  }, /*#__PURE__*/React.createElement("h3", null, "🕒 Lịch sử"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setHistoryOpen(false)
+  }, "✕")), /*#__PURE__*/React.createElement("div", {
+    className: "drawer-body"
+  }, readJSON('synam_history', []).reverse().map((h, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "drawer-item",
+    onClick: () => {
+      setText(h.content.substring(0, 200));
+      setHistoryOpen(false);
+    }
+  }, /*#__PURE__*/React.createElement("strong", null, h.type), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("small", null, new Date(h.at).toLocaleString()))), readJSON('synam_history', []).length === 0 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      opacity: 0.5,
+      textAlign: 'center'
+    }
+  }, "Chưa có")))), /*#__PURE__*/React.createElement("aside", {
     className: "chat-side premium-panel"
   }, /*#__PURE__*/React.createElement("h2", null, "🧠 AI Router"), /*#__PURE__*/React.createElement("p", null, "Auto chọn provider có key. Ưu tiên nhanh, chính xác, không lộ model."), /*#__PURE__*/React.createElement("select", {
     value: modelChoice,
@@ -758,17 +783,31 @@ function Chat({
   }, p.configured ? '●' : '○', " ", p.label, p.freeOnlyBlocked ? ' (tắt để tránh phí)' : '')))), /*#__PURE__*/React.createElement("div", {
     className: "chat-main premium-panel"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "chat-head"
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", null, "🤖 AI Chat Ultra"), /*#__PURE__*/React.createElement("p", null, "Chat box hiện đại, copy, đọc, thử lại, giữ ngữ cảnh.")), /*#__PURE__*/React.createElement("div", {
+    className: "chat-head",
+    style: {
+      alignItems: "center",
+      padding: "8px",
+      display: "flex"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "chat-icon-btn",
+    onClick: () => setHistoryOpen(true)
+  }, "🕒 Lịch sử"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
       display: "flex",
       gap: "8px"
     }
   }, /*#__PURE__*/React.createElement("button", {
+    className: "chat-icon-btn",
     onClick: () => {
       if (confirm("Tạo đoạn chat mới?")) setMessages(DEFAULT_MESSAGES);
     }
   }, "➕ Mới"), /*#__PURE__*/React.createElement("button", {
+    className: "chat-icon-btn",
     onClick: () => speak(messages.filter(m => m.role === 'assistant').at(-1)?.text || '')
   }, "🔊 Đọc"))), /*#__PURE__*/React.createElement("div", {
     className: "chat-box",
