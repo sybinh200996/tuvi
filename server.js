@@ -334,14 +334,16 @@ function partsToPrompt(parts) {
   return (parts || []).map(part => part?.text || "").filter(Boolean).join("\n\n").trim();
 }
 
-async function callOpenAIResponses({ apiKey, model, prompt, systemPrompt = "" }) {
+async function callOpenAIResponses({ apiKey, model, prompt, systemPrompt = "", history = [] }) {
+    const histText = (history || []).map(m => (m.role === "user" ? "User: " : "AI: ") + (m.text||"")).join("\n\n");
+    const fullPrompt = histText ? `Lịch sử hội thoại:\n${histText}\n\nCâu hỏi mới:\n${prompt}` : prompt;
   const response = await withTimeout(fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${apiKey}` },
     body: JSON.stringify({
       model,
       ...(systemPrompt ? { instructions: systemPrompt } : {}),
-      input: [{ role: "user", content: [{ type: "input_text", text: prompt }] }],
+      input: [{ role: "user", content: [{ type: "input_text", text: fullPrompt }] }],
       max_output_tokens: 5000
     })
   }), 90000);
@@ -354,7 +356,7 @@ async function callOpenAIResponses({ apiKey, model, prompt, systemPrompt = "" })
   return outputText;
 }
 
-async function callOpenAICompatible({ provider, apiKey, model, prompt, systemPrompt = "" }) {
+async function callOpenAICompatible({ provider, apiKey, model, prompt, systemPrompt = "", history = [] }) {
   const endpoints = {
     groq: "https://api.groq.com/openai/v1",
     openrouter: "https://openrouter.ai/api/v1",
@@ -389,7 +391,7 @@ async function callOpenAICompatible({ provider, apiKey, model, prompt, systemPro
   return text;
 }
 
-async function callClaude({ apiKey, model, prompt, systemPrompt = '' }) {
+async function callClaude({ apiKey, model, prompt, systemPrompt = '', history = [] }) {
   const response = await withTimeout(fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -401,7 +403,7 @@ async function callClaude({ apiKey, model, prompt, systemPrompt = '' }) {
       model,
       max_tokens: 5000,
       ...(systemPrompt ? { system: systemPrompt } : {}),
-      messages: [{ role: "user", content: prompt }]
+      messages: [...(history || []).map(m => ({ role: m.role === "user" ? "user" : "assistant", content: m.text || "" })), { role: "user", content: prompt }]
     })
   }), 90000);
   const json = await response.json().catch(() => ({}));
@@ -409,7 +411,7 @@ async function callClaude({ apiKey, model, prompt, systemPrompt = '' }) {
   return (json?.content || []).map(x => x.text || "").join("\n").trim();
 }
 
-async function callGeminiText({ apiKey, model, parts, systemPrompt = '' }) {
+async function callGeminiText({ apiKey, model, parts, systemPrompt = '', history = [] }) {
   if (FREE_MODELS_ONLY && !FREE_MODELS_BY_PROVIDER.gemini) throw new Error("Google Gemini bị tắt trong chế độ chỉ dùng model API miễn phí để tránh phát sinh phí.");
   const client = apiKey === process.env.GEMINI_API_KEY && ai ? ai : new GoogleGenAI({ apiKey });
   const response = await withTimeout(client.models.generateContent({
@@ -437,19 +439,19 @@ async function callAIProvider({ provider, model = "", prompt, parts, user, syste
   let text;
   // Mỗi hãng có adapter và giao thức riêng; tuyệt đối không gửi model ID sang hãng khác.
   if (provider === "openai") {
-    text = await callOpenAIResponses({ apiKey, model: finalModel, prompt, systemPrompt });
+    text = await callOpenAIResponses({ apiKey, model: finalModel, prompt, systemPrompt, history });
   } else if (provider === "claude") {
-    text = await callClaude({ apiKey, model: finalModel, prompt, systemPrompt });
+    text = await callClaude({ apiKey, model: finalModel, prompt, systemPrompt, history });
   } else if (provider === "gemini") {
     const finalParts = parts?.length ? parts : [{ text: prompt }];
     text = await callGeminiText({ apiKey, model: finalModel, parts: finalParts, systemPrompt });
   } else {
-    text = await callOpenAICompatible({ provider, apiKey, model: finalModel, prompt, systemPrompt });
+    text = await callOpenAICompatible({ provider, apiKey, model: finalModel, prompt, systemPrompt, history });
   }
   return { provider, label: info.label, model: finalModel, text };
 }
 
-async function tryMultiAI({ prompt, parts, preferredProvider = "auto", requestedModel = "", user = null, council = false, systemPrompt = "" }) {
+async function tryMultiAI({ prompt, parts, preferredProvider = "auto", requestedModel = "", user = null, council = false, systemPrompt = "", history = [] }) {
   const attempts = [];
   // Hỗ trợ selector cũ dạng "provider::model" nhưng tách rõ hai giá trị ở backend.
   requestedModel = String(requestedModel || "");
@@ -851,7 +853,7 @@ function cleanError(error, provider = '') {
   return msg;
 }
 
-async function tryModels(parts, preferredModel = "auto", systemPrompt = '') {
+async function tryModels(parts, preferredModel = "auto", systemPrompt = '', history = []) {
   if (FREE_MODELS_ONLY && !FREE_MODELS_BY_PROVIDER.gemini) throw new Error("Google Gemini bị tắt trong chế độ chỉ dùng model API miễn phí để tránh phát sinh phí.");
   let lastError;
   const modelOrder = resolveModelOrder(preferredModel);
@@ -1184,11 +1186,11 @@ NGỮ CẢNH APP:
 ${context ? JSON.stringify(context, null, 2).slice(0, 4000) : "Không có"}
 
 LỊCH SỬ HỘI THOẠI GẦN ĐÂY:
-${historyText || "Chưa có"}
+
 
 CÂU HỎI MỚI:
 ${cleanMessage}`;
-    const result = await tryMultiAI({ prompt, parts: [{ text: prompt }], preferredProvider: provider || process.env.DEFAULT_AI_PROVIDER || "auto", requestedModel: model, user, council: Boolean(council), systemPrompt });
+    const result = await tryMultiAI({ prompt, parts: [{ text: prompt }], preferredProvider: provider || process.env.DEFAULT_AI_PROVIDER || "auto", requestedModel: model, user, council: Boolean(council), systemPrompt, history });
     result.text = hideModelLeakServer(result.text);
     res.json({ ok: true, provider: result.provider, label: 'Đặng Năm AI', model: result.model, answerStyle: selectedStyle, text: result.text });
   } catch (error) {
@@ -1430,7 +1432,7 @@ NGỮ CẢNH APP HIỆN TẠI:
 ${contextText}
 
 LỊCH SỬ CHAT GẦN ĐÂY:
-${historyText || "Chưa có"}
+
 
 CÂU HỎI CỦA NGƯỜI DÙNG:
 ${cleanMessage || "Người dùng chỉ gửi file/ảnh, hãy phân tích nội dung đã tải lên."}
@@ -1445,7 +1447,7 @@ ${cleanMessage || "Người dùng chỉ gửi file/ảnh, hãy phân tích nội
       if (inline) parts.push(inline);
     }
 
-    const result = await tryModels(parts, geminiModel, systemPrompt);
+    const result = await tryModels(parts, geminiModel, systemPrompt, history);
     result.text = hideModelLeakServer(result.text);
     res.json({ ok: true, label: 'Đặng Năm AI', answerStyle: selectedStyle, text: result.text });
   } catch (error) {
