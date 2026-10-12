@@ -456,12 +456,11 @@ function Chat({ providers }) {
       if (attachments.length) {
         const files = await Promise.all(attachments.map(item => prepareChatAttachment(item.file)));
         data = await apiJSON('/api/chat-ai', {
-            geminiModel: 'gemini-2.5-flash-lite',
           message: content,
           attachments: files,
           history: next.slice(-20),
           answerStyle,
-          geminiModel: selectedProvider === 'gemini' ? selectedModel : 'auto'
+          geminiModel: selectedProvider === 'gemini' && selectedModel ? selectedModel : 'gemini-3.5-flash-lite'
         }, 'POST', controller?.signal);
         setAttachments([]);
         setFileNotice('');
@@ -834,7 +833,7 @@ function AstrologyTool(){
     if(!selected) return setOut('⚠️ Vui lòng chọn cung hoàng đạo của bạn.');
     setOut('AI đang luận giải...');
     try{
-      const d=await apiJSON('/api/multi-ai/chat',{provider:'auto',model:'gemini-2.5-flash-lite',message:`Luận chiêm tinh theo cung hoàng đạo, thời điểm hiện tại và câu hỏi sau: Cung ${selected}. Câu hỏi: ${q}`});
+      const d=await apiJSON('/api/multi-ai/chat',{provider:'auto',model:'gemini-3.5-flash-lite',message:`Luận chiêm tinh theo cung hoàng đạo, thời điểm hiện tại và câu hỏi sau: Cung ${selected}. Câu hỏi: ${q}`});
       setOut(d.text||d.reply||'Không có kết quả'); saveHistory('Tình duyên', d.text||d.reply||'Không có kết quả');
     }catch(e){
       setOut('⚠️ '+e.message);
@@ -877,7 +876,7 @@ function TarotTool(){
     const deck=[...cards].sort(()=>Math.random()-.5).slice(0,3); setPicked(deck); setOut('AI đang luận 3 lá bài...');
     const deckNames = deck.map(c=>c.name);
     try{
-      const d=await apiJSON('/api/multi-ai/chat',{provider:'auto',model:'gemini-2.5-flash-lite',message:`Xem bài tarot tham khảo. Câu hỏi: ${q}. Ba lá: ${deckNames.join(', ')}. Hãy luận rõ: hiện tại, lời khuyên, kết quả gần.`});
+      const d=await apiJSON('/api/multi-ai/chat',{provider:'auto',model:'gemini-3.5-flash-lite',message:`Xem bài tarot tham khảo. Câu hỏi: ${q}. Ba lá: ${deckNames.join(', ')}. Hãy luận rõ: hiện tại, lời khuyên, kết quả gần.`});
       setOut(d.text||d.reply||deckNames.join('\n'));
     }catch(e){
       setOut(`### 🃏 Ba lá bài\n- ${deckNames.join('\n- ')}\n\nLời khuyên: xem như tham khảo để bình tĩnh lựa chọn, không quyết định thay thực tế.`);
@@ -888,7 +887,7 @@ function TarotTool(){
 function NumerologyTool(){
   const [name,setName]=useState(''); const [birth,setBirth]=useState(''); const [out,setOut]=useState('Nhập họ tên và ngày sinh để tính thần số học.');
   function sumDigits(v){let n=String(v).replace(/\D/g,'').split('').reduce((a,b)=>a+Number(b),0); while(n>9 && ![11,22,33].includes(n)) n=String(n).split('').reduce((a,b)=>a+Number(b),0); return n||0}
-  async function run(){const life=sumDigits(birth); setOut('Đang tính local và AI luận giải...'); try{const d=await apiJSON('/api/multi-ai/chat',{provider:'auto',model:'gemini-2.5-flash-lite',message:`Thần số học cho tên ${name||'chưa nhập'}, ngày sinh ${birth||'chưa nhập'}, số chủ đạo local là ${life}. Luận rõ tính cách, tình duyên, công việc, lời khuyên.`}); setOut(d.text||d.reply||`Số chủ đạo: ${life}`)}catch(e){setOut(`### 🔢 Kết quả local
+  async function run(){const life=sumDigits(birth); setOut('Đang tính local và AI luận giải...'); try{const d=await apiJSON('/api/multi-ai/chat',{provider:'auto',model:'gemini-3.5-flash-lite',message:`Thần số học cho tên ${name||'chưa nhập'}, ngày sinh ${birth||'chưa nhập'}, số chủ đạo local là ${life}. Luận rõ tính cách, tình duyên, công việc, lời khuyên.`}); setOut(d.text||d.reply||`Số chủ đạo: ${life}`)}catch(e){setOut(`### 🔢 Kết quả local
 - Họ tên: ${name||'Chưa nhập'}
 - Ngày sinh: ${birth||'Chưa nhập'}
 - Số chủ đạo: ${life||'Chưa đủ dữ liệu'}
@@ -899,9 +898,9 @@ Kết quả chỉ mang tính tham khảo.`)}}
 
 function Result({text}){return <article className="premium-panel result"><h2>📌 Kết quả</h2><div dangerouslySetInnerHTML={{__html: markdownLite(text)}} /></article>}
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js').catch(() => {}));
+  navigator.serviceWorker.getRegistrations().then(regs => { for (let r of regs) r.unregister(); });
+  if (window.caches) { caches.keys().then(keys => { for (let k of keys) caches.delete(k); }); }
 }
 
 function DeepTool() {
@@ -914,7 +913,7 @@ function DeepTool() {
     setBusy(true);
     setResult('AI đang tổng hợp dữ liệu đa lớp và phân tích sâu...');
     try {
-      const data = await apiJSON('/api/deep-ai', { ...form, geminiModel: 'gemini-2.5-flash-lite' });
+      const data = await apiJSON('/api/deep-ai', { ...form, geminiModel: 'gemini-3.5-flash-lite' });
       setResult(data.text || data.reply || 'Không có kết quả trả về.');
     } catch(e) {
       setResult('Lỗi: ' + e.message);
@@ -939,6 +938,8 @@ function DeepTool() {
     <Result text={result}/>
   </section>;
 }
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 
 
 

@@ -192,12 +192,12 @@ const FREE_MODELS_BY_PROVIDER = Object.freeze({ openrouter: ["openrouter/free"] 
 
 const AI_PROVIDERS = {
   gemini: {
-    label: "Google Gemini (API tier cần xác minh)",
+    label: "Google Gemini",
     keyEnv: "GEMINI_API_KEY",
     modelEnv: "GEMINI_MODEL",
-    defaultModel: "gemini-3.8-flash",
-    models: ["gemini-3.8-flash", "gemini-3.7-flash"],
-    freeHint: "Có free tier, nhưng key/project có thể dùng paid tier; hiện bị khóa trong strict free mode."
+    defaultModel: "gemini-3.5-flash-lite",
+    models: ["gemini-3.5-flash-lite", "gemini-3.8-flash"],
+    freeHint: "Model Google Gemini chính thức."
   },
   groq: {
     label: "Groq",
@@ -294,8 +294,13 @@ function pickProviderModel(provider, requestedModel = "", user = null) {
     const candidates = [requestedModel, user?.aiModels?.[provider], process.env[info.modelEnv]];
     return candidates.find(candidate => candidate && allowed.includes(candidate)) || allowed[0];
   }
-  const envModel = process.env[info.modelEnv] || (provider === "claude" ? process.env.CLAUDE_MODEL : "");
-  return requestedModel || user?.aiModels?.[provider] || envModel || info.defaultModel;
+  const rawEnv = process.env[info.modelEnv] || (provider === "claude" ? process.env.CLAUDE_MODEL : "");
+  const envModel = rawEnv.includes(",") ? rawEnv.split(",")[0].trim() : rawEnv;
+  let finalModel = requestedModel || user?.aiModels?.[provider] || envModel || info.defaultModel;
+  if (provider === "gemini" && (finalModel.includes("2.5") || finalModel.includes("2.0") || finalModel.includes("1.5"))) {
+    finalModel = "gemini-3.5-flash-lite";
+  }
+  return finalModel;
 }
 
 function enabledProvidersForUser(user = null) {
@@ -414,20 +419,36 @@ async function callClaude({ apiKey, model, prompt, systemPrompt = '', history = 
 async function callGeminiText({ apiKey, model, parts, systemPrompt = '', history = [] }) {
   if (FREE_MODELS_ONLY && !FREE_MODELS_BY_PROVIDER.gemini) throw new Error("Google Gemini bị tắt trong chế độ chỉ dùng model API miễn phí để tránh phát sinh phí.");
   const client = apiKey === process.env.GEMINI_API_KEY && ai ? ai : new GoogleGenAI({ apiKey });
-  const response = await withTimeout(client.models.generateContent({
-    model,
-    contents: [{ role: "user", parts }],
-    config: {
-        temperature: 0.7,
-        topP: 0.85,
-        ...(systemPrompt ? { systemInstruction: systemPrompt } : {}),
-        ...(!FREE_MODELS_ONLY ? { tools: [{ googleSearch: {} }] } : {})
-      }
-  }), 90000);
-  return response?.text || response?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || "";
+  let actualModel = model || "gemini-3.5-flash-lite";
+  if (actualModel.includes("2.5") || actualModel.includes("2.0") || actualModel.includes("1.5")) {
+    actualModel = "gemini-3.5-flash-lite";
+  }
+
+  const modelsToTry = [actualModel, "gemini-3.5-flash-lite", "gemini-3.8-flash"].filter((m, i, arr) => arr.indexOf(m) === i);
+  let lastErr;
+
+  for (const m of modelsToTry) {
+    try {
+      const response = await withTimeout(client.models.generateContent({
+        model: m,
+        contents: [{ role: "user", parts }],
+        config: {
+          temperature: 0.7,
+          topP: 0.85,
+          ...(systemPrompt ? { systemInstruction: systemPrompt } : {})
+        }
+      }), 45000);
+      const text = response?.text || response?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || "";
+      if (text) return text;
+    } catch (err) {
+      lastErr = err;
+      console.log(`Gemini ${m} error:`, err.message);
+    }
+  }
+  throw lastErr || new Error("Google Gemini không phản hồi được nội dung.");
 }
 
-async function callAIProvider({ provider, model = "", prompt, parts, user, systemPrompt = "" }) {
+async function callAIProvider({ provider, model = "", prompt, parts, user, systemPrompt = "", history = [] }) {
   const info = AI_PROVIDERS[provider];
   if (!info) throw new Error(`Provider không hỗ trợ: ${provider}`);
   const apiKey = pickProviderKey(provider, user);
@@ -444,7 +465,7 @@ async function callAIProvider({ provider, model = "", prompt, parts, user, syste
     text = await callClaude({ apiKey, model: finalModel, prompt, systemPrompt, history });
   } else if (provider === "gemini") {
     const finalParts = parts?.length ? parts : [{ text: prompt }];
-    text = await callGeminiText({ apiKey, model: finalModel, parts: finalParts, systemPrompt });
+    text = await callGeminiText({ apiKey, model: finalModel, parts: finalParts, systemPrompt, history });
   } else {
     text = await callOpenAICompatible({ provider, apiKey, model: finalModel, prompt, systemPrompt, history });
   }
@@ -559,8 +580,12 @@ function resolveImageModelOrder(preferredModel) {
 }
 
 function resolveModelOrder(preferredModel) {
-  if (!preferredModel || preferredModel === "auto") return MODELS;
-  return uniqueModels([preferredModel, ...MODELS]);
+  let pref = preferredModel;
+  if (pref && (pref.includes("2.5") || pref.includes("2.0") || pref.includes("1.5"))) {
+    pref = "gemini-3.5-flash-lite";
+  }
+  if (!pref || pref === "auto") return MODELS;
+  return uniqueModels([pref, ...MODELS]);
 }
 
 function withTimeout(promise, ms = 60000) {

@@ -669,12 +669,11 @@ function Chat({
       if (attachments.length) {
         const files = await Promise.all(attachments.map(item => prepareChatAttachment(item.file)));
         data = await apiJSON('/api/chat-ai', {
-          geminiModel: 'gemini-2.5-flash-lite',
           message: content,
           attachments: files,
           history: next.slice(-20),
           answerStyle,
-          geminiModel: selectedProvider === 'gemini' ? selectedModel : 'auto'
+          geminiModel: selectedProvider === 'gemini' && selectedModel ? selectedModel : 'gemini-3.5-flash-lite'
         }, 'POST', controller?.signal);
         setAttachments([]);
         setFileNotice('');
@@ -1659,7 +1658,7 @@ function AstrologyTool() {
     try {
       const d = await apiJSON('/api/multi-ai/chat', {
         provider: 'auto',
-        model: 'gemini-2.5-flash-lite',
+        model: 'gemini-3.5-flash-lite',
         message: `Luận chiêm tinh theo cung hoàng đạo, thời điểm hiện tại và câu hỏi sau: Cung ${selected}. Câu hỏi: ${q}`
       });
       setOut(d.text || d.reply || 'Không có kết quả');
@@ -1770,7 +1769,7 @@ function TarotTool() {
     try {
       const d = await apiJSON('/api/multi-ai/chat', {
         provider: 'auto',
-        model: 'gemini-2.5-flash-lite',
+        model: 'gemini-3.5-flash-lite',
         message: `Xem bài tarot tham khảo. Câu hỏi: ${q}. Ba lá: ${deckNames.join(', ')}. Hãy luận rõ: hiện tại, lời khuyên, kết quả gần.`
       });
       setOut(d.text || d.reply || deckNames.join('\n'));
@@ -1835,7 +1834,7 @@ function NumerologyTool() {
     try {
       const d = await apiJSON('/api/multi-ai/chat', {
         provider: 'auto',
-        model: 'gemini-2.5-flash-lite',
+        model: 'gemini-3.5-flash-lite',
         message: `Thần số học cho tên ${name || 'chưa nhập'}, ngày sinh ${birth || 'chưa nhập'}, số chủ đạo local là ${life}. Luận rõ tính cách, tình duyên, công việc, lời khuyên.`
       });
       setOut(d.text || d.reply || `Số chủ đạo: ${life}`);
@@ -1878,9 +1877,15 @@ function Result({
     }
   }));
 }
-ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(App, null));
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js').catch(() => {}));
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    for (let r of regs) r.unregister();
+  });
+  if (window.caches) {
+    caches.keys().then(keys => {
+      for (let k of keys) caches.delete(k);
+    });
+  }
 }
 function DeepTool() {
   const [result, setResult] = useState('Điền thông tin và bấm phân tích để bắt đầu.');
@@ -1898,7 +1903,7 @@ function DeepTool() {
     try {
       const data = await apiJSON('/api/deep-ai', {
         ...form,
-        geminiModel: 'gemini-2.5-flash-lite'
+        geminiModel: 'gemini-3.5-flash-lite'
       });
       setResult(data.text || data.reply || 'Không có kết quả trả về.');
     } catch (e) {
@@ -1955,3 +1960,4 @@ function DeepTool() {
     text: result
   }));
 }
+ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(App, null));

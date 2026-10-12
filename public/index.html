@@ -672,6 +672,7 @@
             body: JSON.stringify({ message: text })
           }).then(r => r.json());
         }
+        if (res.error) throw new Error(res.error);
         const reply = res.reply || res.text || res.answer || 'Chưa nhận được phản hồi.';
         aiDiv.className = 'msg ai';
         aiDiv.innerHTML = `<b>✦ Đặng Năm AI:</b><br>${window.marked ? marked.parse(reply) : reply}`;
