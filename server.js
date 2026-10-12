@@ -860,14 +860,25 @@ async function tryModels(parts, preferredModel = "auto", systemPrompt = '', hist
   for (const model of modelOrder) {
     try {
       console.log("Đang thử model:", model);
-      const response = await withTimeout(ai.models.generateContent({
-        model,
-        contents: [{ role: "user", parts }],
-        config: {
-            ...(systemPrompt ? { systemInstruction: systemPrompt, temperature: 0.7, topP: 0.85 } : {}),
-            tools: [{ googleSearch: {} }]
-          }
-      }));
+      let response;
+      try {
+        response = await withTimeout(ai.models.generateContent({
+          model,
+          contents: [{ role: "user", parts }],
+          config: {
+              ...(systemPrompt ? { systemInstruction: systemPrompt, temperature: 0.7, topP: 0.85 } : {}),
+              tools: [{ googleSearch: {} }]
+            }
+        }));
+      } catch (searchErr) {
+        response = await withTimeout(ai.models.generateContent({
+          model,
+          contents: [{ role: "user", parts }],
+          config: {
+              ...(systemPrompt ? { systemInstruction: systemPrompt, temperature: 0.7, topP: 0.85 } : {})
+            }
+        }));
+      }
       return {
         model,
         text: response?.text || response?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || ""
