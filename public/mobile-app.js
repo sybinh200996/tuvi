@@ -1,4 +1,4 @@
-﻿const { useEffect, useMemo, useRef, useState } = React;
+const { useEffect, useMemo, useRef, useState } = React;
 
 
 function saveHistory(type, content) {
@@ -503,41 +503,170 @@ function Chat({ providers }) {
 
     <aside className="chat-side premium-panel"><h2>🧠 AI Router</h2><p>Auto chọn provider có key. Ưu tiên nhanh, chính xác, không lộ model.</p><select value={modelChoice} onChange={e=>setModelChoice(e.target.value)}><option value="auto">Auto Router</option>{providerModelOptions.map(p => <optgroup key={p.id} label={providerGroupLabel(p)} disabled={!p.configured}>{p.modelOptions.map(model => <option key={`${p.id}:${model}`} value={`${p.id}::${model}`}>{model}</option>)}</optgroup>)}</select><select value={answerStyle} onChange={e=>setAnswerStyle(e.target.value)} aria-label="Độ chi tiết câu trả lời"><option value="detailed">Chi tiết chuyên nghiệp</option><option value="expert">Chuyên gia sâu</option><option value="concise">Ngắn gọn</option></select><label className="switch"><input type="checkbox" checked={council} onChange={e=>setCouncil(e.target.checked)} /> Hội Đồng AI</label><button onClick={()=>setMessages(DEFAULT_MESSAGES)}>＋ Chat mới</button><div className="mini-list">{providers.map(p => <span className={p.configured?'ok':''} key={p.id}>{p.configured?'●':'○'} {p.label}{p.freeOnlyBlocked?' (tắt để tránh phí)':''}</span>)}</div></aside>
     <div className="chat-main premium-panel">
-      <div className="chat-head" style={{alignItems:"flex-start", padding:"8px", display:"flex", gap:"8px"}}>
-        <button className="chat-icon-btn" onClick={() => setHistoryOpen(true)}>🕒 Lịch sử</button>
-        <button className="chat-icon-btn" onClick={() => { if(confirm("Tạo đoạn chat mới?")) setMessages(DEFAULT_MESSAGES); }}>➕ Mới</button>
-        <button className="chat-icon-btn" onClick={()=>speak(messages.filter(m=>m.role==='assistant').at(-1)?.text || '')}>🔊 Đọc</button>
-        <div style={{flex: 1}}></div>
+      <div className="chat-head" style={{display:"flex", alignItems:"center", justifyContent:"space-between", padding:"8px 12px", borderBottom:"1px solid rgba(255,255,255,0.08)"}}>
+        <div style={{display:"flex", gap:"8px", alignItems:"center"}}>
+          <button className="chat-icon-btn" onClick={() => setHistoryOpen(true)}>🕒 Lịch sử</button>
+          <button className="chat-icon-btn" onClick={() => { if(confirm("Tạo đoạn chat mới?")) setMessages(DEFAULT_MESSAGES); }}>➕ Mới</button>
+        </div>
+        <button 
+          className="chat-speaker-btn" 
+          title="Nghe đọc phản hồi mới nhất" 
+          onClick={()=>speak(messages.filter(m=>m.role==='assistant').at(-1)?.text || 'Chưa có phản hồi nào để đọc.')}
+          style={{background:'rgba(255,255,255,0.08)', border:'1px solid rgba(255,255,255,0.2)', borderRadius:'50%', width:'36px', height:'36px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'18px', color:'#fff', cursor:'pointer'}}
+        >
+          🔊
+        </button>
       </div>
       <div className="chat-box" ref={boxRef}>{messages.map((m,i) => <div key={i} className={`bubble ${m.role} ${m.loading?'loading':''}`}><div className="avatar">{m.role==='user'?'👤':'✦'}</div><div className="bubble-body">{m.attachments?.length > 0 && <div className="chat-message-files">{m.attachments.map((file,index) => <span key={`${file.name}-${index}`}>📎 {file.name}</span>)}</div>}<div dangerouslySetInnerHTML={{__html: markdownLite(m.text)}} />{m.role==='assistant' && !m.loading && <div className="msg-actions"><button onClick={()=>copy(m.text)}>Copy</button><button onClick={()=>speak(m.text)}>Đọc</button><button onClick={()=>send(lastPrompt)}>Thử lại</button></div>}</div></div>)}</div>
-            <div className="chat-composer-panel">
-        <div className="chat-model-row"><label htmlFor="chat-model-choice">Model AI</label><select id="chat-model-choice" value={modelChoice} onChange={e=>setModelChoice(e.target.value)}><option value="auto">Auto — Multi-AI</option>{providerModelOptions.map(p => <optgroup key={p.id} label={providerGroupLabel(p)} disabled={!p.configured}>{p.modelOptions.map(model => <option key={`${p.id}:${model}`} value={`${p.id}::${model}`}>{model}</option>)}</optgroup>)}</select></div>
+      
+      <div className="chat-composer-panel" style={{position: 'relative'}}>
+        {/* Menu đính kèm khi bấm dấu cộng + */}
+        {showUploads && (
+          <div className="chat-plus-menu" style={{
+            position: 'absolute',
+            bottom: '62px',
+            left: '10px',
+            background: 'rgba(15, 23, 42, 0.96)',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
+            borderRadius: '16px',
+            padding: '6px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '4px',
+            boxShadow: '0 12px 32px rgba(0,0,0,0.5)',
+            backdropFilter: 'blur(20px)',
+            zIndex: 100,
+            minWidth: '145px'
+          }}>
+            <button type="button" onClick={()=>{imageInputRef.current?.click(); setShowUploads(false);}} style={{display:'flex', alignItems:'center', gap:'8px', background:'transparent', border:0, color:'#fff', padding:'8px 10px', borderRadius:'10px', fontSize:'13px', textAlign:'left', width:'100%', cursor:'pointer'}}>
+              <span style={{fontSize:'16px'}}>🖼️</span> Tải ảnh
+            </button>
+            <button type="button" onClick={()=>{cameraInputRef.current?.click(); setShowUploads(false);}} style={{display:'flex', alignItems:'center', gap:'8px', background:'transparent', border:0, color:'#fff', padding:'8px 10px', borderRadius:'10px', fontSize:'13px', textAlign:'left', width:'100%', cursor:'pointer'}}>
+              <span style={{fontSize:'16px'}}>📷</span> Chụp ảnh
+            </button>
+            <button type="button" onClick={()=>{fileInputRef.current?.click(); setShowUploads(false);}} style={{display:'flex', alignItems:'center', gap:'8px', background:'transparent', border:0, color:'#fff', padding:'8px 10px', borderRadius:'10px', fontSize:'13px', textAlign:'left', width:'100%', cursor:'pointer'}}>
+              <span style={{fontSize:'16px'}}>📎</span> Tải file
+            </button>
+          </div>
+        )}
+
+        <input ref={imageInputRef} className="chat-hidden-input" type="file" accept="image/*" multiple style={{display:'none'}} onChange={e=>{addFiles(e.target.files);e.target.value='';setShowUploads(false);}} />
+        <input ref={cameraInputRef} className="chat-hidden-input" type="file" accept="image/*" capture="environment" style={{display:'none'}} onChange={e=>{addFiles(e.target.files);e.target.value='';setShowUploads(false);}} />
+        <input ref={fileInputRef} className="chat-hidden-input" type="file" accept="image/*,.pdf,.txt,.md,.csv,.json,.xml,.html,.js,.ts,.py,.log,.css,.doc,.docx,.xls,.xlsx" multiple style={{display:'none'}} onChange={e=>{addFiles(e.target.files);e.target.value='';setShowUploads(false);}} />
+
+        {/* Danh sách file đính kèm xem trước */}
+        {attachments.length > 0 && (
+          <div className="chat-attachment-list" style={{display: 'flex', gap: '6px', flexWrap: 'wrap', padding: '0 8px 6px'}}>
+            {attachments.map(item => (
+              <span className="chat-file-chip" key={item.id} style={{display:'inline-flex', alignItems:'center', gap:'4px', background:'rgba(255,255,255,0.12)', border:'1px solid rgba(255,255,255,0.18)', borderRadius:'12px', padding:'3px 8px', fontSize:'12px', color:'#e0f2fe'}}>
+                {item.file.type.startsWith('image/')?'🖼️':'📄'} {item.file.name.length > 16 ? item.file.name.slice(0, 13) + '...' : item.file.name}
+                <button type="button" aria-label={`Xóa ${item.file.name}`} title={`Xóa ${item.file.name}`} onClick={()=>removeFile(item.id)} style={{background:'transparent', border:0, color:'#ff8b8b', cursor:'pointer', padding:'0 2px'}}>✕</button>
+              </span>
+            ))}
+          </div>
+        )}
         
-        <div className="chat-upload-bar pro-upload mobile-chat-uploads" style={{ display: showUploads ? 'flex' : 'none', overflowX: 'auto', gap: '8px', paddingBottom: '4px' }}>
-          <button type="button" onClick={()=>imageInputRef.current?.click()}>🖼️ <span>Tải ảnh</span></button>
-          <button type="button" onClick={()=>cameraInputRef.current?.click()}>📷 <span>Chụp ảnh</span></button>
-          <button type="button" onClick={()=>fileInputRef.current?.click()}>📎 <span>Tải file</span></button>
-          {attachments.length > 0 && <button type="button" className="chat-clear-files" onClick={()=>{setAttachments([]);setFileNotice('');}}>Xóa hết</button>}
-          <input ref={imageInputRef} className="chat-hidden-input" type="file" accept="image/*" multiple onChange={e=>{addFiles(e.target.files);e.target.value='';setShowUploads(false);}} />
-          <input ref={cameraInputRef} className="chat-hidden-input" type="file" accept="image/*" capture="environment" onChange={e=>{addFiles(e.target.files);e.target.value='';setShowUploads(false);}} />
-          <input ref={fileInputRef} className="chat-hidden-input" type="file" accept="image/*,.pdf,.txt,.md,.csv,.json,.xml,.html,.js,.ts,.py,.log,.css,.doc,.docx,.xls,.xlsx" multiple onChange={e=>{addFiles(e.target.files);e.target.value='';setShowUploads(false);}} />
-        </div>
+        {fileNotice && <div className="chat-file-notice" role="status" style={{padding: '0 8px 4px', fontSize:'12px', color:'#ffd29a'}}>{fileNotice}</div>}
+        {voiceStatus && <div className="chat-voice-status" role="status" style={{padding: '0 8px 4px', fontSize:'12px', color:'#7dd3fc'}}>{voiceStatus}{voiceCountdown > 0 && <> <b>Gửi sau {voiceCountdown}s</b> <button type="button" onClick={()=>clearVoiceCountdown('Đã hủy tự động gửi.')}>Hủy</button></>}</div>}
 
-        {attachments.length > 0 && <div className="chat-attachment-list" style={{padding: '0 8px'}}>{attachments.map(item => <span className="chat-file-chip" key={item.id} style={{background: 'rgba(255,255,255,0.1)'}}>{item.file.type.startsWith('image/')?'🖼️':'📄'} {item.file.name}<button type="button" aria-label={`Xóa ${item.file.name}`} title={`Xóa ${item.file.name}`} onClick={()=>removeFile(item.id)}>x</button></span>)}</div>}
-        {fileNotice && <div className="chat-file-notice" role="status" style={{padding: '0 8px'}}>{fileNotice}</div>}
-        {attachments.length > 0 && modelChoice !== 'auto' && !modelChoice.startsWith('gemini::') && <div className="chat-attachment-note" style={{padding: '0 8px'}}>Ảnh/file hiện được phân tích qua Gemini đa phương thức.</div>}
-        {voiceStatus && <div className="chat-voice-status" role="status" style={{padding: '0 8px'}}>{voiceStatus}{voiceCountdown > 0 && <> <b>Gửi sau {voiceCountdown}s</b> <button type="button" onClick={()=>clearVoiceCountdown('Đã hủy tự động gửi.')}>Hủy</button></>}</div>}
-
-        <div className="composer chat-pill-composer" style={{display: 'flex', flexDirection: 'row', alignItems: 'center', background: 'rgba(30, 30, 35, 0.7)', borderRadius: '30px', padding: '6px 6px'}}>
-          <button type="button" onClick={() => setShowUploads(!showUploads)} style={{color:'#fff', background:'transparent', border:0, fontSize:'24px', width:'36px', height:'36px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink: 0, paddingBottom: '3px'}}>+</button>
+        {/* Hộp thoại chat dạng Gemini / ChatGPT */}
+        <div className="composer chat-pill-composer" style={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          background: 'rgba(20, 26, 44, 0.88)',
+          border: '1px solid rgba(255, 255, 255, 0.16)',
+          borderRadius: '28px',
+          padding: '5px 8px 5px 10px',
+          backdropFilter: 'blur(20px)',
+          gap: '6px'
+        }}>
+          {/* Nút dấu cộng + */}
+          <button 
+            type="button" 
+            onClick={() => setShowUploads(!showUploads)} 
+            title="Đính kèm ảnh hoặc file"
+            style={{
+              color: showUploads ? '#38bdf8' : '#fff',
+              background: showUploads ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+              border: '1px solid rgba(255, 255, 255, 0.14)',
+              borderRadius: '50%',
+              fontSize: '20px',
+              width: '32px',
+              height: '32px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              flexShrink: 0,
+              transition: 'transform 0.2s',
+              transform: showUploads ? 'rotate(45deg)' : 'none'
+            }}
+          >
+            +
+          </button>
           
-          <div style={{flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, margin: '0 6px'}}>
-            <textarea value={text} onChange={e=>{draftRef.current=e.target.value;if(voiceCountdown)clearVoiceCountdown('Đã hủy tự động gửi do bạn chỉnh sửa nội dung.');setText(e.target.value);}} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}} placeholder="Hỏi AI..." aria-label="Tin nhắn gửi AI" rows="1" style={{background: 'transparent', border: 0, color: '#fff', fontSize: '15px', padding: '4px 0', resize: 'none', outline: 'none', width: '100%', boxShadow: 'none'}} />
+          {/* Ô nhập chữ */}
+          <div style={{flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, margin: '0 4px'}}>
+            <textarea 
+              value={text} 
+              onChange={e=>{draftRef.current=e.target.value;if(voiceCountdown)clearVoiceCountdown('Đã hủy tự động gửi do bạn chỉnh sửa nội dung.');setText(e.target.value);}} 
+              onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}}} 
+              placeholder="Hỏi AI..." 
+              aria-label="Tin nhắn gửi AI" 
+              rows="1" 
+              style={{
+                background: 'transparent',
+                border: 0,
+                color: '#fff',
+                fontSize: '15px',
+                padding: '5px 0',
+                resize: 'none',
+                outline: 'none',
+                width: '100%',
+                boxShadow: 'none',
+                lineHeight: '1.4',
+                maxHeight: '100px'
+              }} 
+            />
           </div>
 
+          {/* Mic và nút gửi */}
           <div style={{display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0}}>
-            {listening ? <button type="button" className="chat-mic-btn is-listening" aria-label="Dừng ghi âm" title="Dừng ghi âm" onClick={stopDictation} style={{background:'transparent', border:0, fontSize:'20px'}}>🛑</button> : <button type="button" className="chat-mic-btn" aria-label="Nhập bằng giọng nói" title="Nhập bằng giọng nói" disabled={busy} onClick={startDictation} style={{background:'transparent', border:0, fontSize:'20px'}}>🎤</button>}
-            {text.trim() || attachments.length > 0 || busy ? <button type="button" className={`pill-send-btn ${busy?'is-stop':''}`} aria-label={busy?'Dừng phản hồi':'Gửi tin nhắn'} title={busy?'Dừng phản hồi':'Gửi tin nhắn'} onClick={busy?stopResponse:()=>send()} style={{background: 'transparent', border: 0, fontSize: '20px', cursor: 'pointer', display: 'flex', alignItems: 'center'}}>{busy?'🛑':'➤'}</button> : null}
+            {listening ? (
+              <button type="button" className="chat-mic-btn is-listening" aria-label="Dừng ghi âm" title="Dừng ghi âm" onClick={stopDictation} style={{background:'rgba(239,68,68,0.25)', border:'1px solid #ef4444', borderRadius:'50%', width:'32px', height:'32px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'16px', cursor:'pointer'}}>
+                🔴
+              </button>
+            ) : (
+              <button type="button" className="chat-mic-btn" aria-label="Nhập bằng giọng nói" title="Nhập bằng giọng nói" disabled={busy} onClick={startDictation} style={{background:'transparent', border:0, color:'#94a3b8', fontSize:'18px', width:'32px', height:'32px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer'}}>
+                🎤
+              </button>
+            )}
+            {(text.trim() || attachments.length > 0 || busy) ? (
+              <button 
+                type="button" 
+                className={`pill-send-btn ${busy?'is-stop':''}`} 
+                aria-label={busy?'Dừng phản hồi':'Gửi tin nhắn'} 
+                title={busy?'Dừng phản hồi':'Gửi tin nhắn'} 
+                onClick={busy?stopResponse:()=>send()} 
+                style={{
+                  background: busy ? 'rgba(239,68,68,0.85)' : 'linear-gradient(135deg, #0284c7, #8b5cf6)',
+                  border: 0,
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  color: '#fff',
+                  fontSize: '13px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 6px rgba(2, 132, 199, 0.4)'
+                }}
+              >
+                {busy?'⏹':'➤'}
+              </button>
+            ) : null}
           </div>
         </div>
       </div>
