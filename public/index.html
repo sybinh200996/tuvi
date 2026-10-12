@@ -7,16 +7,16 @@
   <meta name="description" content="Đặng Năm Mystic - AI tử vi, chỉ tay, xem tướng, chiêm tinh, chat, lịch sử và tài khoản." />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="assets/icon.svg" />
-  <link rel="stylesheet" href="style.css?v=1791798393" />
+  <link rel="stylesheet" href="style.css?v=1791801245" />
   
     <script>
       // NAM45 Hybrid: Desktop dùng giao diện file 1, Mobile dùng giao diện file 2.
       (function(){
         var params = new URLSearchParams(location.search);
         var forceDesktop = params.get('desktop') === '1';
-        var isMobile = window.matchMedia && window.matchMedia('(max-width: 768px)').matches;
+        var isMobile = /Android|iPhone|iPad|iPod|Mobile|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || (window.matchMedia && window.matchMedia('(max-width: 900px)').matches);
         if (isMobile && !forceDesktop && !location.pathname.endsWith('/mobile.html')) {
-          location.replace('mobile.html');
+          location.replace('mobile.html' + (location.hash || ''));
         }
       })();
     </script>
@@ -403,43 +403,55 @@
               <button class="active">💬 Chat AI</button>
             </div>
 
-            <div class="chat-pro-head" style="align-items:flex-start; padding:8px; display:flex; gap:8px;">
-                <button class="chat-icon-btn" onclick="openDesktopHistory()">?? L?ch s?</button>
-                
-                  <button type="button" class="chat-icon-btn" aria-label="Chat m?i" onclick="if(confirm('T?o do?n chat m?i?')){ document.getElementById('chatLog').innerHTML = '<div class=\'msg ai-welcome\'><b>?? Cho b?n!</b><br>Mnh l ng Nam AI Pro.</div>'; if(window.chatMessages) window.chatMessages = []; }">? M?i</button>
-                  <button type="button" class="chat-icon-btn" aria-label="?c" onclick="speakLastResult()">?? ?c</button>
-                  <button type="button" class="chat-icon-btn" aria-label="Ci d?t AI" onclick="routeTo('ai')">?? Ci d?t</button>
-                </div>
+            <div class="chat-pro-head" style="display:flex; align-items:center; justify-content:space-between; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.08);">
+              <div style="display:flex; gap:8px; align-items:center;">
+                <button class="chat-icon-btn" onclick="openDesktopHistory()">🕒 Lịch sử</button>
+                <button type="button" class="chat-icon-btn" aria-label="Chat mới" onclick="if(confirm('Bắt đầu cuộc trò chuyện mới?')){ document.getElementById('chatLog').innerHTML = '<div class=\'msg ai-welcome\'><b>👋 Chào bạn!</b><br>Mình là Đặng Năm AI. Mình có thể giúp gì cho bạn hôm nay?</div>'; currentChatFiles = []; renderChatAttachments(); }">➕ Mới</button>
               </div>
-            <details class="chat-mobile-settings" open>
-              <summary>⚙️ Tùy chọn AI và chế độ chat</summary>
-              <div class="chat-mobile-settings-content">
-                <div class="chat-mode-tabs pro-tabs">
-                  <button id="modeChat" class="active" onclick="setChatMode('chat')">💬 Hỏi đáp</button>
-                </div>
-                <div class="multi-ai-toolbar pro-toolbar">
-                  <label>AI Provider<select id="chatProvider"><option value="auto">Auto Router</option><option value="gemini">Gemini</option><option value="groq">Groq Free/Nhanh</option><option value="openrouter">OpenRouter Free</option><option value="openai">ChatGPT/OpenAI</option><option value="claude">Claude</option><option value="deepseek">DeepSeek</option><option value="grok">Grok</option><option value="qwen">Qwen</option><option value="mistral">Mistral</option></select></label>
-                  <label>Model tùy chọn<input id="chatModel" placeholder="Để trống = Tự động chọn Model cao cấp nhất"></label>
-                  <label>Độ chi tiết<select id="chatAnswerStyle"><option value="detailed" selected>Chi tiết chuyên nghiệp</option><option value="expert">Chuyên gia sâu</option><option value="concise">Ngắn gọn</option></select></label>
-                  <label class="council-toggle"><input id="chatCouncil" type="checkbox"> Hội Đồng AI</label>
-                </div>
-              </div>
-            </details>
-            <div id="voiceStatus" class="voice-status">🎙️ Sẵn sàng nhận giọng nói</div>
-            <div id="chatLog" class="chat-log pro-chat-log"><div class="msg ai-welcome"><b>👋 Chào bạn!</b><br>Mình là Đặng Năm AI Pro. Hỏi gì cũng được: app, code, thời tiết, ảnh/file, ý tưởng. Mình sẽ trả lời rõ ràng, đúng trọng tâm hơn.</div></div>
-            <div class="chat-upload-bar pro-upload">
-              <label class="upload-chip">📷 Tải ảnh<input id="chatImageInput" type="file" accept="image/*" multiple onchange="handleChatFiles(event)"></label>
-              <label class="upload-chip">📸 Chụp ảnh<input id="chatCameraInput" type="file" accept="image/*" capture="environment" onchange="handleChatFiles(event)"></label>
-              <label class="upload-chip">📎 Tải file<input id="chatFileInput" type="file" accept=".txt,.md,.json,.csv,.html,.css,.js,.pdf,image/*" multiple onchange="handleChatFiles(event)"></label>
-              <button class="clear-attachments" onclick="clearChatAttachments()">Xóa file</button>
+              <button type="button" class="chat-speaker-btn" title="Nghe đọc phản hồi mới nhất" onclick="speakLastResult()" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.2); border-radius:50%; width:36px; height:36px; display:flex; align-items:center; justify-content:center; font-size:18px; color:#fff; cursor:pointer;">
+                🔊
+              </button>
             </div>
-            <div id="chatAttachments" class="chat-attachments"></div>
-            <div class="chat-input pro-input mobile-voice-input">
-              <button id="voiceBtn" class="voice-btn" type="button" onclick="toggleVoiceInput()" title="Bấm để nói">🎤</button>
-              <textarea id="chatText" rows="1" placeholder="Hỏi Đặng Năm AI như ChatGPT/Gemini..." oninput="autoResizeChatText()" onkeydown="handleChatTextKey(event)"></textarea>
-              <button id="voiceReplyQuickBtn" class="quick-voice-btn" type="button" onclick="toggleQuickSpeakReply()" title="Bật/tắt giọng đọc">🔊</button>
-              <button id="stopSpeakQuickBtn" class="quick-stop-btn" type="button" onclick="stopSpeaking()" title="Dừng đọc ngay">⛔</button>
-              <button id="chatSendBtn" type="button" aria-label="Gửi tin nhắn" title="Gửi tin nhắn" onclick="sendChat()">Gửi ✈</button>
+
+            <div id="voiceStatus" class="voice-status" style="display:none">🎙️ Sẵn sàng nhận giọng nói</div>
+            <div id="chatLog" class="chat-log pro-chat-log"><div class="msg ai-welcome"><b>👋 Chào bạn!</b><br>Mình là Đặng Năm AI. Hỏi gì cũng được: tử vi, tình duyên, ảnh/tài liệu, hoặc trò chuyện tổng quát.</div></div>
+            
+            <div class="chat-composer-wrap" style="position:relative; padding:8px 8px 12px;">
+              <!-- Menu đính kèm dấu cộng + -->
+              <div id="desktopPlusMenu" class="chat-plus-menu" style="display:none; position:absolute; bottom:64px; left:10px; background:rgba(15,23,42,0.96); border:1px solid rgba(255,255,255,0.18); border-radius:16px; padding:6px; flex-direction:column; gap:4px; box-shadow:0 12px 32px rgba(0,0,0,0.5); backdrop-filter:blur(20px); z-index:100; min-width:145px;">
+                <button type="button" onclick="document.getElementById('chatImageInput').click(); toggleDesktopPlusMenu();" style="display:flex; align-items:center; gap:8px; background:transparent; border:0; color:#fff; padding:8px 10px; border-radius:10px; font-size:13px; text-align:left; width:100%; cursor:pointer;">
+                  <span style="font-size:16px">🖼️</span> Tải ảnh
+                </button>
+                <button type="button" onclick="document.getElementById('chatCameraInput').click(); toggleDesktopPlusMenu();" style="display:flex; align-items:center; gap:8px; background:transparent; border:0; color:#fff; padding:8px 10px; border-radius:10px; font-size:13px; text-align:left; width:100%; cursor:pointer;">
+                  <span style="font-size:16px">📷</span> Chụp ảnh
+                </button>
+                <button type="button" onclick="document.getElementById('chatFileInput').click(); toggleDesktopPlusMenu();" style="display:flex; align-items:center; gap:8px; background:transparent; border:0; color:#fff; padding:8px 10px; border-radius:10px; font-size:13px; text-align:left; width:100%; cursor:pointer;">
+                  <span style="font-size:16px">📎</span> Tải file
+                </button>
+              </div>
+
+              <input id="chatImageInput" type="file" accept="image/*" multiple style="display:none" onchange="handleChatFiles(event)">
+              <input id="chatCameraInput" type="file" accept="image/*" capture="environment" style="display:none" onchange="handleChatFiles(event)">
+              <input id="chatFileInput" type="file" accept=".txt,.md,.json,.csv,.html,.css,.js,.pdf,image/*" multiple style="display:none" onchange="handleChatFiles(event)">
+
+              <div id="chatAttachments" class="chat-attachments" style="display:flex; gap:6px; flex-wrap:wrap; padding:0 4px 6px;"></div>
+
+              <div class="composer chat-pill-composer" style="display:flex; align-items:center; background:rgba(20,26,44,0.88); border:1px solid rgba(255,255,255,0.16); border-radius:28px; padding:5px 8px 5px 10px; backdrop-filter:blur(20px); gap:6px;">
+                <button id="desktopPlusBtn" type="button" onclick="toggleDesktopPlusMenu()" title="Đính kèm ảnh hoặc tệp" style="color:#fff; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.14); border-radius:50%; font-size:20px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer; flex-shrink:0; transition:transform 0.2s;">
+                  +
+                </button>
+                <div style="flex:1; display:flex; flex-direction:column; min-width:0; margin:0 4px;">
+                  <textarea id="chatText" rows="1" placeholder="Hỏi AI..." oninput="autoResizeChatText(this)" onkeydown="handleChatTextKey(event)" style="background:transparent; border:0; color:#fff; font-size:15px; padding:5px 0; resize:none; outline:none; width:100%; box-shadow:none; line-height:1.4; max-height:100px;"></textarea>
+                </div>
+                <div style="display:flex; align-items:center; gap:4px; flex-shrink:0;">
+                  <button id="voiceBtn" class="chat-mic-btn" type="button" onclick="toggleVoiceInput()" title="Bấm để nói bằng giọng nói" style="background:transparent; border:0; color:#94a3b8; font-size:18px; width:32px; height:32px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+                    🎤
+                  </button>
+                  <button id="chatSendBtn" type="button" aria-label="Gửi tin nhắn" title="Gửi tin nhắn" onclick="sendChat()" style="background:linear-gradient(135deg,#0284c7,#8b5cf6); border:0; border-radius:50%; width:32px; height:32px; color:#fff; font-size:13px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(2,132,199,0.4);">
+                    ➤
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -481,18 +493,199 @@
 
     <div id="desktopHistoryDrawer" class="history-drawer-overlay" style="display:none;" onclick="this.style.display='none'">
       <div class="history-drawer" onclick="event.stopPropagation()">
-        <div class="drawer-head"><h3>?? L?ch s? Chat</h3><button onclick="document.getElementById('desktopHistoryDrawer').style.display='none'">?</button></div>
+        <div class="drawer-head"><h3>🕒 Lịch sử Chat</h3><button onclick="document.getElementById('desktopHistoryDrawer').style.display='none'">✕</button></div>
         <div class="drawer-body" id="desktopHistoryContent"></div>
       </div>
     </div>
     <script>
+    let currentChatFiles = [];
+    let isChatSpeaking = false;
+
     function openDesktopHistory() {
       try {
         const h = JSON.parse(localStorage.getItem('synam_history')||'[]').filter(x => x.type === 'AI Chat').reverse();
-        const html = h.map(x => '<div class="drawer-item" onclick="document.getElementById(\'chatText\').value=\'' + (x.content||'').replace(/\'/g,\"\\'\").replace(/\n/g,\" \").substring(0,200) + '\'; document.getElementById(\'desktopHistoryDrawer\').style.display=\'none\';"><strong>'+x.type+'</strong><br><small>'+new Date(x.at).toLocaleString()+'</small></div>').join('');
-        document.getElementById('desktopHistoryContent').innerHTML = html || '<p style="text-align:center; opacity:0.5;">Chua c l?ch s?</p>';
+        const html = h.map(x => '<div class="drawer-item" onclick="document.getElementById(\'chatText\').value=\'' + (x.content||'').replace(/\'/g,"\\'").replace(/\n/g," ").substring(0,200) + '\'; document.getElementById(\'desktopHistoryDrawer\').style.display=\'none\';"><strong>'+x.type+'</strong><br><small>'+new Date(x.at).toLocaleString()+'</small></div>').join('');
+        document.getElementById('desktopHistoryContent').innerHTML = html || '<p style="text-align:center; opacity:0.5;">Chưa có lịch sử</p>';
         document.getElementById('desktopHistoryDrawer').style.display = 'flex';
       } catch(e) { console.error(e); }
+    }
+
+    function toggleDesktopPlusMenu() {
+      const m = document.getElementById('desktopPlusMenu');
+      const btn = document.getElementById('desktopPlusBtn');
+      if (!m) return;
+      const isHidden = m.style.display === 'none' || !m.style.display;
+      m.style.display = isHidden ? 'flex' : 'none';
+      if (btn) btn.style.transform = isHidden ? 'rotate(45deg)' : 'none';
+    }
+
+    function handleChatFiles(e) {
+      const files = Array.from(e.target.files || []);
+      if (!files.length) return;
+      for (const f of files) {
+        if (currentChatFiles.length >= 6) { alert('Tối đa 6 tệp mỗi lần.'); break; }
+        currentChatFiles.push(f);
+      }
+      renderChatAttachments();
+      e.target.value = '';
+    }
+
+    function removeChatAttachment(idx) {
+      currentChatFiles.splice(idx, 1);
+      renderChatAttachments();
+    }
+
+    function clearChatAttachments() {
+      currentChatFiles = [];
+      renderChatAttachments();
+    }
+
+    function renderChatAttachments() {
+      const box = document.getElementById('chatAttachments');
+      if (!box) return;
+      if (!currentChatFiles.length) { box.innerHTML = ''; return; }
+      box.innerHTML = currentChatFiles.map((f, i) => `
+        <span style="display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:3px 8px;font-size:12px;color:#e0f2fe">
+          ${f.type.startsWith('image/') ? '🖼️' : '📄'} ${f.name.length > 15 ? f.name.slice(0,12)+'...' : f.name}
+          <button type="button" onclick="removeChatAttachment(${i})" style="background:transparent;border:0;color:#ff8b8b;cursor:pointer;padding:0 2px;font-weight:bold">✕</button>
+        </span>
+      `).join('');
+    }
+
+    function autoResizeChatText(el) {
+      if (!el) return;
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    }
+
+    function handleChatTextKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChat();
+      }
+    }
+
+    function speakLastResult() {
+      const log = document.getElementById('chatLog');
+      if (!log) return;
+      const aiMsgs = log.querySelectorAll('.msg.ai, .msg.ai-welcome');
+      const last = aiMsgs[aiMsgs.length - 1];
+      if (!last) return alert('Chưa có phản hồi nào để đọc');
+      try {
+        window.speechSynthesis.cancel();
+        if (isChatSpeaking) {
+          isChatSpeaking = false;
+          return;
+        }
+        const textToSpeak = last.innerText.replace(/^[^\n]*\n/, '').trim();
+        const u = new SpeechSynthesisUtterance(textToSpeak);
+        u.lang = 'vi-VN';
+        u.onend = () => { isChatSpeaking = false; };
+        u.onerror = () => { isChatSpeaking = false; };
+        isChatSpeaking = true;
+        window.speechSynthesis.speak(u);
+      } catch (err) { console.error(err); }
+    }
+
+    let chatSpeechRec = null;
+    function toggleVoiceInput() {
+      const vBtn = document.getElementById('voiceBtn');
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) return alert('Trình duyệt của bạn chưa hỗ trợ nhận diện giọng nói.');
+      if (chatSpeechRec) {
+        try { chatSpeechRec.stop(); } catch {}
+        chatSpeechRec = null;
+        if (vBtn) { vBtn.innerText = '🎤'; vBtn.style.color = '#94a3b8'; }
+        return;
+      }
+      try {
+        chatSpeechRec = new SpeechRecognition();
+        chatSpeechRec.lang = 'vi-VN';
+        chatSpeechRec.continuous = false;
+        chatSpeechRec.interimResults = false;
+        chatSpeechRec.onstart = () => {
+          if (vBtn) { vBtn.innerText = '🔴'; vBtn.style.color = '#ef4444'; }
+        };
+        chatSpeechRec.onresult = (e) => {
+          const transcript = e.results[0][0].transcript;
+          const input = document.getElementById('chatText');
+          if (input) {
+            input.value = (input.value ? input.value + ' ' : '') + transcript;
+            autoResizeChatText(input);
+          }
+        };
+        chatSpeechRec.onend = () => {
+          chatSpeechRec = null;
+          if (vBtn) { vBtn.innerText = '🎤'; vBtn.style.color = '#94a3b8'; }
+        };
+        chatSpeechRec.onerror = () => {
+          chatSpeechRec = null;
+          if (vBtn) { vBtn.innerText = '🎤'; vBtn.style.color = '#94a3b8'; }
+        };
+        chatSpeechRec.start();
+      } catch (e) {
+        chatSpeechRec = null;
+        if (vBtn) { vBtn.innerText = '🎤'; vBtn.style.color = '#94a3b8'; }
+      }
+    }
+
+    async function sendChat() {
+      const input = document.getElementById('chatText');
+      const text = (input?.value || '').trim();
+      if (!text && !currentChatFiles.length) return;
+
+      const log = document.getElementById('chatLog');
+      const userDiv = document.createElement('div');
+      userDiv.className = 'msg user';
+      userDiv.innerHTML = `<b>👤 Bạn:</b><br>${text || 'Đã gửi tệp đính kèm'}`;
+      log.appendChild(userDiv);
+
+      input.value = '';
+      input.style.height = 'auto';
+
+      const filesToSend = [...currentChatFiles];
+      clearChatAttachments();
+
+      const aiDiv = document.createElement('div');
+      aiDiv.className = 'msg ai loading';
+      aiDiv.innerHTML = `<b>✦ Đặng Năm AI:</b><br>Đang suy nghĩ...`;
+      log.appendChild(aiDiv);
+      log.scrollTop = log.scrollHeight;
+
+      try {
+        let res;
+        if (filesToSend.length > 0) {
+          const prepared = await Promise.all(filesToSend.map(f => new Promise((resolve) => {
+            const r = new FileReader();
+            r.onload = () => resolve({ name: f.name, type: f.type, data: r.result });
+            r.readAsDataURL(f);
+          })));
+          res = await fetch('/api/chat-ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text || 'Phân tích tệp', attachments: prepared })
+          }).then(r => r.json());
+        } else {
+          res = await fetch('/api/chat-ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: text })
+          }).then(r => r.json());
+        }
+        const reply = res.reply || res.text || res.answer || 'Chưa nhận được phản hồi.';
+        aiDiv.className = 'msg ai';
+        aiDiv.innerHTML = `<b>✦ Đặng Năm AI:</b><br>${window.marked ? marked.parse(reply) : reply}`;
+
+        try {
+          const hist = JSON.parse(localStorage.getItem('synam_history') || '[]');
+          hist.push({ type: 'AI Chat', content: text, reply: reply, at: Date.now() });
+          localStorage.setItem('synam_history', JSON.stringify(hist.slice(-50)));
+        } catch {}
+      } catch (err) {
+        aiDiv.className = 'msg ai error';
+        aiDiv.innerHTML = `<b>⚠️ Lỗi:</b> ${err.message}`;
+      }
+      log.scrollTop = log.scrollHeight;
     }
     </script>
     

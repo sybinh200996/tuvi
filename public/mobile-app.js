@@ -164,13 +164,23 @@ function HistoryTool() {
 }
 
 function App() {
-  const [tab, setTab] = useState('home');
+  const getInitialTab = () => {
+    const h = (window.location.hash || '').toLowerCase();
+    if (h.includes('chat')) return 'chat';
+    if (h.includes('history') || h.includes('deep')) return 'history';
+    if (h.includes('account') || h.includes('setting')) return 'settings';
+    return 'home';
+  };
+  const [tab, setTab] = useState(getInitialTab);
   const [health, setHealth] = useState('Đang kiểm tra AI...');
   const [providers, setProviders] = useState([]);
 
   useEffect(() => {
     fetch('/api/health').then(r => r.json()).then(d => setHealth(d.ok ? 'Server online' : 'Server lỗi')).catch(() => setHealth('Server chưa kết nối'));
     loadProviders();
+    const onHash = () => setTab(getInitialTab());
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
   async function loadProviders() {
