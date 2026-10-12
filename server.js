@@ -515,8 +515,8 @@ const ai = process.env.GEMINI_API_KEY
   : null;
 
 const DEFAULT_MODELS = [
-  "gemini-3.8-flash",
-  "gemini-3.5-flash-lite"
+  "gemini-3.5-flash-lite",
+  "gemini-3.8-flash"
 ];
 
 function uniqueModels(list) {
@@ -860,25 +860,13 @@ async function tryModels(parts, preferredModel = "auto", systemPrompt = '', hist
   for (const model of modelOrder) {
     try {
       console.log("Đang thử model:", model);
-      let response;
-      try {
-        response = await withTimeout(ai.models.generateContent({
-          model,
-          contents: [{ role: "user", parts }],
-          config: {
-              ...(systemPrompt ? { systemInstruction: systemPrompt, temperature: 0.7, topP: 0.85 } : {}),
-              tools: [{ googleSearch: {} }]
-            }
-        }));
-      } catch (searchErr) {
-        response = await withTimeout(ai.models.generateContent({
-          model,
-          contents: [{ role: "user", parts }],
-          config: {
-              ...(systemPrompt ? { systemInstruction: systemPrompt, temperature: 0.7, topP: 0.85 } : {})
-            }
-        }));
-      }
+      const response = await withTimeout(ai.models.generateContent({
+        model,
+        contents: [{ role: "user", parts }],
+        config: {
+            ...(systemPrompt ? { systemInstruction: systemPrompt, temperature: 0.7, topP: 0.85 } : {})
+          }
+      }), 20000);
       return {
         model,
         text: response?.text || response?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || ""
