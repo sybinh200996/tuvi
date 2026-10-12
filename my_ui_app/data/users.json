@@ -1,0 +1,18 @@
+[
+  {
+    "id": "e9b88ff2-7d30-4db7-8408-b483cd4915f9",
+    "name": "Google User",
+    "email": "kisslove1712@gmail.com",
+    "passwordHash": "",
+    "plan": "Free",
+    "avatar": "",
+    "providers": [
+      "google"
+    ],
+    "socialIds": {
+      "google": "social_1791285137066"
+    },
+    "lastLoginAt": "2026-10-06T11:12:17.156Z",
+    "createdAt": "2026-10-06T11:12:17.157Z"
+  }
+]

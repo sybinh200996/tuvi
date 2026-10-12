@@ -421,7 +421,7 @@ async function callGeminiText({ apiKey, model, parts, systemPrompt = '', history
         temperature: 0.7,
         topP: 0.85,
         ...(systemPrompt ? { systemInstruction: systemPrompt } : {}),
-        ...(!FREE_MODELS_ONLY ? { ...(parts.some(p => p.inlineData || p.fileData) ? {} : { tools: [{ googleSearch: {} }] }) } : {})
+        ...(!FREE_MODELS_ONLY ? { tools: [{ googleSearch: {} }] } : {})
       }
   }), 90000);
   return response?.text || response?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || "";
@@ -517,8 +517,8 @@ const ai = process.env.GEMINI_API_KEY
 const DEFAULT_MODELS = [
   "gemini-2.5-flash",
   "gemini-2.5-flash-lite",
-  "gemini-3.8-flash",
-  "gemini-3.5-flash-lite"
+  "gemini-2.0-flash",
+  "gemini-2.0-flash-lite"
 ];
 
 function uniqueModels(list) {
@@ -540,8 +540,8 @@ const DEFAULT_IMAGE_MODELS = [
 
   // Fallback legacy: chỉ dùng cuối cùng để tương thích key/region cũ.
   "gemini-2.5-flash-image-preview",
-  "gemini-3.8-flash-preview-image-generation",
-  "gemini-3.8-flash-exp-image-generation"
+  "gemini-2.0-flash-preview-image-generation",
+  "gemini-2.0-flash-exp-image-generation"
 ];
 
 function parseModelList(value) {
@@ -867,7 +867,7 @@ async function tryModels(parts, preferredModel = "auto", systemPrompt = '', hist
         contents: [{ role: "user", parts }],
         config: {
             ...(systemPrompt ? { systemInstruction: systemPrompt, temperature: 0.7, topP: 0.85 } : {}),
-            ...(parts.some(p => p.inlineData || p.fileData) ? {} : { tools: [{ googleSearch: {} }] })
+            tools: [{ googleSearch: {} }]
           }
       }));
       return {

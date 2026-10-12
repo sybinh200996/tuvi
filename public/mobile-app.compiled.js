@@ -473,6 +473,7 @@ function Chat({
     } : m) : DEFAULT_MESSAGES;
   });
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [showUploads, setShowUploads] = useState(false);
   const [text, setText] = useState('');
   const [modelChoice, setModelChoice] = useState('auto');
   const [answerStyle, setAnswerStyle] = useState('detailed');
@@ -846,7 +847,7 @@ function Chat({
     onChange: e => setModelChoice(e.target.value)
   }, /*#__PURE__*/React.createElement("option", {
     value: "auto"
-  }, "Auto · Multi-AI"), providerModelOptions.map(p => /*#__PURE__*/React.createElement("optgroup", {
+  }, "Auto — Multi-AI"), providerModelOptions.map(p => /*#__PURE__*/React.createElement("optgroup", {
     key: p.id,
     label: providerGroupLabel(p),
     disabled: !p.configured
@@ -854,58 +855,23 @@ function Chat({
     key: `${p.id}:${model}`,
     value: `${p.id}::${model}`
   }, model)))))), /*#__PURE__*/React.createElement("div", {
-    className: "composer chat-pill-composer"
-  }, attachments.length > 0 && /*#__PURE__*/React.createElement("div", {
-    className: "chat-attachment-list"
-  }, attachments.map(item => /*#__PURE__*/React.createElement("span", {
-    className: "chat-file-chip",
-    key: item.id
-  }, item.file.type.startsWith('image/') ? '🖼️' : '📄', " ", item.file.name, /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    "aria-label": `Xóa ${item.file.name}`,
-    title: `Xóa ${item.file.name}`,
-    onClick: () => removeFile(item.id)
-  }, "×")))), fileNotice && /*#__PURE__*/React.createElement("div", {
-    className: "chat-file-notice",
-    role: "status"
-  }, fileNotice), attachments.length > 0 && modelChoice !== 'auto' && !modelChoice.startsWith('gemini::') && /*#__PURE__*/React.createElement("div", {
-    className: "chat-attachment-note"
-  }, "Ảnh/file hiện được phân tích qua Gemini đa phương thức."), voiceStatus && /*#__PURE__*/React.createElement("div", {
-    className: "chat-voice-status",
-    role: "status"
-  }, voiceStatus, voiceCountdown > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, " ", /*#__PURE__*/React.createElement("b", null, "Gửi sau ", voiceCountdown, "s"), " ", /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: () => clearVoiceCountdown('Đã hủy tự động gửi.')
-  }, "Hủy"))), /*#__PURE__*/React.createElement("textarea", {
-    value: text,
-    onChange: e => {
-      draftRef.current = e.target.value;
-      if (voiceCountdown) clearVoiceCountdown('Đã hủy tự động gửi do bạn chỉnh sửa nội dung.');
-      setText(e.target.value);
-    },
-    onKeyDown: e => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        send();
-      }
-    },
-    placeholder: "Nhập tin nhắn...",
-    "aria-label": "Tin nhắn gửi AI",
-    rows: "1"
-  }), /*#__PURE__*/React.createElement("div", {
-    className: "chat-composer-bottom"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "chat-upload-bar pro-upload mobile-chat-uploads"
+    className: "chat-upload-bar pro-upload mobile-chat-uploads",
+    style: {
+      display: showUploads ? 'flex' : 'none',
+      overflowX: 'auto',
+      gap: '8px',
+      paddingBottom: '4px'
+    }
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: () => imageInputRef.current?.click()
-  }, "📎 ", /*#__PURE__*/React.createElement("span", null, "Tải ảnh")), /*#__PURE__*/React.createElement("button", {
+  }, "🖼️ ", /*#__PURE__*/React.createElement("span", null, "Tải ảnh")), /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: () => cameraInputRef.current?.click()
   }, "📷 ", /*#__PURE__*/React.createElement("span", null, "Chụp ảnh")), /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: () => fileInputRef.current?.click()
-  }, "📄 ", /*#__PURE__*/React.createElement("span", null, "Tải file")), attachments.length > 0 && /*#__PURE__*/React.createElement("button", {
+  }, "📎 ", /*#__PURE__*/React.createElement("span", null, "Tải file")), attachments.length > 0 && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "chat-clear-files",
     onClick: () => {
@@ -921,6 +887,7 @@ function Chat({
     onChange: e => {
       addFiles(e.target.files);
       e.target.value = '';
+      setShowUploads(false);
     }
   }), /*#__PURE__*/React.createElement("input", {
     ref: cameraInputRef,
@@ -931,6 +898,7 @@ function Chat({
     onChange: e => {
       addFiles(e.target.files);
       e.target.value = '';
+      setShowUploads(false);
     }
   }), /*#__PURE__*/React.createElement("input", {
     ref: fileInputRef,
@@ -941,27 +909,151 @@ function Chat({
     onChange: e => {
       addFiles(e.target.files);
       e.target.value = '';
+      setShowUploads(false);
     }
-  })), listening ? /*#__PURE__*/React.createElement("button", {
+  })), attachments.length > 0 && /*#__PURE__*/React.createElement("div", {
+    className: "chat-attachment-list",
+    style: {
+      padding: '0 8px'
+    }
+  }, attachments.map(item => /*#__PURE__*/React.createElement("span", {
+    className: "chat-file-chip",
+    key: item.id,
+    style: {
+      background: 'rgba(255,255,255,0.1)'
+    }
+  }, item.file.type.startsWith('image/') ? '🖼️' : '📄', " ", item.file.name, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    "aria-label": `Xóa ${item.file.name}`,
+    title: `Xóa ${item.file.name}`,
+    onClick: () => removeFile(item.id)
+  }, "x")))), fileNotice && /*#__PURE__*/React.createElement("div", {
+    className: "chat-file-notice",
+    role: "status",
+    style: {
+      padding: '0 8px'
+    }
+  }, fileNotice), attachments.length > 0 && modelChoice !== 'auto' && !modelChoice.startsWith('gemini::') && /*#__PURE__*/React.createElement("div", {
+    className: "chat-attachment-note",
+    style: {
+      padding: '0 8px'
+    }
+  }, "Ảnh/file hiện được phân tích qua Gemini đa phương thức."), voiceStatus && /*#__PURE__*/React.createElement("div", {
+    className: "chat-voice-status",
+    role: "status",
+    style: {
+      padding: '0 8px'
+    }
+  }, voiceStatus, voiceCountdown > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, " ", /*#__PURE__*/React.createElement("b", null, "Gửi sau ", voiceCountdown, "s"), " ", /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => clearVoiceCountdown('Đã hủy tự động gửi.')
+  }, "Hủy"))), /*#__PURE__*/React.createElement("div", {
+    className: "composer chat-pill-composer",
+    style: {
+      display: 'flex',
+      flexDirection: 'row',
+      alignItems: 'center',
+      background: 'rgba(30, 30, 35, 0.7)',
+      borderRadius: '30px',
+      padding: '6px 6px'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setShowUploads(!showUploads),
+    style: {
+      color: '#fff',
+      background: 'transparent',
+      border: 0,
+      fontSize: '24px',
+      width: '36px',
+      height: '36px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      cursor: 'pointer',
+      flexShrink: 0,
+      paddingBottom: '3px'
+    }
+  }, "+"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      minWidth: 0,
+      margin: '0 6px'
+    }
+  }, /*#__PURE__*/React.createElement("textarea", {
+    value: text,
+    onChange: e => {
+      draftRef.current = e.target.value;
+      if (voiceCountdown) clearVoiceCountdown('Đã hủy tự động gửi do bạn chỉnh sửa nội dung.');
+      setText(e.target.value);
+    },
+    onKeyDown: e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        send();
+      }
+    },
+    placeholder: "Hỏi AI...",
+    "aria-label": "Tin nhắn gửi AI",
+    rows: "1",
+    style: {
+      background: 'transparent',
+      border: 0,
+      color: '#fff',
+      fontSize: '15px',
+      padding: '4px 0',
+      resize: 'none',
+      outline: 'none',
+      width: '100%',
+      boxShadow: 'none'
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '4px',
+      flexShrink: 0
+    }
+  }, listening ? /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "chat-mic-btn is-listening",
     "aria-label": "Dừng ghi âm",
     title: "Dừng ghi âm",
-    onClick: stopDictation
-  }, "■") : /*#__PURE__*/React.createElement("button", {
+    onClick: stopDictation,
+    style: {
+      background: 'transparent',
+      border: 0,
+      fontSize: '20px'
+    }
+  }, "🛑") : /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "chat-mic-btn",
     "aria-label": "Nhập bằng giọng nói",
     title: "Nhập bằng giọng nói",
     disabled: busy,
-    onClick: startDictation
-  }, "🎙"), /*#__PURE__*/React.createElement("button", {
+    onClick: startDictation,
+    style: {
+      background: 'transparent',
+      border: 0,
+      fontSize: '20px'
+    }
+  }, "🎤"), text.trim() || attachments.length > 0 || busy ? /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: `pill-send-btn ${busy ? 'is-stop' : ''}`,
     "aria-label": busy ? 'Dừng phản hồi' : 'Gửi tin nhắn',
     title: busy ? 'Dừng phản hồi' : 'Gửi tin nhắn',
-    onClick: busy ? stopResponse : () => send()
-  }, busy ? '■' : '➤'))))));
+    onClick: busy ? stopResponse : () => send(),
+    style: {
+      background: 'transparent',
+      border: 0,
+      fontSize: '20px',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center'
+    }
+  }, busy ? '🛑' : '➤') : null)))));
 }
 function Settings({
   providers,

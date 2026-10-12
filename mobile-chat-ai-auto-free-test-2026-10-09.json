@@ -1,0 +1,13 @@
+[
+  {
+    "selected": "auto",
+    "http_status": 200,
+    "actual_provider": "openrouter",
+    "actual_model": "openrouter/free",
+    "seconds": 8.3,
+    "answer_or_error": "240.000 × (1 - 15%) + 18.000 = 222.000đ",
+    "ui_rendered": true,
+    "expected_answer_found": true,
+    "attempts": []
+  }
+]

@@ -1,0 +1,795 @@
+:root{--bg:#06112b;--panel:rgba(255,255,255,.09);--panel2:rgba(255,255,255,.14);--line:rgba(255,255,255,.16);--text:#f5f8ff;--muted:#b8c5e6;--brand:#86e7ff;--pink:#ff8bd2;--gold:#ffd36a;--shadow:0 24px 70px rgba(0,0,0,.38)}*{box-sizing:border-box}html,body,#root{min-height:100%;margin:0}body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(circle at 20% 0%,#183e91 0,#07142f 30%,#040816 100%);color:var(--text);overflow-x:hidden}body:before{content:"";position:fixed;inset:0;background:radial-gradient(circle at 75% 20%,rgba(255,139,210,.22),transparent 32%),radial-gradient(circle at 45% 100%,rgba(134,231,255,.18),transparent 32%);pointer-events:none}.app-shell{position:relative;width:min(1240px,100%);margin:0 auto;padding:18px 18px 92px}.hero{min-height:260px;border:1px solid var(--line);border-radius:34px;background:linear-gradient(135deg,rgba(25,56,130,.82),rgba(82,30,112,.66));box-shadow:var(--shadow);position:relative;display:grid;grid-template-columns:230px 1fr 250px;overflow:hidden;isolation:isolate}.hero:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(6,17,43,.45),transparent 22%,transparent 78%,rgba(6,17,43,.5));z-index:-1}.hero-img img{width:100%;height:100%;object-fit:cover;display:block;filter:saturate(1.08) contrast(1.04)}.hero-left:after,.status-row{display:inline-flex;gap:9px;align-items:center;background:rgba(0,0,0,.23);border:1px solid var(--line);border-radius:999px;padding:8px 12px;color:#dbe8ff;font-size:13px}.dot{width:9px;height:9px;border-radius:99px;background:#45ffbd;box-shadow:0 0 15px #45ffbd}.chip{background:rgba(255,255,255,.12);border-radius:99px;padding:3px 8px}.hero h1{font-size:clamp(34px,6vw,68px);line-height:.95;margin:16px 0 12px;letter-spacing:-2px}.hero h1 b{background:linear-gradient(90deg,var(--brand),var(--pink),var(--gold));-webkit-background-clip:text;color:transparent}.hero p{max-width:680px;margin:auto;color:#e2e9ff;font-size:16px}.hero-actions{display:flex;gap:12px;justify-content:center;margin-top:20px;flex-wrap:wrap}button,.primary{border:0;border-radius:18px;padding:12px 16px;font-weight:800;color:#06112b;background:linear-gradient(135deg,#9af0ff,#ffaddd);box-shadow:0 10px 28px rgba(0,0,0,.22);cursor:pointer}button.ghost{background:rgba(255,255,255,.1);color:var(--text);border:1px solid var(--line)}.tab-rail{display:flex;gap:10px;overflow:auto;padding:14px 2px 10px;scrollbar-width:none}.tab-rail button{flex:0 0 auto;background:rgba(255,255,255,.09);border:1px solid var(--line);color:#eaf2ff;border-radius:18px;padding:12px 14px;box-shadow:none}.tab-rail button.active{background:linear-gradient(135deg,rgba(134,231,255,.32),rgba(255,139,210,.28));border-color:rgba(255,255,255,.38)}.workspace{margin-top:6px}.premium-panel,.feature-card{border:1px solid var(--line);background:linear-gradient(180deg,rgba(255,255,255,.13),rgba(255,255,255,.07));backdrop-filter:blur(18px);border-radius:28px;box-shadow:var(--shadow);padding:22px}.home-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 0 10px 100px;
+  }.wide{grid-column:1/-1}.provider-pills,.mini-list{display:flex;gap:8px;flex-wrap:wrap}.provider-pills span,.mini-list span{font-size:13px;border:1px solid var(--line);background:rgba(0,0,0,.18);padding:7px 9px;border-radius:999px;color:var(--muted)}.provider-pills .on,.mini-list .ok{color:#8fffd6}.feature-card{text-align:left;color:var(--text);min-height:150px;background:rgba(255,255,255,.08);box-shadow:none}.feature-card b{font-size:34px}.feature-card h3,.premium-panel h2{margin:8px 0}.feature-card p,.premium-panel p{color:var(--muted)}.chat-layout{display:grid;grid-template-columns:310px 1fr;gap:16px}.chat-side{position:sticky;top:12px;height:max-content}.chat-side select,.key-grid input,input,textarea,select{width:100%;border:1px solid var(--line);border-radius:16px;background:rgba(4,8,22,.65);color:var(--text);padding:13px;margin:8px 0;outline:none}.switch{display:flex;gap:10px;align-items:center;color:var(--muted);margin:10px 0}.chat-main{padding:0;overflow:hidden}.chat-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:12px}.chat-head p{margin:0}.chat-box{height:min(62vh,660px);overflow:auto;padding:20px;display:flex;flex-direction:column;gap:14px;background:linear-gradient(180deg,rgba(2,5,16,.28),rgba(255,255,255,.03))}.bubble{display:flex;gap:10px;max-width:88%}.bubble.user{align-self:flex-end;flex-direction:row-reverse}.avatar{width:34px;height:34px;border-radius:14px;background:rgba(255,255,255,.13);display:grid;place-items:center;flex:none}.bubble-body{padding:14px 15px;border-radius:22px;background:rgba(255,255,255,.1);border:1px solid var(--line);line-height:1.55;color:#f8fbff}.bubble.user .bubble-body{background:linear-gradient(135deg,rgba(134,231,255,.24),rgba(255,139,210,.18))}.bubble.loading .bubble-body{animation:pulse 1s infinite alternate}@keyframes pulse{from{opacity:.55}to{opacity:1}}.msg-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}.msg-actions button{font-size:12px;padding:7px 10px;background:rgba(255,255,255,.1);color:#e9f1ff;border:1px solid var(--line);box-shadow:none}.composer{display:flex;gap:10px;padding:14px;border-top:1px solid var(--line);background:rgba(2,5,16,.35)}.composer textarea{margin:0;min-height:50px;max-height:160px;resize:vertical}.composer button{min-width:92px}.tool-grid{display:grid;grid-template-columns:380px 1fr;gap:16px}.result{min-height:260px;line-height:1.6}.result pre,.bubble pre{white-space:pre-wrap;background:rgba(0,0,0,.32);border:1px solid var(--line);border-radius:16px;padding:14px;overflow:auto}.key-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.key-grid label{border:1px solid var(--line);border-radius:20px;padding:12px;background:rgba(255,255,255,.05)}.key-grid small{color:var(--muted)}
+@media (max-width:900px){.app-shell{padding:10px 10px 84px}.hero{grid-template-columns:82px 1fr 92px;min-height:178px;border-radius:24px}.hero h1{font-size:29px;letter-spacing:-1px;margin:10px 0}.hero p{font-size:12.5px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.status-row{font-size:11px;padding:6px 8px}.hero-actions button{padding:10px 12px;border-radius:14px}.tab-rail{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 0}.tab-rail button{font-size:12px;padding:10px 6px;white-space:nowrap}.home-grid{grid-template-columns:1fr 1fr;gap:10px}.premium-panel,.feature-card{border-radius:22px;padding:15px}.feature-card{min-height:128px}.feature-card p{font-size:12px}.chat-layout,.tool-grid{grid-template-columns:1fr}.chat-side{position:static;display:none}.chat-head{padding:14px}.chat-head p{font-size:12px}.chat-box{height:calc(100vh - 390px);min-height:360px;padding:13px}.bubble{max-width:96%}.bubble-body{font-size:14px;border-radius:19px}.composer{position:sticky;bottom:68px;padding:10px}.composer button{min-width:72px;padding:10px}.key-grid{grid-template-columns:1fr}.bottom-nav::-webkit-scrollbar{display:none}.bottom-nav button{flex:0 0 76px;scroll-snap-align:center;background:transparent;color:var(--muted);box-shadow:none;padding:7px 4px;border-radius:16px}.bottom-nav button.active{background:rgba(255,255,255,.13);color:#fff}.bottom-nav span{display:block;font-size:20px}.bottom-nav small{display:block;font-size:10px;line-height:1.1;white-space:normal}}
+@media (max-width:520px){.hero{grid-template-columns:70px 1fr 78px}.hero{min-height:168px}.hero h1{font-size:24px}.hero p{font-size:11.5px}.hero-actions{margin-top:10px;gap:6px}.hero-actions .ghost{display:none}.tab-rail{grid-template-columns:repeat(3,1fr)}.home-grid{grid-template-columns:1fr 1fr}.wide{grid-column:1/-1}.provider-pills span:nth-child(n+5){display:none}.chat-box{height:calc(100vh - 365px);min-height:330px}.avatar{width:30px;height:30px;border-radius:12px}.composer textarea{font-size:15px}.feature-card b{font-size:28px}}
+
+/* NAM44.2 — restore NAM22-style banner + all tabs */
+.hero{grid-template-columns:270px 1fr 290px;min-height:330px;border-radius:36px;background:radial-gradient(circle at 50% 12%,rgba(20,242,255,.32),transparent 25%),linear-gradient(135deg,rgba(4,22,92,.96),rgba(5,8,36,.94) 42%,rgba(8,24,94,.92));box-shadow:0 0 0 1px rgba(51,215,255,.22),0 28px 90px rgba(0,16,70,.55),inset 0 0 45px rgba(0,183,255,.16)}
+.hero:after{z-index:1;background:linear-gradient(90deg,rgba(0,8,35,.12),rgba(0,37,120,.50) 23%,rgba(0,25,88,.35) 50%,rgba(0,31,100,.56) 77%,rgba(0,8,35,.10)),radial-gradient(circle at center,rgba(0,229,255,.18),transparent 58%)}
+
+.hero h1{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:clamp(46px,7vw,82px);color:#dffcff;letter-spacing:-1px;margin:10px 0 4px}.hero h1 b{background:linear-gradient(90deg,#dfffff,#4cf3ff,#fff);-webkit-background-clip:text;color:transparent}.hero p{text-transform:uppercase;letter-spacing:6px;font-weight:900;color:#7df6ff;font-size:13px;max-width:none}.status-row{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:transparent;border:0;color:#78f5ff}.chip{display:none}
+.tab-rail{margin:16px auto 10px;padding:10px 14px;border:1px solid rgba(95,227,255,.20);border-radius:24px;background:rgba(2,10,39,.55);box-shadow:inset 0 0 25px rgba(0,208,255,.08);display:flex;overflow-x:auto}.tab-rail button{min-width:104px;text-align:center;border-radius:16px;background:linear-gradient(180deg,rgba(11,74,161,.36),rgba(18,39,94,.44));border-color:rgba(89,219,255,.24);font-size:12px}.tab-rail button span{display:block;font-size:20px;margin-bottom:3px}.tab-rail button.active{background:linear-gradient(135deg,rgba(16,227,255,.50),rgba(18,78,214,.38));box-shadow:0 0 25px rgba(0,221,255,.28)}.home-grid{grid-template-columns:repeat(4,1fr)}.feature-card{border-color:rgba(86,222,255,.22);background:linear-gradient(180deg,rgba(14,65,147,.27),rgba(255,255,255,.055))}.tarot-cards{display:grid;gap:8px;margin-top:14px}.tarot-cards span{border:1px solid var(--line);border-radius:16px;padding:10px;background:rgba(255,255,255,.08)}
+@media (max-width:900px){.hero{grid-template-columns:96px 1fr 104px;min-height:210px}.hero h1{font-size:34px}.hero p{letter-spacing:2px;font-size:10px}.status-row{font-size:10px}.tab-rail{display:flex;gap:8px;padding:8px}.tab-rail button{min-width:88px;padding:9px 8px}.home-grid{grid-template-columns:1fr 1fr}.bottom-nav button{flex-basis:82px}}
+@media (max-width:520px){.hero{grid-template-columns:80px 1fr 86px;min-height:188px;border-radius:22px}.hero h1{font-size:27px}.hero p{font-size:9px;letter-spacing:1.4px;-webkit-line-clamp:1}.hero-search span{display:none}.tab-rail button{min-width:84px}.feature-card{min-height:118px}.premium-panel.wide p{font-size:13px}.provider-pills{display:none}}
+
+
+/* NAM45 Hybrid mobile safety fixes */
+@media (max-width: 768px){
+  body{overflow-x:hidden;}
+  .app,.mobile-app,#root{max-width:100vw;}
+  .tab-strip,.tabs,.feature-tabs,.home-tabs{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .tab-strip::-webkit-scrollbar,.tabs::-webkit-scrollbar,.feature-tabs::-webkit-scrollbar,.home-tabs::-webkit-scrollbar{display:none;}
+  button,input,textarea,select{font-size:16px;}
+  img{max-width:100%;}
+}
+
+
+/* NAM45 account and upload polish */
+.account-card{display:grid;gap:10px;margin:14px 0;padding:14px;border:1px solid var(--line);border-radius:18px;background:rgba(255,255,255,.05)}
+.account-card input{width:100%;margin:0}
+.account-actions{display:flex;gap:8px;flex-wrap:wrap}
+.account-actions button,.account-card>button{min-height:42px}
+.settings .key-grid small{display:block;opacity:.72;margin-top:4px;word-break:break-word}
+.result{overflow-wrap:anywhere}
+@media (max-width:520px){.account-actions button{flex:1 1 120px}.settings .primary{width:100%}}
+
+/* Dynamic Stars Background */
+#stars{position:fixed;inset:0;pointer-events:none;z-index:-1;background-image:radial-gradient(circle,#fff8 1px,transparent 1.8px),radial-gradient(circle,#38d5ff66 1px,transparent 1.8px),radial-gradient(circle,#b773ff55 1px,transparent 1.8px);background-size:86px 86px,142px 142px,210px 210px;animation:drift 28s linear infinite}
+@keyframes drift{to{background-position:220px 140px,-180px 110px,160px -130px}}
+
+/* Mystic background for cards */
+.feature-card {
+  background: linear-gradient(145deg, rgba(16, 28, 64, 0.7), rgba(4, 13, 34, 0.8)), radial-gradient(circle at top right, rgba(120, 80, 255, 0.15), transparent 50%), radial-gradient(circle at bottom left, rgba(60, 150, 255, 0.1), transparent 50%) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(130,180,255,0.2) !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3), inset 0 0 20px rgba(70,150,255,0.05) !important;
+}
+.feature-card h2, .feature-card h3, .feature-card b {
+  text-shadow: 0 0 15px rgba(100,200,255,0.4) !important;
+}
+.home-grid {
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+@media (max-width: 600px) {
+  .home-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+@media (max-width: 400px) {
+  .home-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+ 
+ / *   M o b i l e   B a n n e r   A d j u s t m e n t s   * /  
+ @ m e d i a   ( m a x - w i d t h :   9 0 0 p x )   {   . h e r o   {   g r i d - t e m p l a t e - c o l u m n s :   2 8 %   1 f r   2 8 %   ! i m p o r t a n t ;   m i n - h e i g h t :   1 4 0 p x   ! i m p o r t a n t ;   }   . h e r o - i m g   {   m i n - h e i g h t :   1 4 0 p x   ! i m p o r t a n t ;   d i s p l a y :   f l e x ;   a l i g n - i t e m s :   c e n t e r ;   j u s t i f y - c o n t e n t :   c e n t e r ;   }   . h e r o - i m g   i m g   {   o b j e c t - f i t :   c o n t a i n   ! i m p o r t a n t ;   h e i g h t :   1 0 0 %   ! i m p o r t a n t ;   m a x - w i d t h :   1 0 0 % ;   }   }  
+ @ m e d i a   ( m a x - w i d t h :   5 2 0 p x )   {   . h e r o   {   m i n - h e i g h t :   1 2 5 p x   ! i m p o r t a n t ;   }   . h e r o - i m g   {   m i n - h e i g h t :   1 2 5 p x   ! i m p o r t a n t ;   }   . h e r o   h 1   {   f o n t - s i z e :   2 0 p x   ! i m p o r t a n t ;   }   }  
+ 
+/* Neon Mystical Theme */
+:root {
+  --bg: #030612;
+  --text: #e0e8ff;
+  --brand: #00f0ff;
+  --pink: #d800ff;
+  --gold: #ffd36a;
+  --line: rgba(0, 240, 255, 0.2);
+}
+body {
+  background: radial-gradient(circle at 10% 20%, #080c2b 0%, #030612 100%) !important;
+  color: var(--text);
+}
+.hero, .premium-panel, .feature-card {
+  background: linear-gradient(135deg, rgba(8,16,66,0.8), rgba(28,4,58,0.8)) !important;
+  border: 1px solid rgba(0,240,255,0.3) !important;
+  box-shadow: 0 0 20px rgba(0,240,255,0.1), inset 0 0 15px rgba(216,0,255,0.1) !important;
+  backdrop-filter: blur(10px);
+}
+.tab-rail {
+  position: relative;
+  scroll-snap-type: x mandatory;
+}
+/* Arrows for Top Tabs */
+.tab-rail-wrap {
+    margin: 10px 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+.tab-rail-wrap::before, .tab-rail-wrap::after {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #00f0ff;
+  font-weight: bold;
+  font-size: 18px;
+  text-shadow: 0 0 10px #00f0ff;
+  z-index: 10;
+  pointer-events: none;
+}
+.tab-rail-wrap::before {
+  content: "❮";
+  left: 2px;
+}
+.tab-rail-wrap::after {
+  content: "❯";
+  right: 2px;
+}
+/* Bottom Nav style update */
+
+.bottom-nav button span {
+  display: none !important;
+}
+.bottom-nav button {
+  padding: 8px 16px !important;
+  font-size: 13px !important;
+  white-space: nowrap;
+  border-radius: 20px !important;
+  color: #a4b3e6 !important;
+}
+.bottom-nav button.active {
+  background: linear-gradient(90deg, #00f0ff, #d800ff) !important;
+  color: #fff !important;
+  box-shadow: 0 0 15px rgba(0,240,255,0.5) !important;
+}
+/* Home Grid 2 columns */
+@media(max-width: 900px) {
+  .home-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+/* Banner size fixes */
+
+/* ====================================================
+   NATIVE APP REDESIGN FOR MOBILE (<= 768px)
+==================================================== */
+@media (max-width: 768px) {
+  .app-shell {
+    padding: 0 0 85px 0 !important;
+  }
+  
+  /* Make the Hero a Native App Bar instead of a squished web banner */
+  .hero {
+    grid-template-columns: 1fr !important;
+    min-height: auto !important;
+    height: auto !important;
+    border-radius: 0 0 24px 24px !important;
+    padding: 20px 15px !important;
+    background: linear-gradient(135deg, rgba(4,22,92,0.95), rgba(28,4,58,0.98)) !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(0, 240, 255, 0.3) !important;
+    box-shadow: 0 10px 30px rgba(0, 240, 255, 0.15) !important;
+  }
+  
+  /* Hide the side images completely on mobile so it doesn't look broken */
+  
+  
+  
+  
+  .hero h1 {
+    font-size: 32px !important;
+    margin: 35px 0 5px 0 !important;
+  }
+  
+  .hero p {
+    font-size: 11px !important;
+    letter-spacing: 1px !important;
+  }
+  
+  .status-row {
+    top: 15px !important;
+    font-size: 11px !important;
+    background: rgba(255,255,255,0.1) !important;
+    padding: 6px 12px !important;
+  }
+  
+  
+  
+  
+  
+  
+  
+  /* Tab Rail Wrapper (Top tabs) */
+  .tab-rail-wrap {
+    margin: 15px 10px !important;
+    border-radius: 18px !important;
+    background: rgba(10, 20, 50, 0.6) !important;
+    border: 1px solid rgba(216, 0, 255, 0.2) !important;
+  }
+  
+  .scroll-arrow {
+    background: transparent !important;
+    font-size: 16px !important;
+    padding: 10px !important;
+  }
+  
+  .tab-rail button {
+    min-width: 90px !important;
+    padding: 8px !important;
+    font-size: 12px !important;
+    border-radius: 14px !important;
+  }
+  
+  /* Main content area */
+  .workspace {
+    padding: 0 10px !important;
+  }
+  
+  /* Native App Grid (2 columns, nice cards) */
+  .home-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+  }
+  
+  .feature-card {
+    min-height: 140px !important;
+    padding: 16px !important;
+    border-radius: 20px !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+  
+  .feature-card b {
+    font-size: 32px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .feature-card h3 {
+    font-size: 15px !important;
+    line-height: 1.3 !important;
+  }
+  
+  .feature-card p {
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    opacity: 0.8;
+  }
+  
+  /* Bottom Navigation - Native App Style */
+  
+  
+  .bottom-nav button {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    border: none !important;
+    color: rgba(255,255,255,0.5) !important;
+    padding: 6px !important;
+    gap: 4px !important;
+    width: 60px !important;
+    box-shadow: none !important;
+  }
+  
+  .bottom-nav button span {
+    display: block !important; /* show icons again */
+    font-size: 22px !important;
+    filter: grayscale(100%) opacity(0.7);
+    transition: all 0.3s ease;
+  }
+  
+  .bottom-nav button small {
+    display: block !important;
+    font-size: 10px !important;
+    font-weight: 600 !important;
+    white-space: nowrap !important;
+  }
+  
+  .bottom-nav button.active {
+    background: transparent !important;
+    color: #00f0ff !important;
+    box-shadow: none !important;
+  }
+  
+  .bottom-nav button.active span {
+    filter: grayscale(0%) drop-shadow(0 0 8px rgba(0,240,255,0.8));
+    transform: translateY(-2px);
+  }
+  
+  /* Chat UI tweaks for mobile */
+  .chat-box {
+    height: calc(100vh - 280px) !important;
+    border-radius: 20px !important;
+  }
+  .composer {
+    position: fixed !important;
+    bottom: 80px !important; /* above bottom nav */
+    left: 0; right: 0;
+    border-radius: 24px 24px 0 0 !important;
+    background: rgba(10, 15, 35, 0.95) !important;
+    padding: 12px 15px !important;
+    backdrop-filter: blur(15px);
+  }
+}
+
+/* ====================================================
+   PERFECT RESPONSIVE & CROSS-DEVICE COMPATIBILITY
+   (iPhone, Android, Old & New screens)
+==================================================== */
+:root {
+  --safe-bottom: env(safe-area-inset-bottom, 12px);
+}
+
+/* Ensure nothing overflows the screen */
+* {
+  box-sizing: border-box !important;
+  max-width: 100%;
+}
+
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+  position: relative;
+  touch-action: manipulation; /* Fix click delays on old mobile browsers */
+}
+
+/* Intelligent bottom nav adapting to iPhone notches and standard Androids */
+@media (max-width: 768px) {
+  
+  
+  /* Feature cards adaptive text to prevent cutoff on small screens */
+  .feature-card {
+    word-break: break-word;
+    overflow: hidden;
+  }
+  
+  .feature-card h3 {
+    font-size: clamp(13px, 4vw, 15px) !important;
+  }
+  
+  .feature-card p {
+    font-size: clamp(10px, 3vw, 12px) !important;
+  }
+  
+  .bottom-nav button small {
+    font-size: clamp(9px, 2.5vw, 11px) !important;
+  }
+}
+
+/* Specific fixes for very narrow phones (iPhone SE, old Androids <= 375px) */
+@media (max-width: 380px) {
+  .home-grid {
+    gap: 8px !important;
+  }
+  
+  .feature-card {
+    padding: 12px !important;
+    min-height: 120px !important;
+  }
+  
+  .hero h1 {
+    font-size: 26px !important;
+  }
+  
+  .tab-rail button {
+    min-width: 80px !important;
+    font-size: 11px !important;
+    padding: 6px !important;
+  }
+}
+
+  /* Show banner images properly */
+  .hero-img
+  .hero-img
+  
+
+  /* Bottom Nav like web desktop */
+  
+  .bottom-nav button {
+    border: 0;
+    background: transparent;
+    color: white;
+    font-size: 21px;
+    font-weight: 800;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+  }
+  .bottom-nav button.active {
+    color: #4ff;
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+  }
+  .bottom-nav button span {
+    font-size: 11px;
+    font-weight: normal;
+  }
+  .bottom-nav .magic {
+    width: 76px;
+    height: 76px;
+    margin-top: -32px;
+    background: linear-gradient(135deg, #00f0ff, #aa00ff);
+    border-radius: 50%;
+    color: white;
+    font-size: 36px;
+    box-shadow: 0 0 25px rgba(170, 0, 255, 0.6);
+    border: 3px solid rgba(255, 255, 255, 0.2);
+    justify-self: center;
+  }
+  
+/* --- CLEAN HERO BANNER --- */
+.hero-wrap {
+  position: relative !important;
+  padding: 60px 14px 20px !important;
+  background: linear-gradient(135deg, rgba(8,16,66,0.95), rgba(28,4,58,0.95)) !important;
+  border-radius: 0 0 30px 30px !important;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5) !important;
+  overflow: hidden !important;
+  min-height: 250px !important;
+  height: auto !important;
+}
+
+.hero-img {
+  display: block !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+}
+
+.hero-img.hero-left {
+  left: -10px !important;
+  width: 45% !important;
+  max-width: 180px !important;
+  opacity: 0.9 !important;
+}
+
+.hero-img.hero-right {
+  right: -10px !important;
+  width: 45% !important;
+  max-width: 180px !important;
+  opacity: 0.9 !important;
+}
+
+.hero-content {
+  position: relative !important;
+  z-index: 3 !important;
+  text-align: center !important;
+}
+
+.hero-content h1 {
+  font-size: 32px !important;
+  margin: 10px 0 5px !important;
+  line-height: 1.2 !important;
+}
+
+.hero-content p {
+  font-size: 12px !important;
+  margin-bottom: 15px !important;
+}
+
+/* --- CLEAN BOTTOM NAV --- */
+.bottom-nav {
+  position: fixed !important;
+  z-index: 200 !important;
+  left: 10px !important;
+  right: 10px !important;
+  bottom: 10px !important;
+  height: 72px !important;
+  border: 1px solid rgba(107, 173, 255, 0.35) !important;
+  border-radius: 24px !important;
+  background: rgba(8, 20, 49, 0.95) !important;
+  backdrop-filter: blur(20px) !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 90px 1fr 1fr !important;
+  align-items: center !important;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5) !important;
+  padding: 0 !important;
+  overflow: visible !important;
+}
+
+.bottom-nav button {
+  border: 0 !important;
+  background: transparent !important;
+  color: white !important;
+  font-size: 21px !important;
+  font-weight: 800 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px !important;
+  padding: 0 !important;
+}
+
+.bottom-nav button.active {
+  color: #4ff !important;
+  text-shadow: 0 0 10px rgba(0, 240, 255, 0.5) !important;
+}
+
+.bottom-nav button span {
+  font-size: 10px !important;
+  font-weight: normal !important;
+}
+
+.bottom-nav .magic {
+  width: 70px !important;
+  height: 70px !important;
+  margin-top: -30px !important;
+  background: linear-gradient(135deg, #00f0ff, #aa00ff) !important;
+  border-radius: 50% !important;
+  color: white !important;
+  font-size: 32px !important;
+  box-shadow: 0 0 25px rgba(170, 0, 255, 0.6) !important;
+  border: 3px solid rgba(255, 255, 255, 0.2) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  justify-self: center !important;
+}
+
+/* --- FIX HERO ACTIONS (VERTICAL STACK) --- */
+
+
+
+
+/* --- FIX HERO IMAGES TO FIT BANNER --- */
+.hero-img.hero-left, .hero-img.hero-right {
+  position: absolute !important;
+  bottom: 0 !important;
+  height: 90% !important; /* Fit within the banner's height */
+  width: auto !important; /* Keep aspect ratio */
+  max-width: 45% !important;
+  object-fit: contain !important;
+  object-position: bottom !important;
+  z-index: 1 !important;
+  opacity: 0.85 !important;
+}
+
+.hero-img.hero-left {
+  left: 0 !important;
+}
+
+.hero-img.hero-right {
+  right: 0 !important;
+}
+
+/* --- FIX FEATURE CARDS TO SQUARE --- */
+.feature-card {
+  aspect-ratio: 1 / 1 !important;
+  min-height: unset !important;
+  height: auto !important;
+  padding: 14px 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  text-align: left !important;
+}
+
+/* Adjust title and text spacing to fit perfectly inside the square */
+.feature-card b {
+  font-size: 28px !important;
+  margin-bottom: 12px !important;
+  display: block !important;
+}
+
+.feature-card h3 {
+  font-size: 14px !important;
+  margin-bottom: 6px !important;
+  line-height: 1.25 !important;
+}
+
+.feature-card p {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  opacity: 0.8 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 3 !important;
+  -webkit-box-orient: vertical !important;
+}
+
+/* --- MODERNIZED BANNER TABS & SEARCH --- */
+.hero-actions.quick {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-top: 10px !important;
+  width: 100% !important;
+  z-index: 10 !important;
+  position: relative !important;
+}
+
+.hero-actions.quick button {
+  width: 50% !important; 
+  max-width: 150px !important;
+  padding: 8px 10px !important;
+  border-radius: 999px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+  background: rgba(3, 17, 67, 0.85) !important;
+  border: 1px solid rgba(103, 235, 255, 0.6) !important;
+  color: #eafdff !important;
+  box-shadow: 0 4px 15px rgba(0, 191, 255, 0.3) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.hero-search {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 85% !important;
+  max-width: 300px !important;
+  margin: 15px auto 0 !important;
+  z-index: 10 !important;
+  position: relative !important;
+}
+
+.hero-search input {
+  width: 100% !important;
+  padding: 12px 15px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(91,225,255,0.4) !important;
+  background: rgba(0,8,40,0.7) !important;
+  color: #dbfbff !important;
+  font-size: 13px !important;
+  text-align: center !important;
+  box-shadow: inset 0 0 15px rgba(0,221,255,0.2) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.hero-search button {
+  width: 70% !important;
+  max-width: 200px !important;
+  padding: 10px 15px !important;
+  border-radius: 999px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  background: linear-gradient(135deg,#28e8ff,#61f4ff) !important;
+  color: #002244 !important;
+  box-shadow: 0 0 25px rgba(23,221,255,0.6) !important;
+  border: none !important;
+}
+  
+
+/* ========================================================
+   CLEAN UI FIX: GOOGLE SEARCH, NO TOP GAP, CLEAN BANNER
+======================================================== */
+
+/* 1. Xóa sạch khoảng trống trên banner và bo góc dưới */
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.app-shell {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+.hero-wrap {
+  margin: 0 !important; /* Xóa khoảng trống thừa màu xanh đậm */
+  padding: 30px 14px 20px !important; /* Padding vừa đủ để h1 không dính nóc */
+  border-radius: 0 0 35px 35px !important; /* Bo góc mượt ở bên dưới, phía trên sát mí */
+  background: linear-gradient(135deg, rgba(8,16,66,0.95), rgba(28,4,58,0.95)) !important;
+  width: 100% !important; 
+  box-sizing: border-box !important;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Kéo chữ và status về vị trí sạch sẽ */
+.status-row {
+  margin: 0 auto 10px !important;
+  display: inline-block !important;
+  padding: 4px 12px !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-radius: 999px !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+.hero-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+}
+
+.hero-content h1 {
+  margin-top: 0 !important;
+  font-size: 28px !important;
+  z-index: 10 !important;
+  position: relative !important;
+}
+
+.hero-content p {
+  margin-top: 4px !important;
+  margin-bottom: 12px !important;
+  z-index: 10 !important;
+  position: relative !important;
+}
+
+/* 2. Ảnh nhân vật */
+.hero-img.hero-left, .hero-img.hero-right {
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: top !important;
+  border-radius: 0 0 35px 35px !important;
+  z-index: 1 !important;
+}
+
+/* 3. Bỏ viền màu hồng ở các tab trên banner */
+.hero-actions.quick {
+  position: relative !important;
+  z-index: 10 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-top: 5px !important;
+  width: 100% !important;
+}
+
+.hero-actions.quick button {
+  width: 60% !important;
+  max-width: 160px !important;
+  padding: 10px 15px !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.15) !important; /* Xám mờ sạch sẽ */
+  border: 1px solid rgba(255, 255, 255, 0.2) !important; /* Viền xám trắng tinh tế, KHÔNG MÀU HỒNG */
+  color: #fff !important;
+  backdrop-filter: blur(8px) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  box-shadow: none !important; /* Xóa bóng neon */
+}
+
+/* 4. Khung tìm kiếm chuẩn Google (1 khối duy nhất, nền trắng/sáng) */
+.hero-search.outside {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  width: 90% !important;
+  max-width: 400px !important;
+  margin: -25px auto 20px !important; /* Đẩy trồi lên đè vào mí dưới của banner một chút cho đẹp */
+  padding: 4px 4px 4px 20px !important; /* Trái rộng, phải hẹp vì có nút */
+  background: #ffffff !important; /* Nền trắng chuẩn Google */
+  border-radius: 999px !important;
+  border: none !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4) !important; /* Bóng đổ nhẹ để nổi bật */
+  position: relative !important;
+  z-index: 20 !important; /* Nổi lên trên banner */
+}
+
+.hero-search.outside input {
+  flex: 1 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 12px 0 !important;
+  color: #333333 !important; /* Chữ tối trên nền trắng */
+  font-size: 15px !important;
+  outline: none !important;
+}
+
+.hero-search.outside input::placeholder {
+  color: #888888 !important;
+}
+
+/* Nút AI phân tích (nằm gọn trong khung nhập, không có viền thừa) */
+.hero-search.outside button {
+  flex: 0 0 auto !important;
+  padding: 12px 20px !important;
+  border-radius: 999px !important;
+  background: #f1f3f4 !important; /* Nút xám nhạt kiểu Google */
+  color: #1a73e8 !important; /* Chữ xanh Google */
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  border: none !important;
+  box-shadow: none !important;
+  margin-left: 8px !important;
+}
