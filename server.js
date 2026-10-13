@@ -498,7 +498,7 @@ async function tryMultiAI({ prompt, parts, preferredProvider = "auto", requested
     for (const provider of order.slice(0, 5)) {
       try {
         // Council dùng model cấu hình riêng của từng hãng, không tái sử dụng model selector.
-        results.push(await callAIProvider({ provider, prompt, parts, user, systemPrompt }));
+        results.push(await callAIProvider({ provider, prompt, parts, user, systemPrompt, history }));
       } catch (error) {
         attempts.push({ provider, error: cleanError(error, provider) });
       }
@@ -517,7 +517,7 @@ async function tryMultiAI({ prompt, parts, preferredProvider = "auto", requested
     try {
       // Model do người dùng chọn chỉ áp dụng khi provider khớp. Auto fallback dùng model riêng từng hãng.
       const modelForProvider = explicitProvider ? requestedModel : "";
-      return await callAIProvider({ provider, model: modelForProvider, prompt, parts, user, systemPrompt });
+      return await callAIProvider({ provider, model: modelForProvider, prompt, parts, user, systemPrompt, history });
     } catch (error) {
       attempts.push({ provider, error: cleanError(error, provider) });
       lastError = error;
@@ -891,7 +891,7 @@ async function tryModels(parts, preferredModel = "auto", systemPrompt = '', hist
         config: {
             ...(systemPrompt ? { systemInstruction: systemPrompt, temperature: 0.7, topP: 0.85 } : {})
           }
-      }), 20000);
+      }), 25000);
       return {
         model,
         text: response?.text || response?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || ""

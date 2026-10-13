@@ -1536,27 +1536,3 @@ html, body {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
 }
-
-/* Gemini / ChatGPT style composer & controls */
-.chat-pill-composer button {
-  min-width: unset !important;
-  box-shadow: none !important;
-}
-.chat-plus-menu button {
-  min-width: unset !important;
-  box-shadow: none !important;
-}
-.chat-plus-menu button:hover {
-  background: rgba(255, 255, 255, 0.12) !important;
-}
-.chat-speaker-btn {
-  transition: all 0.2s ease;
-}
-.chat-speaker-btn:hover {
-  background: rgba(255, 255, 255, 0.2) !important;
-  transform: scale(1.05);
-}
-.chat-speaker-btn:active {
-  transform: scale(0.95);
-}
-

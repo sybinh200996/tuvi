@@ -273,22 +273,12 @@ function HistoryTool() {
   }, item.content))))));
 }
 function App() {
-  const getInitialTab = () => {
-    const h = (window.location.hash || '').toLowerCase();
-    if (h.includes('chat')) return 'chat';
-    if (h.includes('history') || h.includes('deep')) return 'history';
-    if (h.includes('account') || h.includes('setting')) return 'settings';
-    return 'home';
-  };
-  const [tab, setTab] = useState(getInitialTab);
+  const [tab, setTab] = useState('home');
   const [health, setHealth] = useState('Đang kiểm tra AI...');
   const [providers, setProviders] = useState([]);
   useEffect(() => {
     fetch('/api/health').then(r => r.json()).then(d => setHealth(d.ok ? 'Server online' : 'Server lỗi')).catch(() => setHealth('Server chưa kết nối'));
     loadProviders();
-    const onHash = () => setTab(getInitialTab());
-    window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
   }, []);
   async function loadProviders() {
     try {
@@ -669,11 +659,12 @@ function Chat({
       if (attachments.length) {
         const files = await Promise.all(attachments.map(item => prepareChatAttachment(item.file)));
         data = await apiJSON('/api/chat-ai', {
+          geminiModel: 'gemini-3.5-flash-lite',
           message: content,
           attachments: files,
           history: next.slice(-20),
           answerStyle,
-          geminiModel: selectedProvider === 'gemini' && selectedModel ? selectedModel : 'gemini-3.5-flash-lite'
+          geminiModel: selectedProvider === 'gemini' ? selectedModel : 'auto'
         }, 'POST', controller?.signal);
         setAttachments([]);
         setFileNotice('');
@@ -798,17 +789,10 @@ function Chat({
   }, /*#__PURE__*/React.createElement("div", {
     className: "chat-head",
     style: {
+      alignItems: "flex-start",
+      padding: "8px",
       display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      padding: "8px 12px",
-      borderBottom: "1px solid rgba(255,255,255,0.08)"
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: "flex",
-      gap: "8px",
-      alignItems: "center"
+      gap: "8px"
     }
   }, /*#__PURE__*/React.createElement("button", {
     className: "chat-icon-btn",
@@ -818,24 +802,14 @@ function Chat({
     onClick: () => {
       if (confirm("Tạo đoạn chat mới?")) setMessages(DEFAULT_MESSAGES);
     }
-  }, "➕ Mới")), /*#__PURE__*/React.createElement("button", {
-    className: "chat-speaker-btn",
-    title: "Nghe đọc phản hồi mới nhất",
-    onClick: () => speak(messages.filter(m => m.role === 'assistant').at(-1)?.text || 'Chưa có phản hồi nào để đọc.'),
+  }, "➕ Mới"), /*#__PURE__*/React.createElement("button", {
+    className: "chat-icon-btn",
+    onClick: () => speak(messages.filter(m => m.role === 'assistant').at(-1)?.text || '')
+  }, "🔊 Đọc"), /*#__PURE__*/React.createElement("div", {
     style: {
-      background: 'rgba(255,255,255,0.08)',
-      border: '1px solid rgba(255,255,255,0.2)',
-      borderRadius: '50%',
-      width: '36px',
-      height: '36px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: '18px',
-      color: '#fff',
-      cursor: 'pointer'
+      flex: 1
     }
-  }, "🔊")), /*#__PURE__*/React.createElement("div", {
+  })), /*#__PURE__*/React.createElement("div", {
     className: "chat-box",
     ref: boxRef
   }, messages.map((m, i) => /*#__PURE__*/React.createElement("div", {
@@ -862,109 +836,54 @@ function Chat({
   }, "Đọc"), /*#__PURE__*/React.createElement("button", {
     onClick: () => send(lastPrompt)
   }, "Thử lại")))))), /*#__PURE__*/React.createElement("div", {
-    className: "chat-composer-panel",
+    className: "chat-composer-panel"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "chat-model-row"
+  }, /*#__PURE__*/React.createElement("label", {
+    htmlFor: "chat-model-choice"
+  }, "Model AI"), /*#__PURE__*/React.createElement("select", {
+    id: "chat-model-choice",
+    value: modelChoice,
+    onChange: e => setModelChoice(e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "auto"
+  }, "Auto — Multi-AI"), providerModelOptions.map(p => /*#__PURE__*/React.createElement("optgroup", {
+    key: p.id,
+    label: providerGroupLabel(p),
+    disabled: !p.configured
+  }, p.modelOptions.map(model => /*#__PURE__*/React.createElement("option", {
+    key: `${p.id}:${model}`,
+    value: `${p.id}::${model}`
+  }, model)))))), /*#__PURE__*/React.createElement("div", {
+    className: "chat-upload-bar pro-upload mobile-chat-uploads",
     style: {
-      position: 'relative'
-    }
-  }, showUploads && /*#__PURE__*/React.createElement("div", {
-    className: "chat-plus-menu",
-    style: {
-      position: 'absolute',
-      bottom: '62px',
-      left: '10px',
-      background: 'rgba(15, 23, 42, 0.96)',
-      border: '1px solid rgba(255, 255, 255, 0.18)',
-      borderRadius: '16px',
-      padding: '6px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '4px',
-      boxShadow: '0 12px 32px rgba(0,0,0,0.5)',
-      backdropFilter: 'blur(20px)',
-      zIndex: 100,
-      minWidth: '145px'
+      display: showUploads ? 'flex' : 'none',
+      overflowX: 'auto',
+      gap: '8px',
+      paddingBottom: '4px'
     }
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
-    onClick: () => {
-      imageInputRef.current?.click();
-      setShowUploads(false);
-    },
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      background: 'transparent',
-      border: 0,
-      color: '#fff',
-      padding: '8px 10px',
-      borderRadius: '10px',
-      fontSize: '13px',
-      textAlign: 'left',
-      width: '100%',
-      cursor: 'pointer'
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: '16px'
-    }
-  }, "🖼️"), " Tải ảnh"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => imageInputRef.current?.click()
+  }, "🖼️ ", /*#__PURE__*/React.createElement("span", null, "Tải ảnh")), /*#__PURE__*/React.createElement("button", {
     type: "button",
-    onClick: () => {
-      cameraInputRef.current?.click();
-      setShowUploads(false);
-    },
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      background: 'transparent',
-      border: 0,
-      color: '#fff',
-      padding: '8px 10px',
-      borderRadius: '10px',
-      fontSize: '13px',
-      textAlign: 'left',
-      width: '100%',
-      cursor: 'pointer'
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: '16px'
-    }
-  }, "📷"), " Chụp ảnh"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => cameraInputRef.current?.click()
+  }, "📷 ", /*#__PURE__*/React.createElement("span", null, "Chụp ảnh")), /*#__PURE__*/React.createElement("button", {
     type: "button",
+    onClick: () => fileInputRef.current?.click()
+  }, "📎 ", /*#__PURE__*/React.createElement("span", null, "Tải file")), attachments.length > 0 && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "chat-clear-files",
     onClick: () => {
-      fileInputRef.current?.click();
-      setShowUploads(false);
-    },
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      background: 'transparent',
-      border: 0,
-      color: '#fff',
-      padding: '8px 10px',
-      borderRadius: '10px',
-      fontSize: '13px',
-      textAlign: 'left',
-      width: '100%',
-      cursor: 'pointer'
+      setAttachments([]);
+      setFileNotice('');
     }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: '16px'
-    }
-  }, "📎"), " Tải file")), /*#__PURE__*/React.createElement("input", {
+  }, "Xóa hết"), /*#__PURE__*/React.createElement("input", {
     ref: imageInputRef,
     className: "chat-hidden-input",
     type: "file",
     accept: "image/*",
     multiple: true,
-    style: {
-      display: 'none'
-    },
     onChange: e => {
       addFiles(e.target.files);
       e.target.value = '';
@@ -976,9 +895,6 @@ function Chat({
     type: "file",
     accept: "image/*",
     capture: "environment",
-    style: {
-      display: 'none'
-    },
     onChange: e => {
       addFiles(e.target.files);
       e.target.value = '';
@@ -990,63 +906,43 @@ function Chat({
     type: "file",
     accept: "image/*,.pdf,.txt,.md,.csv,.json,.xml,.html,.js,.ts,.py,.log,.css,.doc,.docx,.xls,.xlsx",
     multiple: true,
-    style: {
-      display: 'none'
-    },
     onChange: e => {
       addFiles(e.target.files);
       e.target.value = '';
       setShowUploads(false);
     }
-  }), attachments.length > 0 && /*#__PURE__*/React.createElement("div", {
+  })), attachments.length > 0 && /*#__PURE__*/React.createElement("div", {
     className: "chat-attachment-list",
     style: {
-      display: 'flex',
-      gap: '6px',
-      flexWrap: 'wrap',
-      padding: '0 8px 6px'
+      padding: '0 8px'
     }
   }, attachments.map(item => /*#__PURE__*/React.createElement("span", {
     className: "chat-file-chip",
     key: item.id,
     style: {
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: '4px',
-      background: 'rgba(255,255,255,0.12)',
-      border: '1px solid rgba(255,255,255,0.18)',
-      borderRadius: '12px',
-      padding: '3px 8px',
-      fontSize: '12px',
-      color: '#e0f2fe'
+      background: 'rgba(255,255,255,0.1)'
     }
-  }, item.file.type.startsWith('image/') ? '🖼️' : '📄', " ", item.file.name.length > 16 ? item.file.name.slice(0, 13) + '...' : item.file.name, /*#__PURE__*/React.createElement("button", {
+  }, item.file.type.startsWith('image/') ? '🖼️' : '📄', " ", item.file.name, /*#__PURE__*/React.createElement("button", {
     type: "button",
     "aria-label": `Xóa ${item.file.name}`,
     title: `Xóa ${item.file.name}`,
-    onClick: () => removeFile(item.id),
-    style: {
-      background: 'transparent',
-      border: 0,
-      color: '#ff8b8b',
-      cursor: 'pointer',
-      padding: '0 2px'
-    }
-  }, "✕")))), fileNotice && /*#__PURE__*/React.createElement("div", {
+    onClick: () => removeFile(item.id)
+  }, "x")))), fileNotice && /*#__PURE__*/React.createElement("div", {
     className: "chat-file-notice",
     role: "status",
     style: {
-      padding: '0 8px 4px',
-      fontSize: '12px',
-      color: '#ffd29a'
+      padding: '0 8px'
     }
-  }, fileNotice), voiceStatus && /*#__PURE__*/React.createElement("div", {
+  }, fileNotice), attachments.length > 0 && modelChoice !== 'auto' && !modelChoice.startsWith('gemini::') && /*#__PURE__*/React.createElement("div", {
+    className: "chat-attachment-note",
+    style: {
+      padding: '0 8px'
+    }
+  }, "Ảnh/file hiện được phân tích qua Gemini đa phương thức."), voiceStatus && /*#__PURE__*/React.createElement("div", {
     className: "chat-voice-status",
     role: "status",
     style: {
-      padding: '0 8px 4px',
-      fontSize: '12px',
-      color: '#7dd3fc'
+      padding: '0 8px'
     }
   }, voiceStatus, voiceCountdown > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, " ", /*#__PURE__*/React.createElement("b", null, "Gửi sau ", voiceCountdown, "s"), " ", /*#__PURE__*/React.createElement("button", {
     type: "button",
@@ -1057,32 +953,26 @@ function Chat({
       display: 'flex',
       flexDirection: 'row',
       alignItems: 'center',
-      background: 'rgba(20, 26, 44, 0.88)',
-      border: '1px solid rgba(255, 255, 255, 0.16)',
-      borderRadius: '28px',
-      padding: '5px 8px 5px 10px',
-      backdropFilter: 'blur(20px)',
-      gap: '6px'
+      background: 'rgba(30, 30, 35, 0.7)',
+      borderRadius: '30px',
+      padding: '6px 6px'
     }
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: () => setShowUploads(!showUploads),
-    title: "Đính kèm ảnh hoặc file",
     style: {
-      color: showUploads ? '#38bdf8' : '#fff',
-      background: showUploads ? 'rgba(56, 189, 248, 0.2)' : 'rgba(255, 255, 255, 0.08)',
-      border: '1px solid rgba(255, 255, 255, 0.14)',
-      borderRadius: '50%',
-      fontSize: '20px',
-      width: '32px',
-      height: '32px',
+      color: '#fff',
+      background: 'transparent',
+      border: 0,
+      fontSize: '24px',
+      width: '36px',
+      height: '36px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       cursor: 'pointer',
       flexShrink: 0,
-      transition: 'transform 0.2s',
-      transform: showUploads ? 'rotate(45deg)' : 'none'
+      paddingBottom: '3px'
     }
   }, "+"), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1090,7 +980,7 @@ function Chat({
       display: 'flex',
       flexDirection: 'column',
       minWidth: 0,
-      margin: '0 4px'
+      margin: '0 6px'
     }
   }, /*#__PURE__*/React.createElement("textarea", {
     value: text,
@@ -1113,13 +1003,11 @@ function Chat({
       border: 0,
       color: '#fff',
       fontSize: '15px',
-      padding: '5px 0',
+      padding: '4px 0',
       resize: 'none',
       outline: 'none',
       width: '100%',
-      boxShadow: 'none',
-      lineHeight: '1.4',
-      maxHeight: '100px'
+      boxShadow: 'none'
     }
   })), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1135,18 +1023,11 @@ function Chat({
     title: "Dừng ghi âm",
     onClick: stopDictation,
     style: {
-      background: 'rgba(239,68,68,0.25)',
-      border: '1px solid #ef4444',
-      borderRadius: '50%',
-      width: '32px',
-      height: '32px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: '16px',
-      cursor: 'pointer'
+      background: 'transparent',
+      border: 0,
+      fontSize: '20px'
     }
-  }, "🔴") : /*#__PURE__*/React.createElement("button", {
+  }, "🛑") : /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "chat-mic-btn",
     "aria-label": "Nhập bằng giọng nói",
@@ -1156,14 +1037,7 @@ function Chat({
     style: {
       background: 'transparent',
       border: 0,
-      color: '#94a3b8',
-      fontSize: '18px',
-      width: '32px',
-      height: '32px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      cursor: 'pointer'
+      fontSize: '20px'
     }
   }, "🎤"), text.trim() || attachments.length > 0 || busy ? /*#__PURE__*/React.createElement("button", {
     type: "button",
@@ -1172,20 +1046,14 @@ function Chat({
     title: busy ? 'Dừng phản hồi' : 'Gửi tin nhắn',
     onClick: busy ? stopResponse : () => send(),
     style: {
-      background: busy ? 'rgba(239,68,68,0.85)' : 'linear-gradient(135deg, #0284c7, #8b5cf6)',
+      background: 'transparent',
       border: 0,
-      borderRadius: '50%',
-      width: '32px',
-      height: '32px',
-      color: '#fff',
-      fontSize: '13px',
+      fontSize: '20px',
       cursor: 'pointer',
       display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      boxShadow: '0 2px 6px rgba(2, 132, 199, 0.4)'
+      alignItems: 'center'
     }
-  }, busy ? '⏹' : '➤') : null)))));
+  }, busy ? '🛑' : '➤') : null)))));
 }
 function Settings({
   providers,
@@ -1395,14 +1263,14 @@ function VisionTool({
         palmImage: image,
         palmLine: 'Tổng quan đường tay',
         palmNote: note,
-        geminiModel: 'gemini-2.5-flash-lite'
+        geminiModel: 'gemini-3.5-flash-lite'
       } : {
         mode,
         image,
         faceImage: image,
         facePart: 'Tổng quan ngũ quan',
         faceNote: note,
-        geminiModel: 'gemini-2.5-flash-lite'
+        geminiModel: 'gemini-3.5-flash-lite'
       };
       setResult('AI đang phân tích ảnh...');
       const d = await apiJSON('/api/vision-ai', payload);
@@ -1478,7 +1346,7 @@ function LoveTool() {
     setOut('Đang tính bằng code và AI luận giải...');
     try {
       const d = await apiJSON('/api/love-ai', {
-        geminiModel: 'gemini-2.5-flash-lite',
+        geminiModel: 'gemini-3.5-flash-lite',
         persons: [{
           name: 'Người 1',
           birthDate: a
@@ -1526,7 +1394,7 @@ function TuviTool() {
         birthDate: dob,
         birthTime: time,
         gender,
-        geminiModel: 'gemini-2.5-flash-lite',
+        geminiModel: 'gemini-3.5-flash-lite',
         localReport: window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : ''
       });
       setOut(d.text || d.reply || 'Không có kết quả');
@@ -1576,7 +1444,7 @@ function SimpleTool({
       const d = await apiJSON('/api/multi-ai/chat', {
         message: `${preset || title} ${q}`,
         provider: 'auto',
-        model: 'gemini-2.5-flash-lite'
+        model: 'gemini-3.5-flash-lite'
       });
       setOut(d.text || d.reply || 'Không có kết quả');
       saveHistory(title, d.text || d.reply || 'Không có kết quả');
@@ -1877,15 +1745,9 @@ function Result({
     }
   }));
 }
+ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(App, null));
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    for (let r of regs) r.unregister();
-  });
-  if (window.caches) {
-    caches.keys().then(keys => {
-      for (let k of keys) caches.delete(k);
-    });
-  }
+  window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js').catch(() => {}));
 }
 function DeepTool() {
   const [result, setResult] = useState('Điền thông tin và bấm phân tích để bắt đầu.');
@@ -1960,4 +1822,3 @@ function DeepTool() {
     text: result
   }));
 }
-ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(App, null));

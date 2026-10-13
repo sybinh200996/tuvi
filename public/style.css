@@ -1971,3 +1971,10 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
   white-space: nowrap;
 }
 .chat-icon-btn:hover { background: rgba(255, 255, 255, 0.1) !important; color: #fff !important; }
+
+@media (min-width: 768px) {
+  .top-actions .live-clock {
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+}
