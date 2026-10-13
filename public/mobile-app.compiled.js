@@ -943,28 +943,7 @@ function Chat({
     onClick: () => send(lastPrompt)
   }, "Thử lại")))))), /*#__PURE__*/React.createElement("div", {
     className: "chat-composer-panel"
-  }, /*#__PURE__*/React.createElement("div", {
-    className: "chat-upload-bar pro-upload mobile-chat-uploads",
-    style: {
-      display: showUploads ? 'flex' : 'none'
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: () => imageInputRef.current?.click()
-  }, "🖼️ ", /*#__PURE__*/React.createElement("span", null, "Tải ảnh")), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: () => cameraInputRef.current?.click()
-  }, "📷 ", /*#__PURE__*/React.createElement("span", null, "Chụp ảnh")), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: () => fileInputRef.current?.click()
-  }, "📎 ", /*#__PURE__*/React.createElement("span", null, "Tải file")), attachments.length > 0 && /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    className: "chat-clear-files",
-    onClick: () => {
-      setAttachments([]);
-      setFileNotice('');
-    }
-  }, "Xóa hết"), /*#__PURE__*/React.createElement("input", {
+  }, /*#__PURE__*/React.createElement("input", {
     ref: imageInputRef,
     className: "chat-hidden-input",
     type: "file",
@@ -997,7 +976,7 @@ function Chat({
       e.target.value = '';
       setShowUploads(false);
     }
-  })), attachments.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }), attachments.length > 0 && /*#__PURE__*/React.createElement("div", {
     className: "chat-attachment-list"
   }, attachments.map(item => /*#__PURE__*/React.createElement("span", {
     className: "chat-file-chip",
@@ -1017,12 +996,59 @@ function Chat({
     role: "status"
   }, voiceStatus), /*#__PURE__*/React.createElement("div", {
     className: "composer chat-pill-composer"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "chat-plus-menu-container"
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
-    className: "chat-plus-btn",
+    className: `chat-plus-btn ${showUploads ? 'active' : ''}`,
     onClick: () => setShowUploads(!showUploads),
-    title: "Đính kèm"
-  }, "+"), /*#__PURE__*/React.createElement("div", {
+    title: "Đính kèm",
+    "aria-label": "Đính kèm tệp hoặc chụp ảnh",
+    "aria-expanded": showUploads
+  }, "+"), showUploads && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "chat-plus-backdrop",
+    onClick: () => setShowUploads(false)
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "chat-plus-popover",
+    role: "menu"
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "chat-popover-item",
+    onClick: () => {
+      imageInputRef.current?.click();
+      setShowUploads(false);
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "popover-icon"
+  }, "🖼️"), /*#__PURE__*/React.createElement("span", null, "Tải ảnh")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "chat-popover-item",
+    onClick: () => {
+      cameraInputRef.current?.click();
+      setShowUploads(false);
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "popover-icon"
+  }, "📷"), /*#__PURE__*/React.createElement("span", null, "Chụp ảnh")), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "chat-popover-item",
+    onClick: () => {
+      fileInputRef.current?.click();
+      setShowUploads(false);
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "popover-icon"
+  }, "📎"), /*#__PURE__*/React.createElement("span", null, "Tải file")), attachments.length > 0 && /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: "chat-popover-item is-clear",
+    onClick: () => {
+      setAttachments([]);
+      setFileNotice('');
+      setShowUploads(false);
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "popover-icon"
+  }, "🗑️"), /*#__PURE__*/React.createElement("span", null, "Xóa hết file"))))), /*#__PURE__*/React.createElement("div", {
     className: "chat-input-wrapper"
   }, /*#__PURE__*/React.createElement("textarea", {
     value: text,

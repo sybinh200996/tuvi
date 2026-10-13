@@ -643,15 +643,9 @@ function Chat({ providers }) {
       </div>
 
       <div className="chat-composer-panel">
-        <div className="chat-upload-bar pro-upload mobile-chat-uploads" style={{ display: showUploads ? 'flex' : 'none' }}>
-          <button type="button" onClick={()=>imageInputRef.current?.click()}>🖼️ <span>Tải ảnh</span></button>
-          <button type="button" onClick={()=>cameraInputRef.current?.click()}>📷 <span>Chụp ảnh</span></button>
-          <button type="button" onClick={()=>fileInputRef.current?.click()}>📎 <span>Tải file</span></button>
-          {attachments.length > 0 && <button type="button" className="chat-clear-files" onClick={()=>{setAttachments([]);setFileNotice('');}}>Xóa hết</button>}
-          <input ref={imageInputRef} className="chat-hidden-input" type="file" accept="image/*" multiple onChange={e=>{addFiles(e.target.files);e.target.value='';setShowUploads(false);}} />
-          <input ref={cameraInputRef} className="chat-hidden-input" type="file" accept="image/*" capture="environment" onChange={e=>{addFiles(e.target.files);e.target.value='';setShowUploads(false);}} />
-          <input ref={fileInputRef} className="chat-hidden-input" type="file" accept="image/*,.pdf,.txt,.md,.csv,.json,.xml,.html,.js,.ts,.py,.log,.css,.doc,.docx,.xls,.xlsx" multiple onChange={e=>{addFiles(e.target.files);e.target.value='';setShowUploads(false);}} />
-        </div>
+        <input ref={imageInputRef} className="chat-hidden-input" type="file" accept="image/*" multiple onChange={e=>{addFiles(e.target.files);e.target.value='';setShowUploads(false);}} />
+        <input ref={cameraInputRef} className="chat-hidden-input" type="file" accept="image/*" capture="environment" onChange={e=>{addFiles(e.target.files);e.target.value='';setShowUploads(false);}} />
+        <input ref={fileInputRef} className="chat-hidden-input" type="file" accept="image/*,.pdf,.txt,.md,.csv,.json,.xml,.html,.js,.ts,.py,.log,.css,.doc,.docx,.xls,.xlsx" multiple onChange={e=>{addFiles(e.target.files);e.target.value='';setShowUploads(false);}} />
 
         {attachments.length > 0 && (
           <div className="chat-attachment-list">
@@ -670,7 +664,59 @@ function Chat({ providers }) {
         {voiceStatus && <div className="chat-voice-status" role="status">{voiceStatus}</div>}
 
         <div className="composer chat-pill-composer">
-          <button type="button" className="chat-plus-btn" onClick={() => setShowUploads(!showUploads)} title="Đính kèm">+</button>
+          <div className="chat-plus-menu-container">
+            <button
+              type="button"
+              className={`chat-plus-btn ${showUploads ? 'active' : ''}`}
+              onClick={() => setShowUploads(!showUploads)}
+              title="Đính kèm"
+              aria-label="Đính kèm tệp hoặc chụp ảnh"
+              aria-expanded={showUploads}
+            >
+              +
+            </button>
+            {showUploads && (
+              <>
+                <div className="chat-plus-backdrop" onClick={() => setShowUploads(false)} />
+                <div className="chat-plus-popover" role="menu">
+                  <button
+                    type="button"
+                    className="chat-popover-item"
+                    onClick={() => { imageInputRef.current?.click(); setShowUploads(false); }}
+                  >
+                    <span className="popover-icon">🖼️</span>
+                    <span>Tải ảnh</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="chat-popover-item"
+                    onClick={() => { cameraInputRef.current?.click(); setShowUploads(false); }}
+                  >
+                    <span className="popover-icon">📷</span>
+                    <span>Chụp ảnh</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="chat-popover-item"
+                    onClick={() => { fileInputRef.current?.click(); setShowUploads(false); }}
+                  >
+                    <span className="popover-icon">📎</span>
+                    <span>Tải file</span>
+                  </button>
+                  {attachments.length > 0 && (
+                    <button
+                      type="button"
+                      className="chat-popover-item is-clear"
+                      onClick={() => { setAttachments([]); setFileNotice(''); setShowUploads(false); }}
+                    >
+                      <span className="popover-icon">🗑️</span>
+                      <span>Xóa hết file</span>
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
           
           <div className="chat-input-wrapper">
             <textarea
