@@ -1978,3 +1978,158 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
     align-items: center !important;
   }
 }
+
+/* ========================================================
+   DESKTOP CHAT AI COMPACT & BALANCED VIEWPORT LAYOUT
+======================================================== */
+@media (min-width: 769px) {
+  #page-chat.page.active {
+    display: block !important;
+  }
+  .chat-pro-page {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .chat-pro-shell {
+    display: grid !important;
+    grid-template-columns: 290px minmax(0, 1fr) !important;
+    gap: 18px !important;
+    height: calc(100vh - 120px) !important;
+    min-height: 560px !important;
+    max-height: 860px !important;
+    align-items: stretch !important;
+  }
+  .chat-pro-sidebar {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    overflow-y: auto !important;
+    padding: 16px !important;
+    border-radius: 24px !important;
+    box-sizing: border-box !important;
+  }
+  .chat-pro-main {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    overflow: hidden !important;
+    padding: 16px 20px !important;
+    border-radius: 24px !important;
+    box-sizing: border-box !important;
+  }
+  .chat-pro-head {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    flex: 0 0 auto !important;
+    margin-bottom: 8px !important;
+    padding-bottom: 8px !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  }
+  .chat-pro-head h2 {
+    font-size: 20px !important;
+    margin: 0 !important;
+  }
+  .chat-pro-head p {
+    font-size: 12px !important;
+    margin: 2px 0 0 !important;
+    color: #a0aec0 !important;
+  }
+  .chat-head-actions {
+    display: flex !important;
+    gap: 6px !important;
+    align-items: center !important;
+  }
+  .chat-mobile-settings {
+    flex: 0 0 auto !important;
+    margin: 4px 0 6px !important;
+  }
+  .chat-mobile-settings > summary {
+    font-size: 12px !important;
+    padding: 6px 12px !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+  }
+  .voice-status {
+    flex: 0 0 auto !important;
+    margin: 4px 0 6px !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+  }
+  .pro-chat-log {
+    flex: 1 1 auto !important;
+    height: 0 !important;
+    min-height: 200px !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+    padding: 14px 16px !important;
+    border-radius: 18px !important;
+    margin-bottom: 8px !important;
+    scroll-behavior: smooth !important;
+  }
+  .pro-chat-log .msg {
+    max-width: 82% !important;
+    margin: 10px 0 !important;
+    padding: 12px 16px !important;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+  }
+  .chat-upload-bar.pro-upload {
+    flex: 0 0 auto !important;
+    margin-top: 0 !important;
+    margin-bottom: 6px !important;
+    padding: 6px 10px !important;
+    border-radius: 14px !important;
+  }
+  .chat-attachments {
+    flex: 0 0 auto !important;
+    max-height: 80px !important;
+    overflow-y: auto !important;
+    margin-bottom: 4px !important;
+  }
+  .chat-input.pro-input {
+    flex: 0 0 auto !important;
+    margin-top: 0 !important;
+    display: grid !important;
+    grid-template-columns: auto minmax(0, 1fr) auto auto auto !important;
+    gap: 8px !important;
+    align-items: center !important;
+    padding: 6px 10px !important;
+    border-radius: 20px !important;
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  }
+  .chat-input.pro-input textarea {
+    min-height: 42px !important;
+    max-height: 140px !important;
+    height: 42px !important;
+    padding: 10px 14px !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    border-radius: 14px !important;
+  }
+  .chat-input.pro-input button {
+    height: 42px !important;
+    border-radius: 14px !important;
+    padding: 0 14px !important;
+    font-size: 13px !important;
+  }
+  .chat-input.pro-input .voice-btn {
+    width: 42px !important;
+    min-width: 42px !important;
+    padding: 0 !important;
+  }
+  .chat-input.pro-input .quick-voice-btn,
+  .chat-input.pro-input .quick-stop-btn {
+    width: 40px !important;
+    min-width: 40px !important;
+    padding: 0 !important;
+  }
+  .chat-input.pro-input #chatSendBtn {
+    padding: 0 18px !important;
+    font-weight: 700 !important;
+  }
+}
+

@@ -7,7 +7,7 @@
   <meta name="description" content="Đặng Năm Mystic - AI tử vi, chỉ tay, xem tướng, chiêm tinh, chat, lịch sử và tài khoản." />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="assets/icon.svg" />
-  <link rel="stylesheet" href="style.css?v=1791587814" />
+  <link rel="stylesheet" href="style.css?v=1791884000" />
   
       <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
@@ -406,14 +406,18 @@
               <button class="active">💬 Chat AI</button>
             </div>
 
-            <div class="chat-pro-head" style="align-items:flex-start; padding:8px; display:flex; gap:8px;">
-                <button class="chat-icon-btn" onclick="openDesktopHistory()">?? L?ch s?</button>
-                
-                  <button type="button" class="chat-icon-btn" aria-label="Chat m?i" onclick="if(confirm('T?o do?n chat m?i?')){ document.getElementById('chatLog').innerHTML = '<div class=\'msg ai-welcome\'><b>?? Ch�o b?n!</b><br>M�nh l� ��ng Nam AI Pro.</div>'; if(window.chatMessages) window.chatMessages = []; }">? M?i</button>
-                  <button type="button" class="chat-icon-btn" aria-label="�?c" onclick="speakLastResult()">?? �?c</button>
-                  <button type="button" class="chat-icon-btn" aria-label="C�i d?t AI" onclick="routeTo('ai')">?? C�i d?t</button>
-                </div>
+            <div class="chat-pro-head">
+              <div>
+                <h2>🤖 AI Chat Pro</h2>
+                <p>Hỏi đáp cùng Đặng Năm AI, hỗ trợ phân tích dữ liệu, văn bản, hình ảnh và giọng nói.</p>
               </div>
+              <div class="chat-head-actions">
+                <button type="button" class="chat-icon-btn" onclick="openDesktopHistory()">🕒 Lịch sử</button>
+                <button type="button" class="chat-icon-btn" onclick="newProChat()">＋ Cuộc chat mới</button>
+                <button type="button" class="chat-icon-btn" onclick="speakLastResult()">🔊 Đọc</button>
+                <button type="button" class="chat-icon-btn" onclick="routeTo('ai')">⚙️ Cài đặt AI</button>
+              </div>
+            </div>
             <details class="chat-mobile-settings" open>
               <summary>⚙️ Tùy chọn AI và chế độ chat</summary>
               <div class="chat-mobile-settings-content">
@@ -453,7 +457,7 @@
     <nav class="bottom-nav"><button onclick="routeTo('home')">⌂<span>Trang chủ</span></button><button onclick="routeTo('history')">▣<span>Lịch sử</span></button><button class="magic" onclick="quickAsk()">✦</button><button onclick="routeTo('chat')">☻<span>AI Chat</span></button><button onclick="routeTo('account')">♙<span>Tài khoản</span></button></nav>
   </main>
   <div id="toast" class="toast"></div>
-  <script src="mystic-engine.js"></script><script src="app.js"></script>
+  <script src="mystic-engine.js"></script><script src="app.js?v=1791884000"></script>
 
   <!-- App Download Modal -->
   <div id="appDownloadModal" class="modal-overlay" onclick="if(event.target===this) closeAppModal()">
@@ -484,16 +488,16 @@
 
     <div id="desktopHistoryDrawer" class="history-drawer-overlay" style="display:none;" onclick="this.style.display='none'">
       <div class="history-drawer" onclick="event.stopPropagation()">
-        <div class="drawer-head"><h3>?? L?ch s? Chat</h3><button onclick="document.getElementById('desktopHistoryDrawer').style.display='none'">?</button></div>
+        <div class="drawer-head"><h3>🕒 Lịch sử Chat</h3><button onclick="document.getElementById('desktopHistoryDrawer').style.display='none'">✕</button></div>
         <div class="drawer-body" id="desktopHistoryContent"></div>
       </div>
     </div>
     <script>
     function openDesktopHistory() {
       try {
-        const h = JSON.parse(localStorage.getItem('synam_history')||'[]').filter(x => x.type === 'AI Chat').reverse();
-        const html = h.map(x => '<div class="drawer-item" onclick="document.getElementById(\'chatText\').value=\'' + (x.content||'').replace(/\'/g,\"\\'\").replace(/\n/g,\" \").substring(0,200) + '\'; document.getElementById(\'desktopHistoryDrawer\').style.display=\'none\';"><strong>'+x.type+'</strong><br><small>'+new Date(x.at).toLocaleString()+'</small></div>').join('');
-        document.getElementById('desktopHistoryContent').innerHTML = html || '<p style="text-align:center; opacity:0.5;">Chua c� l?ch s?</p>';
+        const h = JSON.parse(localStorage.getItem('synam_history')||'[]').filter(x => x.type === 'AI Chat' || (x.type && x.type.includes('Chat'))).reverse();
+        const html = h.map(x => '<div class="drawer-item" onclick="document.getElementById(\'chatText\').value=\'' + (x.content||'').replace(/'/g,"\'").replace(/\n/g," ").substring(0,200) + '\'; document.getElementById(\'desktopHistoryDrawer\').style.display=\'none\';"><strong>'+x.type+'</strong><br><small>'+new Date(x.at || Date.now()).toLocaleString()+'</small></div>').join('');
+        document.getElementById('desktopHistoryContent').innerHTML = html || '<p style="text-align:center; opacity:0.5;">Chưa có lịch sử</p>';
         document.getElementById('desktopHistoryDrawer').style.display = 'flex';
       } catch(e) { console.error(e); }
     }
