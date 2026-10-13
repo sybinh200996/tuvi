@@ -436,21 +436,29 @@ async function callGeminiText({ apiKey, model, parts, systemPrompt = '', history
   let lastErr;
 
   for (const m of modelsToTry) {
-    try {
-      const response = await withTimeout(client.models.generateContent({
-        model: m,
-        contents: [{ role: "user", parts }],
-        config: {
-          temperature: 0.7,
-          topP: 0.85,
-          ...(systemPrompt ? { systemInstruction: systemPrompt } : {})
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const response = await withTimeout(client.models.generateContent({
+          model: m,
+          contents: [{ role: "user", parts }],
+          config: {
+            temperature: 0.7,
+            topP: 0.85,
+            ...(systemPrompt ? { systemInstruction: systemPrompt } : {})
+          }
+        }), 60000);
+        const text = response?.text || response?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || "";
+        if (text) return text;
+      } catch (err) {
+        lastErr = err;
+        console.log(`Gemini ${m} (lần ${attempt + 1}) error:`, err.message);
+        const isTransient = /503|429|UNAVAILABLE|high demand|overloaded|resource_exhausted/i.test(err.message || "");
+        if (isTransient && attempt === 0) {
+          await new Promise(r => setTimeout(r, 1200));
+          continue;
         }
-      }), 45000);
-      const text = response?.text || response?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || "";
-      if (text) return text;
-    } catch (err) {
-      lastErr = err;
-      console.log(`Gemini ${m} error:`, err.message);
+        break;
+      }
     }
   }
   throw lastErr || new Error("Google Gemini không phản hồi được nội dung.");
@@ -530,7 +538,22 @@ async function tryMultiAI({ prompt, parts, preferredProvider = "auto", requested
       attempts.push({ provider, error: cleanError(error, provider) });
       lastError = error;
       lastErrorProvider = provider;
-      if (explicitProvider) break;
+      if (explicitProvider) {
+        console.log(`Explicit provider ${provider} lỗi: ${error.message}. Đang thử fallback tự động...`);
+        const fallbackList = Object.keys(AI_PROVIDERS).filter(p => p !== provider && pickProviderKey(p, user));
+        for (const fb of fallbackList) {
+          try {
+            console.log(`Chuyển sang fallback: ${fb}...`);
+            const fbRes = await callAIProvider({ provider: fb, model: "", prompt, parts, user, systemPrompt, history });
+            const notice = `*(Lưu ý: ${AI_PROVIDERS[provider]?.label || provider} tạm thời quá tải, hệ thống tự động kết nối ${fbRes.label} để trả lời ngay cho bạn)*`;
+            fbRes.text = `${notice}\n\n${fbRes.text}`;
+            return fbRes;
+          } catch (fbErr) {
+            attempts.push({ provider: fb, error: cleanError(fbErr, fb) });
+          }
+        }
+        break;
+      }
     }
   }
   const err = lastError || new Error("Không AI nào phản hồi được.");
@@ -891,24 +914,32 @@ async function tryModels(parts, preferredModel = "auto", systemPrompt = '', hist
   const attempts = [];
 
   for (const model of modelOrder) {
-    try {
-      console.log("Đang thử model:", model);
-      const response = await withTimeout(ai.models.generateContent({
-        model,
-        contents: [{ role: "user", parts }],
-        config: {
-            ...(systemPrompt ? { systemInstruction: systemPrompt, temperature: 0.7, topP: 0.85 } : {})
-          }
-      }), 25000);
-      return {
-        model,
-        text: response?.text || response?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || ""
-      };
-    } catch (err) {
-      const reason = cleanError(err);
-      console.log("Model lỗi:", model, err.message);
-      attempts.push({ model, error: reason });
-      lastError = err;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        console.log(`Đang thử model: ${model} (lần ${attempt + 1})`);
+        const response = await withTimeout(ai.models.generateContent({
+          model,
+          contents: [{ role: "user", parts }],
+          config: {
+              ...(systemPrompt ? { systemInstruction: systemPrompt, temperature: 0.7, topP: 0.85 } : {})
+            }
+        }), 60000);
+        return {
+          model,
+          text: response?.text || response?.candidates?.[0]?.content?.parts?.map(p => p.text || "").join("") || ""
+        };
+      } catch (err) {
+        const reason = cleanError(err);
+        console.log(`Model lỗi ${model} (lần ${attempt + 1}):`, err.message);
+        attempts.push({ model, error: reason });
+        lastError = err;
+        const isTransient = /503|429|UNAVAILABLE|high demand|overloaded|resource_exhausted/i.test(err.message || "");
+        if (isTransient && attempt === 0) {
+          await new Promise(r => setTimeout(r, 1200));
+          continue;
+        }
+        break;
+      }
     }
   }
 
@@ -1216,7 +1247,7 @@ NGỮ CẢNH APP:
 ${context ? JSON.stringify(context, null, 2).slice(0, 4000) : "Không có"}
 
 LỊCH SỬ HỘI THOẠI GẦN ĐÂY:
-
+${historyText || "Chưa có"}
 
 CÂU HỎI MỚI:
 ${cleanMessage}`;
@@ -1462,7 +1493,7 @@ NGỮ CẢNH APP HIỆN TẠI:
 ${contextText}
 
 LỊCH SỬ CHAT GẦN ĐÂY:
-
+${historyText || "Chưa có"}
 
 CÂU HỎI CỦA NGƯỜI DÙNG:
 ${cleanMessage || "Người dùng chỉ gửi file/ảnh, hãy phân tích nội dung đã tải lên."}
