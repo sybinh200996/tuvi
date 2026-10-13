@@ -642,8 +642,8 @@ function directDateTimeAnswer(message = '') {
 
   // Không chặn các câu hỏi cần AI/API trả lời như thời tiết, lịch sự kiện, dự báo, giá cả...
   // Lỗi cũ: câu "dự báo thời tiết 3 ngày" có chữ "ngày" nên bị local date handler nuốt mất.
-    return /(thời tiết|thoi tiet|dự báo|du bao|nhiệt độ|nhiet do|trời có mưa|trời có nắng|mưa không|nắng không|có bão|co bao)/i.test(q);
-  if (needsLiveOrKnowledgeAnswer) return null;
+    const needsLiveOrKnowledgeAnswer = /(thời tiết|thoi tiet|dự báo|du bao|nhiệt độ|nhiet do|trời có mưa|trời có nắng|mưa không|nắng không|có bão|co bao)/i.test(q);
+    if (needsLiveOrKnowledgeAnswer) return null;
 
   const asksDate = /(hôm nay|hom nay|ngày mai|ngay mai|ngày kia|ngay kia|hôm qua|hom qua|thứ mấy|thu may|ngày bao nhiêu|ngay bao nhieu|mấy giờ|may gio|bây giờ|bay gio|giờ hiện tại|gio hien tai)/i.test(q);
   if (!asksDate) return null;

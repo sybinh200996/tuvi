@@ -474,6 +474,7 @@ function Chat({
   });
   const [historyOpen, setHistoryOpen] = useState(false);
   const [showUploads, setShowUploads] = useState(false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const [text, setText] = useState('');
   const [modelChoice, setModelChoice] = useState('auto');
   const [answerStyle, setAnswerStyle] = useState('detailed');
@@ -484,7 +485,7 @@ function Chat({
   const [fileNotice, setFileNotice] = useState('');
   const [voiceStatus, setVoiceStatus] = useState('');
   const [listening, setListening] = useState(false);
-  const [voiceCountdown, setVoiceCountdown] = useState(0);
+  const [speakingId, setSpeakingId] = useState(null);
   const boxRef = useRef(null);
   const imageInputRef = useRef(null);
   const cameraInputRef = useRef(null);
@@ -492,21 +493,16 @@ function Chat({
   const recognitionRef = useRef(null);
   const voiceTranscriptRef = useRef('');
   const draftRef = useRef('');
-  const countdownTimerRef = useRef(null);
   const sendRef = useRef(null);
   const requestAbortRef = useRef(null);
-  function clearVoiceCountdown(notice = '') {
-    if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
-    countdownTimerRef.current = null;
-    setVoiceCountdown(0);
-    if (notice) setVoiceStatus(notice);
-  }
   useEffect(() => () => {
-    if (countdownTimerRef.current) clearInterval(countdownTimerRef.current);
     try {
       recognitionRef.current?.abort();
     } catch {}
     requestAbortRef.current?.abort?.();
+    try {
+      speechSynthesis.cancel();
+    } catch {}
   }, []);
   useEffect(() => {
     const quickAsk = localStorage.getItem('synam_quick_ask');
@@ -555,11 +551,10 @@ function Chat({
     setFileNotice('');
   }
   function startDictation() {
-    clearVoiceCountdown();
     setVoiceStatus('');
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      setVoiceStatus('Trình duyệt này chưa hỗ trợ micro trong trang. Bạn có thể dùng micro trên bàn phím điện thoại.');
+      setVoiceStatus('Trình duyệt chưa hỗ trợ micro trong trang. Bạn có thể bấm biểu tượng micro trên bàn phím điện thoại.');
       return;
     }
     try {
@@ -570,7 +565,7 @@ function Chat({
       voiceTranscriptRef.current = '';
       recognition.onstart = () => {
         setListening(true);
-        setVoiceStatus('Đang nghe tiếng Việt…');
+        setVoiceStatus('Đang lắng nghe tiếng Việt…');
       };
       recognition.onresult = event => {
         const finalText = Array.from(event.results || []).slice(event.resultIndex || 0).filter(result => result.isFinal).map(result => result[0]?.transcript || '').join(' ').trim();
@@ -582,29 +577,21 @@ function Chat({
       };
       recognition.onerror = event => {
         setListening(false);
-        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') setVoiceStatus('Chưa có quyền dùng micro. Hãy cho phép micro rồi thử lại.');else if (!voiceTranscriptRef.current) setVoiceStatus('Chưa nhận được giọng nói. Hãy thử lại.');
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          setVoiceStatus('Chưa có quyền dùng micro. Hãy bật quyền micro cho trang web.');
+        } else if (!voiceTranscriptRef.current) {
+          setVoiceStatus('Chưa nhận được giọng nói. Hãy thử lại.');
+        }
       };
       recognition.onend = () => {
         setListening(false);
         recognitionRef.current = null;
         if (!voiceTranscriptRef.current.trim()) {
-          setVoiceStatus(current => current === 'Đang nghe tiếng Việt…' ? 'Chưa nhận được giọng nói. Hãy thử lại.' : current);
+          setVoiceStatus(current => current === 'Đang lắng nghe tiếng Việt…' ? 'Chưa nhận được giọng nói. Hãy thử lại.' : current);
           return;
         }
-        setVoiceStatus('Đã nhận giọng nói.');
-        let remaining = 3;
-        setVoiceCountdown(remaining);
-        countdownTimerRef.current = setInterval(() => {
-          remaining -= 1;
-          if (remaining <= 0) {
-            clearInterval(countdownTimerRef.current);
-            countdownTimerRef.current = null;
-            setVoiceCountdown(0);
-            setVoiceStatus('');
-            const spoken = draftRef.current.trim();
-            if (spoken) sendRef.current(spoken);
-          } else setVoiceCountdown(remaining);
-        }, 1000);
+        setVoiceStatus('Đã nhận diện giọng nói. Bạn có thể bấm ➤ để gửi.');
+        setTimeout(() => setVoiceStatus(''), 4500);
       };
       recognitionRef.current = recognition;
       recognition.start();
@@ -628,7 +615,6 @@ function Chat({
   async function send(customText) {
     const content = (customText ?? text).trim();
     if (!content && !attachments.length || busy) return;
-    clearVoiceCountdown();
     setVoiceStatus('');
     setText('');
     draftRef.current = '';
@@ -659,12 +645,11 @@ function Chat({
       if (attachments.length) {
         const files = await Promise.all(attachments.map(item => prepareChatAttachment(item.file)));
         data = await apiJSON('/api/chat-ai', {
-          geminiModel: 'gemini-3.5-flash-lite',
           message: content,
           attachments: files,
           history: next.slice(-20),
           answerStyle,
-          geminiModel: selectedProvider === 'gemini' ? selectedModel : 'auto'
+          geminiModel: selectedProvider === 'gemini' ? selectedModel || 'gemini-3.5-flash-lite' : 'gemini-3.5-flash-lite'
         }, 'POST', controller?.signal);
         setAttachments([]);
         setFileNotice('');
@@ -684,11 +669,14 @@ function Chat({
         text: answer,
         meta: data.label || 'Đặng Năm AI'
       }]);
+      saveHistory('AI Chat', `${userText}: ${answer.slice(0, 140)}...`);
     } catch (e) {
-      if (e.name === 'AbortError') setMessages([...next, {
-        role: 'assistant',
-        text: 'Đã dừng phản hồi.'
-      }]);else {
+      if (e.name === 'AbortError') {
+        setMessages([...next, {
+          role: 'assistant',
+          text: 'Đã dừng phản hồi.'
+        }]);
+      } else {
         if (content) {
           draftRef.current = content;
           setText(current => current || content);
@@ -706,21 +694,60 @@ function Chat({
     }
   }
   function copy(t) {
-    navigator.clipboard?.writeText(t);
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(t);
+    }
   }
-  function speak(t) {
+  function cleanMarkdownForSpeech(raw = '') {
+    return String(raw || '').replace(/```[\s\S]*?```/g, ' đoạn mã ').replace(/`([^`]+)`/g, '$1').replace(/#{1,6}\s+/g, '').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1').replace(/__([^_]+)__/g, '$1').replace(/_([^_]+)_/g, '$1').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/!\[([^\]]*)\]\([^)]+\)/g, '').replace(/^>\s+/gm, '').replace(/^[-*+]\s+/gm, '').replace(/\n+/g, ' ').trim();
+  }
+  function toggleSpeak(textToSpeak, id = 'header') {
+    if (speakingId === id) {
+      try {
+        speechSynthesis.cancel();
+      } catch {}
+      setSpeakingId(null);
+      return;
+    }
+    const cleanText = cleanMarkdownForSpeech(textToSpeak);
+    if (!cleanText) return;
     try {
       speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(t);
+      const u = new SpeechSynthesisUtterance(cleanText);
       u.lang = 'vi-VN';
+      u.onend = () => setSpeakingId(null);
+      u.onerror = () => setSpeakingId(null);
+      setSpeakingId(id);
       speechSynthesis.speak(u);
-    } catch {}
+    } catch {
+      setSpeakingId(null);
+    }
   }
+  function handleNewChat() {
+    if (messages.length > 1) {
+      const firstUser = messages.find(m => m.role === 'user');
+      const firstBot = messages.find(m => m.role === 'assistant' && !m.loading);
+      const summary = firstUser ? `${firstUser.text.slice(0, 50)}: ${firstBot?.text?.slice(0, 100) || 'Đoạn chat'}` : 'Cuộc trò chuyện';
+      saveHistory('AI Chat', summary);
+    }
+    if (confirm("Tạo đoạn chat mới?")) {
+      setMessages(DEFAULT_MESSAGES);
+      setAttachments([]);
+      setText('');
+      setFileNotice('');
+      try {
+        speechSynthesis.cancel();
+      } catch {}
+      setSpeakingId(null);
+    }
+  }
+  const isTouchDevice = typeof window !== 'undefined' && ('ontouchstart' in window || navigator.maxTouchPoints > 0);
   const providerGroupLabel = p => `${p.label}${p.freeOnlyBlocked ? ' · tắt để tránh phí' : p.configured ? '' : ' · chưa cấu hình'}`;
   const providerModelOptions = providers.map(p => ({
     ...p,
     modelOptions: Array.from(new Set([...(p.models || []), p.model].filter(Boolean)))
   }));
+  const chatHistoryList = readJSON('synam_history', []).filter(h => h.type === 'AI Chat');
   return /*#__PURE__*/React.createElement("section", {
     className: "chat-layout"
   }, historyOpen && /*#__PURE__*/React.createElement("div", {
@@ -731,23 +758,46 @@ function Chat({
     onClick: e => e.stopPropagation()
   }, /*#__PURE__*/React.createElement("div", {
     className: "drawer-head"
-  }, /*#__PURE__*/React.createElement("h3", null, "🕒 Lịch sử"), /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("h3", null, "🕒 Lịch sử Chat AI"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => setHistoryOpen(false)
   }, "✕")), /*#__PURE__*/React.createElement("div", {
     className: "drawer-body"
-  }, readJSON('synam_history', []).filter(h => h.type === 'AI Chat').reverse().map((h, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    className: "drawer-item",
-    onClick: () => {
-      setText(h.content.substring(0, 200));
-      setHistoryOpen(false);
-    }
-  }, /*#__PURE__*/React.createElement("strong", null, h.type), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("small", null, new Date(h.at).toLocaleString()))), readJSON('synam_history', []).filter(h => h.type === 'AI Chat').length === 0 && /*#__PURE__*/React.createElement("p", {
+  }, chatHistoryList.map((h, i) => {
+    const previewTitle = h.content.split(':')[0] || h.content;
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      className: "drawer-item",
+      onClick: () => {
+        setText(previewTitle.trim());
+        setHistoryOpen(false);
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontWeight: '700',
+        color: '#ffe27a',
+        marginBottom: '4px'
+      }
+    }, "💬 ", previewTitle.slice(0, 70)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: '12px',
+        opacity: 0.82,
+        lineHeight: '1.35'
+      }
+    }, h.content.slice(0, 140)), /*#__PURE__*/React.createElement("small", {
+      style: {
+        opacity: 0.55,
+        marginTop: '4px',
+        display: 'block'
+      }
+    }, h.at));
+  }), chatHistoryList.length === 0 && /*#__PURE__*/React.createElement("p", {
     style: {
       opacity: 0.5,
-      textAlign: 'center'
+      textAlign: 'center',
+      padding: '24px 0'
     }
-  }, "Chưa có")))), /*#__PURE__*/React.createElement("aside", {
+  }, "Chưa có lịch sử chat.")))), /*#__PURE__*/React.createElement("aside", {
     className: "chat-side premium-panel"
   }, /*#__PURE__*/React.createElement("h2", null, "🧠 AI Router"), /*#__PURE__*/React.createElement("p", null, "Auto chọn provider có key. Ưu tiên nhanh, chính xác, không lộ model."), /*#__PURE__*/React.createElement("select", {
     value: modelChoice,
@@ -778,7 +828,7 @@ function Chat({
     checked: council,
     onChange: e => setCouncil(e.target.checked)
   }), " Hội Đồng AI"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setMessages(DEFAULT_MESSAGES)
+    onClick: handleNewChat
   }, "＋ Chat mới"), /*#__PURE__*/React.createElement("div", {
     className: "mini-list"
   }, providers.map(p => /*#__PURE__*/React.createElement("span", {
@@ -787,29 +837,82 @@ function Chat({
   }, p.configured ? '●' : '○', " ", p.label, p.freeOnlyBlocked ? ' (tắt để tránh phí)' : '')))), /*#__PURE__*/React.createElement("div", {
     className: "chat-main premium-panel"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "chat-head",
+    className: "chat-head"
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
-      alignItems: "flex-start",
-      padding: "8px",
-      display: "flex",
-      gap: "8px"
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px'
     }
   }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "chat-icon-btn",
     onClick: () => setHistoryOpen(true)
   }, "🕒 Lịch sử"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "chat-icon-btn",
-    onClick: () => {
-      if (confirm("Tạo đoạn chat mới?")) setMessages(DEFAULT_MESSAGES);
-    }
+    onClick: handleNewChat
   }, "➕ Mới"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     className: "chat-icon-btn",
-    onClick: () => speak(messages.filter(m => m.role === 'assistant').at(-1)?.text || '')
-  }, "🔊 Đọc"), /*#__PURE__*/React.createElement("div", {
+    onClick: () => toggleSpeak(messages.filter(m => m.role === 'assistant').at(-1)?.text || '', 'header')
+  }, speakingId === 'header' ? '⏹️ Dừng đọc' : '🔊 Đọc')), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    className: `chat-icon-btn ${optionsOpen ? 'active' : ''}`,
+    onClick: () => setOptionsOpen(!optionsOpen)
+  }, "⚙️ Tùy chọn ", optionsOpen ? '▲' : '▼')), optionsOpen && /*#__PURE__*/React.createElement("div", {
+    className: "chat-mobile-options-tray"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "chat-opt-group"
+  }, /*#__PURE__*/React.createElement("label", {
+    htmlFor: "chat-mobile-model"
+  }, "🤖 Model AI"), /*#__PURE__*/React.createElement("select", {
+    id: "chat-mobile-model",
+    value: modelChoice,
+    onChange: e => setModelChoice(e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "auto"
+  }, "Auto Router (Tối ưu)"), providerModelOptions.map(p => /*#__PURE__*/React.createElement("optgroup", {
+    key: p.id,
+    label: providerGroupLabel(p),
+    disabled: !p.configured
+  }, p.modelOptions.map(model => /*#__PURE__*/React.createElement("option", {
+    key: `${p.id}:${model}`,
+    value: `${p.id}::${model}`
+  }, model)))))), /*#__PURE__*/React.createElement("div", {
+    className: "chat-opt-group"
+  }, /*#__PURE__*/React.createElement("label", {
+    htmlFor: "chat-mobile-style"
+  }, "📝 Độ dài"), /*#__PURE__*/React.createElement("select", {
+    id: "chat-mobile-style",
+    value: answerStyle,
+    onChange: e => setAnswerStyle(e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "detailed"
+  }, "Chi tiết chuyên nghiệp"), /*#__PURE__*/React.createElement("option", {
+    value: "expert"
+  }, "Chuyên gia sâu"), /*#__PURE__*/React.createElement("option", {
+    value: "concise"
+  }, "Ngắn gọn"))), /*#__PURE__*/React.createElement("div", {
+    className: "chat-opt-group",
     style: {
-      flex: 1
+      alignSelf: 'center'
     }
-  })), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("label", {
+    className: "chat-council-toggle",
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '6px',
+      cursor: 'pointer',
+      fontSize: '12px',
+      color: '#ffe27a'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    checked: council,
+    onChange: e => setCouncil(e.target.checked)
+  }), /*#__PURE__*/React.createElement("span", null, "🏛️ Hội Đồng AI")))), /*#__PURE__*/React.createElement("div", {
     className: "chat-box",
     ref: boxRef
   }, messages.map((m, i) => /*#__PURE__*/React.createElement("div", {
@@ -830,37 +933,20 @@ function Chat({
   }), m.role === 'assistant' && !m.loading && /*#__PURE__*/React.createElement("div", {
     className: "msg-actions"
   }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => copy(m.text)
-  }, "Copy"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => speak(m.text)
-  }, "Đọc"), /*#__PURE__*/React.createElement("button", {
+  }, "Sao chép"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => toggleSpeak(m.text, `msg-${i}`)
+  }, speakingId === `msg-${i}` ? 'Dừng đọc' : 'Đọc'), /*#__PURE__*/React.createElement("button", {
+    type: "button",
     onClick: () => send(lastPrompt)
   }, "Thử lại")))))), /*#__PURE__*/React.createElement("div", {
     className: "chat-composer-panel"
   }, /*#__PURE__*/React.createElement("div", {
-    className: "chat-model-row"
-  }, /*#__PURE__*/React.createElement("label", {
-    htmlFor: "chat-model-choice"
-  }, "Model AI"), /*#__PURE__*/React.createElement("select", {
-    id: "chat-model-choice",
-    value: modelChoice,
-    onChange: e => setModelChoice(e.target.value)
-  }, /*#__PURE__*/React.createElement("option", {
-    value: "auto"
-  }, "Auto — Multi-AI"), providerModelOptions.map(p => /*#__PURE__*/React.createElement("optgroup", {
-    key: p.id,
-    label: providerGroupLabel(p),
-    disabled: !p.configured
-  }, p.modelOptions.map(model => /*#__PURE__*/React.createElement("option", {
-    key: `${p.id}:${model}`,
-    value: `${p.id}::${model}`
-  }, model)))))), /*#__PURE__*/React.createElement("div", {
     className: "chat-upload-bar pro-upload mobile-chat-uploads",
     style: {
-      display: showUploads ? 'flex' : 'none',
-      overflowX: 'auto',
-      gap: '8px',
-      paddingBottom: '4px'
+      display: showUploads ? 'flex' : 'none'
     }
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
@@ -912,147 +998,68 @@ function Chat({
       setShowUploads(false);
     }
   })), attachments.length > 0 && /*#__PURE__*/React.createElement("div", {
-    className: "chat-attachment-list",
-    style: {
-      padding: '0 8px'
-    }
+    className: "chat-attachment-list"
   }, attachments.map(item => /*#__PURE__*/React.createElement("span", {
     className: "chat-file-chip",
-    key: item.id,
-    style: {
-      background: 'rgba(255,255,255,0.1)'
-    }
+    key: item.id
   }, item.file.type.startsWith('image/') ? '🖼️' : '📄', " ", item.file.name, /*#__PURE__*/React.createElement("button", {
     type: "button",
     "aria-label": `Xóa ${item.file.name}`,
     title: `Xóa ${item.file.name}`,
     onClick: () => removeFile(item.id)
-  }, "x")))), fileNotice && /*#__PURE__*/React.createElement("div", {
+  }, "✕")))), fileNotice && /*#__PURE__*/React.createElement("div", {
     className: "chat-file-notice",
-    role: "status",
-    style: {
-      padding: '0 8px'
-    }
+    role: "status"
   }, fileNotice), attachments.length > 0 && modelChoice !== 'auto' && !modelChoice.startsWith('gemini::') && /*#__PURE__*/React.createElement("div", {
-    className: "chat-attachment-note",
-    style: {
-      padding: '0 8px'
-    }
-  }, "Ảnh/file hiện được phân tích qua Gemini đa phương thức."), voiceStatus && /*#__PURE__*/React.createElement("div", {
+    className: "chat-attachment-note"
+  }, "Ảnh/file được xử lý tối ưu qua Gemini đa phương thức."), voiceStatus && /*#__PURE__*/React.createElement("div", {
     className: "chat-voice-status",
-    role: "status",
-    style: {
-      padding: '0 8px'
-    }
-  }, voiceStatus, voiceCountdown > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, " ", /*#__PURE__*/React.createElement("b", null, "Gửi sau ", voiceCountdown, "s"), " ", /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: () => clearVoiceCountdown('Đã hủy tự động gửi.')
-  }, "Hủy"))), /*#__PURE__*/React.createElement("div", {
-    className: "composer chat-pill-composer",
-    style: {
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      background: 'rgba(30, 30, 35, 0.7)',
-      borderRadius: '30px',
-      padding: '6px 6px'
-    }
+    role: "status"
+  }, voiceStatus), /*#__PURE__*/React.createElement("div", {
+    className: "composer chat-pill-composer"
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
+    className: "chat-plus-btn",
     onClick: () => setShowUploads(!showUploads),
-    style: {
-      color: '#fff',
-      background: 'transparent',
-      border: 0,
-      fontSize: '24px',
-      width: '36px',
-      height: '36px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      cursor: 'pointer',
-      flexShrink: 0,
-      paddingBottom: '3px'
-    }
+    title: "Đính kèm"
   }, "+"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      display: 'flex',
-      flexDirection: 'column',
-      minWidth: 0,
-      margin: '0 6px'
-    }
+    className: "chat-input-wrapper"
   }, /*#__PURE__*/React.createElement("textarea", {
     value: text,
     onChange: e => {
       draftRef.current = e.target.value;
-      if (voiceCountdown) clearVoiceCountdown('Đã hủy tự động gửi do bạn chỉnh sửa nội dung.');
       setText(e.target.value);
     },
     onKeyDown: e => {
-      if (e.key === 'Enter' && !e.shiftKey) {
+      if (!isTouchDevice && e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         send();
       }
     },
     placeholder: "Hỏi AI...",
     "aria-label": "Tin nhắn gửi AI",
-    rows: "1",
-    style: {
-      background: 'transparent',
-      border: 0,
-      color: '#fff',
-      fontSize: '15px',
-      padding: '4px 0',
-      resize: 'none',
-      outline: 'none',
-      width: '100%',
-      boxShadow: 'none'
-    }
+    rows: "1"
   })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '4px',
-      flexShrink: 0
-    }
+    className: "chat-actions-wrapper"
   }, listening ? /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "chat-mic-btn is-listening",
     "aria-label": "Dừng ghi âm",
     title: "Dừng ghi âm",
-    onClick: stopDictation,
-    style: {
-      background: 'transparent',
-      border: 0,
-      fontSize: '20px'
-    }
+    onClick: stopDictation
   }, "🛑") : /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "chat-mic-btn",
     "aria-label": "Nhập bằng giọng nói",
     title: "Nhập bằng giọng nói",
     disabled: busy,
-    onClick: startDictation,
-    style: {
-      background: 'transparent',
-      border: 0,
-      fontSize: '20px'
-    }
+    onClick: startDictation
   }, "🎤"), text.trim() || attachments.length > 0 || busy ? /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: `pill-send-btn ${busy ? 'is-stop' : ''}`,
     "aria-label": busy ? 'Dừng phản hồi' : 'Gửi tin nhắn',
     title: busy ? 'Dừng phản hồi' : 'Gửi tin nhắn',
-    onClick: busy ? stopResponse : () => send(),
-    style: {
-      background: 'transparent',
-      border: 0,
-      fontSize: '20px',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center'
-    }
+    onClick: busy ? stopResponse : () => send()
   }, busy ? '🛑' : '➤') : null)))));
 }
 function Settings({
