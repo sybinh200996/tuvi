@@ -838,12 +838,6 @@ function Chat({
     className: "chat-main premium-panel"
   }, /*#__PURE__*/React.createElement("div", {
     className: "chat-head"
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '6px'
-    }
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "chat-icon-btn",
@@ -856,7 +850,7 @@ function Chat({
     type: "button",
     className: "chat-icon-btn",
     onClick: () => toggleSpeak(messages.filter(m => m.role === 'assistant').at(-1)?.text || '', 'header')
-  }, speakingId === 'header' ? '⏹️ Dừng đọc' : '🔊 Đọc')), /*#__PURE__*/React.createElement("button", {
+  }, speakingId === 'header' ? '⏹️ Dừng' : '🔊 Đọc'), /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: `chat-icon-btn ${optionsOpen ? 'active' : ''}`,
     onClick: () => setOptionsOpen(!optionsOpen)

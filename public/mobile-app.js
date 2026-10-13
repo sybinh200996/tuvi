@@ -573,13 +573,11 @@ function Chat({ providers }) {
 
     <div className="chat-main premium-panel">
       <div className="chat-head">
-        <div style={{display: 'flex', alignItems: 'center', gap: '6px'}}>
-          <button type="button" className="chat-icon-btn" onClick={() => setHistoryOpen(true)}>🕒 Lịch sử</button>
-          <button type="button" className="chat-icon-btn" onClick={handleNewChat}>➕ Mới</button>
-          <button type="button" className="chat-icon-btn" onClick={() => toggleSpeak(messages.filter(m=>m.role==='assistant').at(-1)?.text || '', 'header')}>
-            {speakingId === 'header' ? '⏹️ Dừng đọc' : '🔊 Đọc'}
-          </button>
-        </div>
+        <button type="button" className="chat-icon-btn" onClick={() => setHistoryOpen(true)}>🕒 Lịch sử</button>
+        <button type="button" className="chat-icon-btn" onClick={handleNewChat}>➕ Mới</button>
+        <button type="button" className="chat-icon-btn" onClick={() => toggleSpeak(messages.filter(m=>m.role==='assistant').at(-1)?.text || '', 'header')}>
+          {speakingId === 'header' ? '⏹️ Dừng' : '🔊 Đọc'}
+        </button>
         <button type="button" className={`chat-icon-btn ${optionsOpen ? 'active' : ''}`} onClick={() => setOptionsOpen(!optionsOpen)}>
           ⚙️ Tùy chọn {optionsOpen ? '▲' : '▼'}
         </button>

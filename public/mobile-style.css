@@ -1088,7 +1088,8 @@ html, body {
   .app-shell { padding-left: 0px !important; padding-right: 0px !important; }
   .chat-layout .tab-rail { gap: 2px !important; margin-left: 7px !important; margin-right: 7px !important; }
   .chat-layout .tab-rail button { padding-left: 2px !important; padding-right: 2px !important; font-size: 10px !important; }
-  .chat-layout .chat-head { padding-left: 8px !important; padding-right: 8px !important; }
+  .chat-layout .chat-head { padding-left: 4px !important; padding-right: 4px !important; }
+  .chat-head .chat-icon-btn { font-size: 11px !important; padding: 6px 1px !important; gap: 2px !important; }
   .chat-layout .composer.chat-pill-composer { left: 0px !important; right: 0px !important; }
   .bottom-nav { left: 0px !important; right: 0px !important; }
 }
@@ -1111,39 +1112,53 @@ html, body {
     overflow-y: auto !important;
   }
   
+  .chat-layout .chat-main {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+  }
+  
   .chat-head {
     display: flex !important;
     align-items: center !important;
     justify-content: space-between !important;
     gap: 6px !important;
-    padding: 8px 12px !important;
-    margin: 6px 10px 8px !important;
-    border-radius: 16px !important;
-    background: rgba(12, 20, 42, 0.65) !important;
-    border: 1px solid rgba(255, 255, 255, 0.12) !important;
-    backdrop-filter: blur(14px) !important;
-    -webkit-backdrop-filter: blur(14px) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 0 6px 6px !important;
+    margin: 0 auto 6px !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
   
   .chat-head p { display: none !important; }
   
-  .chat-icon-btn {
+  .chat-icon-btn,
+  .chat-head .chat-icon-btn {
+    flex: 1 1 0 !important;
+    min-width: 0 !important;
     background: rgba(255, 255, 255, 0.08) !important;
     border: 1px solid rgba(255, 255, 255, 0.16) !important;
     border-radius: 999px !important;
-    font-size: 13px !important;
+    font-size: 12.5px !important;
     color: #e2d9fc !important;
-    padding: 5px 11px !important;
+    padding: 7px 2px !important;
     margin: 0 !important;
     cursor: pointer !important;
     font-weight: 600 !important;
     white-space: nowrap !important;
     display: inline-flex !important;
     align-items: center !important;
-    gap: 4px !important;
-    transition: background 0.2s ease, color 0.2s ease !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    box-sizing: border-box !important;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease !important;
   }
-  .chat-icon-btn:hover, .chat-icon-btn:active, .chat-icon-btn.active {
+  .chat-icon-btn:hover, .chat-icon-btn:active, .chat-icon-btn.active,
+  .chat-head .chat-icon-btn:hover, .chat-head .chat-icon-btn:active, .chat-head .chat-icon-btn.active {
     background: rgba(255, 215, 0, 0.22) !important;
     border-color: rgba(255, 215, 0, 0.45) !important;
     color: #ffd700 !important;
@@ -1154,7 +1169,7 @@ html, body {
     flex-wrap: wrap !important;
     gap: 8px !important;
     padding: 10px 12px !important;
-    margin: 0 10px 10px !important;
+    margin: 0 6px 10px !important;
     background: rgba(10, 18, 38, 0.92) !important;
     border: 1px solid rgba(255, 255, 255, 0.18) !important;
     border-radius: 16px !important;
@@ -1741,22 +1756,29 @@ html, body {
   }
 }
 
-.chat-icon-btn {
+.chat-icon-btn,
+.chat-head .chat-icon-btn {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
   background: rgba(255, 255, 255, 0.08) !important;
   border: 1px solid rgba(255, 255, 255, 0.16) !important;
   border-radius: 999px !important;
-  font-size: 13px !important;
+  font-size: 12.5px !important;
   color: #e2d9fc !important;
-  padding: 5px 12px !important;
+  padding: 7px 2px !important;
   margin: 0 !important;
   cursor: pointer;
   white-space: nowrap;
   font-weight: 600 !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 4px !important;
+  justify-content: center !important;
+  gap: 3px !important;
+  box-sizing: border-box !important;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease !important;
 }
-.chat-icon-btn:hover, .chat-icon-btn:active, .chat-icon-btn.active {
+.chat-icon-btn:hover, .chat-icon-btn:active, .chat-icon-btn.active,
+.chat-head .chat-icon-btn:hover, .chat-head .chat-icon-btn:active, .chat-head .chat-icon-btn.active {
   background: rgba(255, 215, 0, 0.22) !important;
   border-color: rgba(255, 215, 0, 0.45) !important;
   color: #ffd700 !important;
