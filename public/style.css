@@ -2175,6 +2175,23 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
   gap: 10px;
   margin: 8px 0;
 }
+.vision-actions-compact {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  margin: 6px 0 10px !important;
+}
+.vision-action-btn.btn-sm {
+  padding: 6px 14px !important;
+  font-size: 12px !important;
+  border-radius: 10px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  width: auto !important;
+  font-weight: 600 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
 .vision-action-btn {
   display: inline-flex;
   align-items: center;
