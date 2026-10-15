@@ -649,57 +649,56 @@ async function analyzeVision(kind){const isPalm=kind==='palm';const resultId=isP
 async function simpleTool(kind){const map={astrology:['astrologyResult','🪐 Kết quả chiêm tinh',`Cung: ${$('zodiac')?.value||''}\nCâu hỏi: ${$('astroQuestion')?.value||''}`],fengshui:['fengshuiResult','☯ Kết quả phong thủy',`Năm sinh: ${$('fengYear')?.value||''}\nCâu hỏi: ${$('fengAsk')?.value||''}`],tarot:['tarotResult','🃏 Kết quả bói bài',$('tarotAsk')?.value||'']};const [id,title,prompt]=map[kind];setLoading(id,true);try{const data=await postJSON('/api/chat-ai',{message:`${title}. ${prompt}`});const text=data.text||data.answer||data.result;$(id).innerHTML=htmlResult(title,text);saveHistory(title,text)}catch(e){const text=`### ${title}\n- Hiện chưa kết nối được AI server.\n- Nội dung bạn hỏi: ${prompt}\n- Lời khuyên: xem đây là gợi ý tham khảo, nên đối chiếu với tình hình thực tế.`;$(id).innerHTML=htmlResult(title,text);saveHistory(title+' local',text)}finally{setLoading(id,false)}}
 async function deepAnalyze(){const q=$('deepAsk').value.trim();if(!q)return toast('Nhập chủ đề đã nhé');setLoading('deepResult',true);try{const data=await postJSON('/api/chat-ai',{message:`Phân tích sâu theo nhiều lớp, rõ ràng, có lời khuyên thực tế: ${q}`});const text=data.text||data.answer||data.result;$('deepResult').innerHTML=htmlResult('🤯 AI phân tích sâu',text);saveHistory('AI phân tích sâu',text)}catch(e){const text=`### Phân tích sâu local\n- Vấn đề: ${q}\n- Lớp 1: xác định mục tiêu thật sự.\n- Lớp 2: xem rủi ro, nguồn lực, thời gian.\n- Lớp 3: chọn bước nhỏ làm ngay hôm nay.\n- Lời khuyên: đừng ôm quá nhiều hướng cùng lúc.`;$('deepResult').innerHTML=htmlResult('🤯 AI phân tích sâu',text);saveHistory('AI phân tích sâu local',text)}finally{setLoading('deepResult',false)}}
 
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyD7S-MSbrQLzvfgh0PPgyNtZzDpYntIF0k",
+  authDomain: "dangnam-tuvi.firebaseapp.com",
+  projectId: "dangnam-tuvi",
+  storageBucket: "dangnam-tuvi.firebasestorage.app",
+  messagingSenderId: "183878060405",
+  appId: "1:183878060405:web:c40387b975b1bf077d2b3c",
+  measurementId: "G-RJ2LBTXYSJ"
+};
+
+function getFirebase(){
+  if (typeof window === 'undefined' || !window.firebase) {
+    throw new Error('Firebase SDK chưa được tải trên trình duyệt.');
+  }
+  if (!window.firebase.apps || !window.firebase.apps.length) {
+    window.firebase.initializeApp(FIREBASE_CONFIG);
+  }
+  return window.firebase;
+}
+
 async function initFirebaseAuth(){
-  if(firebaseAuthState.ready) return firebaseAuthState;
-  firebaseAuthState.ready=true;
-  try{
-    const cfgData=await fetch('/api/auth/firebase-config').then(r=>r.json());
-    if(!cfgData.enabled){
-      const hint=$('socialLoginHint');
-      if(hint) hint.textContent='Đăng nhập nhanh chưa sẵn sàng.';
-      return firebaseAuthState;
-    }
-    const appMod=await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js');
-    const authMod=await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js');
-    const app=appMod.initializeApp(cfgData.config);
-    const auth=authMod.getAuth(app);
-    auth.useDeviceLanguage();
-    firebaseAuthState={
-      enabled:true,
-      app,
-      auth,
-      providers:{
-        google:new authMod.GoogleAuthProvider(),
-        facebook:new authMod.FacebookAuthProvider()
-      },
-      signInWithPopup:authMod.signInWithPopup,
-      ready:true
-    };
-    const hint=$('socialLoginHint');
-    if(hint) hint.textContent='Đăng nhập nhanh đã sẵn sàng.';
-    return firebaseAuthState;
-  }catch(error){
-    console.error('Firebase Auth init error:',error);
-    const hint=$('socialLoginHint');
-    if(hint) hint.textContent='Đăng nhập nhanh chưa khả dụng.';
-    return firebaseAuthState;
+  try {
+    const fb = getFirebase();
+    const hint = $('socialLoginHint');
+    if (hint) hint.textContent = 'Đăng nhập nhanh đã sẵn sàng.';
+    return { enabled: true, fb };
+  } catch (e) {
+    console.error('Firebase init error:', e);
+    const hint = $('socialLoginHint');
+    if (hint) hint.textContent = 'Đăng nhập nhanh chưa khả dụng.';
+    return { enabled: false };
   }
 }
 
 async function socialLogin(provider){
   try{
-    toast(`Đang kết nối tới ${provider === 'google' ? 'Google' : 'Facebook'}...`);
-    const state = await initFirebaseAuth();
-    if (!state.enabled || !state.auth) {
-      toast('Hệ thống đăng nhập nhanh chưa được kích hoạt hoặc không kết nối được Firebase.');
-      return;
+    toast(`Đang mở cửa sổ đăng nhập ${provider === 'google' ? 'Google' : 'Facebook'}...`);
+    const fb = getFirebase();
+    const auth = fb.auth();
+    auth.useDeviceLanguage();
+    const authProvider = provider === 'facebook'
+      ? new fb.auth.FacebookAuthProvider()
+      : new fb.auth.GoogleAuthProvider();
+    
+    if (provider === 'google') {
+      authProvider.addScope('email');
+      authProvider.addScope('profile');
     }
-    const authProvider = state.providers[provider];
-    if (!authProvider) {
-      toast(`Không hỗ trợ đăng nhập qua ${provider}`);
-      return;
-    }
-    const result = await state.signInWithPopup(state.auth, authProvider);
+    
+    const result = await auth.signInWithPopup(authProvider);
     const fbUser = result.user;
     const idToken = await fbUser.getIdToken();
     const data = await postJSON('/api/auth/social', {
@@ -724,7 +723,7 @@ async function socialLogin(provider){
       return;
     }
     if (error.code === 'auth/unauthorized-domain') {
-      alert('Tên miền / IP hiện tại chưa được cấp quyền trong Firebase Console (mục Authentication -> Settings -> Authorized domains). Vui lòng thêm domain vào Firebase để hoàn tất.');
+      alert('Tên miền ' + window.location.hostname + ' chưa được cấp quyền trong Firebase Console. Vui lòng vào Firebase Console -> Authentication -> Settings -> Authorized domains -> Thêm "' + window.location.hostname + '" vào danh sách để hoàn tất.');
       return;
     }
     toast(error?.message || 'Đăng nhập mạng xã hội lỗi');

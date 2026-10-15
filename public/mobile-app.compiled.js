@@ -1082,41 +1082,23 @@ function Chat({
     onClick: busy ? stopResponse : () => send()
   }, busy ? '🛑' : '➤') : null)))));
 }
-let mobileFirebaseAuth = {
-  ready: false,
-  enabled: false,
-  auth: null,
-  providers: {},
-  signInWithPopup: null
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyD7S-MSbrQLzvfgh0PPgyNtZzDpYntIF0k",
+  authDomain: "dangnam-tuvi.firebaseapp.com",
+  projectId: "dangnam-tuvi",
+  storageBucket: "dangnam-tuvi.firebasestorage.app",
+  messagingSenderId: "183878060405",
+  appId: "1:183878060405:web:c40387b975b1bf077d2b3c",
+  measurementId: "G-RJ2LBTXYSJ"
 };
-async function initMobileFirebaseAuth() {
-  if (mobileFirebaseAuth.ready && mobileFirebaseAuth.auth) return mobileFirebaseAuth;
-  try {
-    const cfgData = await fetch('/api/auth/firebase-config').then(r => r.json());
-    if (!cfgData.enabled) {
-      return mobileFirebaseAuth;
-    }
-    const appMod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js');
-    const authMod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js');
-    const app = appMod.initializeApp(cfgData.config);
-    const auth = authMod.getAuth(app);
-    auth.useDeviceLanguage();
-    mobileFirebaseAuth = {
-      enabled: true,
-      app,
-      auth,
-      providers: {
-        google: new authMod.GoogleAuthProvider(),
-        facebook: new authMod.FacebookAuthProvider()
-      },
-      signInWithPopup: authMod.signInWithPopup,
-      ready: true
-    };
-    return mobileFirebaseAuth;
-  } catch (error) {
-    console.error('Firebase Auth mobile init error:', error);
-    return mobileFirebaseAuth;
+function getMobileFirebase() {
+  if (typeof window === 'undefined' || !window.firebase) {
+    throw new Error('Firebase SDK chưa được tải trên trình duyệt.');
   }
+  if (!window.firebase.apps || !window.firebase.apps.length) {
+    window.firebase.initializeApp(FIREBASE_CONFIG);
+  }
+  return window.firebase;
 }
 function Settings({
   providers,
@@ -1134,19 +1116,15 @@ function Settings({
     if (socialLoading) return;
     setSocialLoading(true);
     try {
-      const fb = await initMobileFirebaseAuth();
-      if (!fb.enabled || !fb.auth) {
-        alert('Hệ thống đăng nhập nhanh chưa được kích hoạt hoặc không kết nối được Firebase.');
-        setSocialLoading(false);
-        return;
+      const fb = getMobileFirebase();
+      const auth = fb.auth();
+      auth.useDeviceLanguage();
+      const authProvider = provider === 'facebook' ? new fb.auth.FacebookAuthProvider() : new fb.auth.GoogleAuthProvider();
+      if (provider === 'google') {
+        authProvider.addScope('email');
+        authProvider.addScope('profile');
       }
-      const authProvider = fb.providers[provider];
-      if (!authProvider) {
-        alert('Không hỗ trợ đăng nhập qua ' + provider);
-        setSocialLoading(false);
-        return;
-      }
-      const result = await fb.signInWithPopup(fb.auth, authProvider);
+      const result = await auth.signInWithPopup(authProvider);
       const fbUser = result.user;
       const idToken = await fbUser.getIdToken();
       const payload = {
@@ -1174,7 +1152,7 @@ function Settings({
         return;
       }
       if (e.code === 'auth/unauthorized-domain') {
-        alert('Tên miền / IP hiện tại chưa được cấp quyền trong Firebase Console (mục Authentication -> Settings -> Authorized domains). Vui lòng thêm domain vào Firebase để hoàn tất.');
+        alert('Tên miền ' + window.location.hostname + ' chưa được cấp quyền trong Firebase Console. Vui lòng vào Firebase Console -> Authentication -> Settings -> Authorized domains -> Thêm "' + window.location.hostname + '" vào danh sách để hoàn tất.');
         setSocialLoading(false);
         return;
       }
