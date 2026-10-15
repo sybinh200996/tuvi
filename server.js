@@ -166,7 +166,8 @@ function firebaseConfigFromEnv() {
     projectId: process.env.FIREBASE_PROJECT_ID || "",
     appId: process.env.FIREBASE_APP_ID || "",
     messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || "",
-    measurementId: process.env.FIREBASE_MEASUREMENT_ID || ""
+    measurementId: process.env.FIREBASE_MEASUREMENT_ID || "",
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || ""
   };
 }
 

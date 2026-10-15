@@ -1082,6 +1082,42 @@ function Chat({
     onClick: busy ? stopResponse : () => send()
   }, busy ? '🛑' : '➤') : null)))));
 }
+let mobileFirebaseAuth = {
+  ready: false,
+  enabled: false,
+  auth: null,
+  providers: {},
+  signInWithPopup: null
+};
+async function initMobileFirebaseAuth() {
+  if (mobileFirebaseAuth.ready && mobileFirebaseAuth.auth) return mobileFirebaseAuth;
+  try {
+    const cfgData = await fetch('/api/auth/firebase-config').then(r => r.json());
+    if (!cfgData.enabled) {
+      return mobileFirebaseAuth;
+    }
+    const appMod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js');
+    const authMod = await import('https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js');
+    const app = appMod.initializeApp(cfgData.config);
+    const auth = authMod.getAuth(app);
+    auth.useDeviceLanguage();
+    mobileFirebaseAuth = {
+      enabled: true,
+      app,
+      auth,
+      providers: {
+        google: new authMod.GoogleAuthProvider(),
+        facebook: new authMod.FacebookAuthProvider()
+      },
+      signInWithPopup: authMod.signInWithPopup,
+      ready: true
+    };
+    return mobileFirebaseAuth;
+  } catch (error) {
+    console.error('Firebase Auth mobile init error:', error);
+    return mobileFirebaseAuth;
+  }
+}
 function Settings({
   providers,
   reload
@@ -1093,19 +1129,35 @@ function Settings({
     email: user?.email || '',
     password: ''
   });
+  const [socialLoading, setSocialLoading] = useState(false);
   async function handleSocialLogin(provider) {
+    if (socialLoading) return;
+    setSocialLoading(true);
     try {
-      // Simulated OAuth popup
-      const email = `user_${Date.now().toString().slice(-6)}@${provider}.com`;
-      alert('Đang kết nối tới ' + provider + '...');
-      await new Promise(r => setTimeout(r, 1000));
-      const name = provider === 'google' ? 'Google User' : 'Facebook User';
-      const data = await apiJSON('/api/auth/social', {
+      const fb = await initMobileFirebaseAuth();
+      if (!fb.enabled || !fb.auth) {
+        alert('Hệ thống đăng nhập nhanh chưa được kích hoạt hoặc không kết nối được Firebase.');
+        setSocialLoading(false);
+        return;
+      }
+      const authProvider = fb.providers[provider];
+      if (!authProvider) {
+        alert('Không hỗ trợ đăng nhập qua ' + provider);
+        setSocialLoading(false);
+        return;
+      }
+      const result = await fb.signInWithPopup(fb.auth, authProvider);
+      const fbUser = result.user;
+      const idToken = await fbUser.getIdToken();
+      const payload = {
         provider,
-        email,
-        name,
-        uid: 'social_' + Date.now()
-      });
+        uid: fbUser.uid,
+        email: fbUser.email,
+        name: fbUser.displayName || (provider === 'google' ? 'Google User' : 'Facebook User'),
+        avatar: fbUser.photoURL || '',
+        idToken: idToken
+      };
+      const data = await apiJSON('/api/auth/social', payload);
       localStorage.setItem('synam_user', JSON.stringify(data.user));
       localStorage.setItem('synam_token', data.token || '');
       setUser(data.user);
@@ -1114,10 +1166,21 @@ function Settings({
         email: '',
         password: ''
       });
-      alert(`Đăng nhập ${provider === 'google' ? 'Google' : 'Facebook'} thành công!`);
+      alert(`Đăng nhập ${provider === 'google' ? 'Google' : 'Facebook'} thành công! Chào mừng ${data.user.name || data.user.email}`);
       await reload();
     } catch (e) {
-      alert(e.message);
+      if (e.code === 'auth/popup-closed-by-user') {
+        setSocialLoading(false);
+        return;
+      }
+      if (e.code === 'auth/unauthorized-domain') {
+        alert('Tên miền / IP hiện tại chưa được cấp quyền trong Firebase Console (mục Authentication -> Settings -> Authorized domains). Vui lòng thêm domain vào Firebase để hoàn tất.');
+        setSocialLoading(false);
+        return;
+      }
+      alert('Lỗi đăng nhập: ' + (e.message || e));
+    } finally {
+      setSocialLoading(false);
     }
   }
   async function submitAccount(action) {
@@ -1169,10 +1232,75 @@ function Settings({
     style: {
       marginBottom: '20px'
     }
-  }, /*#__PURE__*/React.createElement("h3", null, user ? `Đã đăng nhập: ${user.name || user.email}` : 'Tài khoản thành viên'), user ? /*#__PURE__*/React.createElement("button", {
+  }, user ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      marginBottom: '14px',
+      padding: '12px',
+      background: 'rgba(255,255,255,0.06)',
+      borderRadius: '16px',
+      border: '1px solid rgba(255,255,255,0.12)'
+    }
+  }, user.avatar ? /*#__PURE__*/React.createElement("img", {
+    src: user.avatar,
+    alt: "Avatar",
+    style: {
+      width: '48px',
+      height: '48px',
+      borderRadius: '50%',
+      border: '2px solid #ffd700',
+      objectFit: 'cover'
+    }
+  }) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: '48px',
+      height: '48px',
+      borderRadius: '50%',
+      background: 'rgba(255,255,255,0.15)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: '24px'
+    }
+  }, "👤"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 'bold',
+      fontSize: '15px',
+      color: '#ffe6ad'
+    }
+  }, user.name || 'Người dùng'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: '12px',
+      opacity: 0.8,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap'
+    }
+  }, user.email), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: '11px',
+      color: '#4ade80',
+      marginTop: '2px'
+    }
+  }, "Gói: ", user.plan || 'Free', " · ", (user.providers || []).map(p => p === 'google' ? 'Google' : p === 'facebook' ? 'Facebook' : p).join(', ') || 'Email')), /*#__PURE__*/React.createElement("button", {
     type: "button",
-    onClick: logout
-  }, "Đăng xuất") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    onClick: logout,
+    style: {
+      padding: '6px 12px',
+      fontSize: '12px',
+      background: 'rgba(239,68,68,0.2)',
+      border: '1px solid rgba(239,68,68,0.5)',
+      color: '#ff8888',
+      borderRadius: '10px'
+    }
+  }, "Đăng xuất")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'grid',
       gridTemplateColumns: '1fr 1fr',
@@ -1181,6 +1309,7 @@ function Settings({
     }
   }, /*#__PURE__*/React.createElement("button", {
     type: "button",
+    disabled: socialLoading,
     onClick: () => handleSocialLogin('google'),
     style: {
       background: 'linear-gradient(135deg,rgba(255,74,74,.92),rgba(255,180,42,.78))',
@@ -1188,10 +1317,12 @@ function Settings({
       borderRadius: '16px',
       color: '#fff',
       fontWeight: 900,
-      textShadow: '0 1px 3px rgba(0,0,0,0.3)'
+      textShadow: '0 1px 3px rgba(0,0,0,0.3)',
+      opacity: socialLoading ? 0.6 : 1
     }
-  }, "🔴 Google"), /*#__PURE__*/React.createElement("button", {
+  }, "🔴 ", socialLoading ? 'Đang mở...' : 'Google'), /*#__PURE__*/React.createElement("button", {
     type: "button",
+    disabled: socialLoading,
     onClick: () => handleSocialLogin('facebook'),
     style: {
       background: 'linear-gradient(135deg,rgba(24,119,242,.92),rgba(68,72,255,.82))',
@@ -1199,9 +1330,10 @@ function Settings({
       borderRadius: '16px',
       color: '#fff',
       fontWeight: 900,
-      textShadow: '0 1px 3px rgba(0,0,0,0.3)'
+      textShadow: '0 1px 3px rgba(0,0,0,0.3)',
+      opacity: socialLoading ? 0.6 : 1
     }
-  }, "🔵 Facebook")), /*#__PURE__*/React.createElement("div", {
+  }, "🔵 ", socialLoading ? 'Đang mở...' : 'Facebook')), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       alignItems: 'center',

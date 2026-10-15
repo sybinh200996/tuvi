@@ -688,28 +688,46 @@ async function initFirebaseAuth(){
 
 async function socialLogin(provider){
   try{
-    const email = prompt(`[Mô phỏng OAuth] - Đăng nhập ${provider} thành công! Vui lòng nhập email của bạn:`, `user@${provider}.com`);
-    if(!email) return;
-    const name = provider === 'google' ? 'Google User' : 'Facebook User';
-    const data=await postJSON('/api/auth/social',{
+    toast(`Đang kết nối tới ${provider === 'google' ? 'Google' : 'Facebook'}...`);
+    const state = await initFirebaseAuth();
+    if (!state.enabled || !state.auth) {
+      toast('Hệ thống đăng nhập nhanh chưa được kích hoạt hoặc không kết nối được Firebase.');
+      return;
+    }
+    const authProvider = state.providers[provider];
+    if (!authProvider) {
+      toast(`Không hỗ trợ đăng nhập qua ${provider}`);
+      return;
+    }
+    const result = await state.signInWithPopup(state.auth, authProvider);
+    const fbUser = result.user;
+    const idToken = await fbUser.getIdToken();
+    const data = await postJSON('/api/auth/social', {
       provider,
-      uid:'social_' + Date.now(),
-      email:email,
-      name:name,
-      avatar:'',
-      idToken:'mock_token'
+      uid: fbUser.uid,
+      email: fbUser.email,
+      name: fbUser.displayName || (provider === 'google' ? 'Google User' : 'Facebook User'),
+      avatar: fbUser.photoURL || '',
+      idToken: idToken
     });
-    localStorage.setItem('synam_user',JSON.stringify(data.user));
-    localStorage.setItem('synam_token',data.token||'');
-    localStorage.setItem('synam_profile',JSON.stringify({name:data.user.name,email:data.user.email,plan:data.user.plan||'Free'}));
-    if($('profileName'))$('profileName').value=data.user.name||'';
-    if($('profileEmail'))$('profileEmail').value=data.user.email||'';
-    if($('profilePlan'))$('profilePlan').value=data.user.plan||'Free';
-    setAccountStatus(data.user,'Đăng nhập bằng '+(provider==='google'?'Google':'Facebook')+' thành công.');
-    toast('Đăng nhập thành công');
+    localStorage.setItem('synam_user', JSON.stringify(data.user));
+    localStorage.setItem('synam_token', data.token || '');
+    localStorage.setItem('synam_profile', JSON.stringify({ name: data.user.name, email: data.user.email, plan: data.user.plan || 'Free' }));
+    if ($('profileName')) $('profileName').value = data.user.name || '';
+    if ($('profileEmail')) $('profileEmail').value = data.user.email || '';
+    if ($('profilePlan')) $('profilePlan').value = data.user.plan || 'Free';
+    setAccountStatus(data.user, 'Đăng nhập bằng ' + (provider === 'google' ? 'Google' : 'Facebook') + ' thành công.');
+    toast(`Đăng nhập thành công! Chào mừng ${data.user.name || data.user.email}`);
   }catch(error){
-    console.error(error);
-    toast(error?.message||'Đăng nhập mạng xã hội lỗi');
+    console.error('Social login error:', error);
+    if (error.code === 'auth/popup-closed-by-user') {
+      return;
+    }
+    if (error.code === 'auth/unauthorized-domain') {
+      alert('Tên miền / IP hiện tại chưa được cấp quyền trong Firebase Console (mục Authentication -> Settings -> Authorized domains). Vui lòng thêm domain vào Firebase để hoàn tất.');
+      return;
+    }
+    toast(error?.message || 'Đăng nhập mạng xã hội lỗi');
   }
 }
 
