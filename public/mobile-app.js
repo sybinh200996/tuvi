@@ -898,45 +898,370 @@ function Settings({ providers, reload }) {
 }
 
 function VisionTool({ mode, title, icon }) {
-  const [result, setResult] = useState('Vui lòng tải ảnh lên để bắt đầu.');
-  const [file, setFile] = useState(null);
+  const isFace = mode === 'face';
+  const defaultHint = isFace
+    ? '* Mẹo: Chụp chính diện khuôn mặt, rõ 5 ngũ quan (trán, mắt, mũi, miệng, cằm), đủ sáng, không đeo kính râm và không che trán để xem tướng chuẩn xác nhất.'
+    : '* Mẹo: Chụp rõ toàn bộ lòng bàn tay, đủ sáng, không bị bóng râm che khuất.';
+
+  const [result, setResult] = useState('Vui lòng chụp ảnh hoặc tải ảnh lên để AI xem trực tiếp.');
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [imageDataUrl, setImageDataUrl] = useState('');
   const [note, setNote] = useState('');
-  
-  async function run() {
-    if (!file) return setResult('Bạn cần chọn ảnh trước nhé.');
-    setResult('Đang tối ưu ảnh và chuẩn bị phân tích...');
+  const [focusPart, setFocusPart] = useState(isFace ? 'Tổng quan ngũ quan & thần thái' : 'Tổng quan đường tay');
+  const [isLiveCamera, setIsLiveCamera] = useState(false);
+  const [cameraFacing, setCameraFacing] = useState(isFace ? 'user' : 'environment');
+  const [autoAnalyze, setAutoAnalyze] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [cameraError, setCameraError] = useState('');
+
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const nativeCameraInputRef = useRef(null);
+
+  const stopStream = () => {
+    if (streamRef.current) {
+      try {
+        streamRef.current.getTracks().forEach(track => track.stop());
+      } catch(e){}
+      streamRef.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => stopStream();
+  }, []);
+
+  async function startCamera(facing = cameraFacing) {
+    stopStream();
+    setCameraError('');
+    setIsLiveCamera(true);
     try {
-      const image = await optimizeImage(file);
-      const payload = mode === 'palm'
-        ? { mode, image, palmImage: image, palmLine: 'Tổng quan đường tay', palmNote: note, geminiModel: 'gemini-3.5-flash-lite' }
-        : { mode, image, faceImage: image, facePart: 'Tổng quan ngũ quan', faceNote: note, geminiModel: 'gemini-3.5-flash-lite' };
-      setResult('AI đang phân tích ảnh...');
-      const d = await apiJSON('/api/vision-ai', payload);
-      setResult(d.text || d.reply || 'Không có kết quả.'); saveHistory(title, d.text || d.reply || 'Không có kết quả.');
-    } catch(e) { 
-      const fb = window.MysticEngine ? 
-        (mode === 'palm' ? window.MysticEngine.Palmistry.analyze(note, '') : window.MysticEngine.Face.analyze(note, ''))
-        : (mode === 'palm' ? '### Lỗi tải Mystic Engine - Chỉ Tay' : '### Lỗi tải Mystic Engine - Tướng Mặt');
-      setResult(fb); saveHistory(title + ' local', fb);
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        throw new Error('Trình duyệt chưa hỗ trợ Live Camera trực tiếp. Bạn vui lòng bấm nút "📷 Chụp bằng máy" nhé.');
+      }
+      const constraints = {
+        video: {
+          facingMode: { ideal: facing },
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
+        audio: false
+      };
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play().catch(() => {});
+      }
+    } catch (err) {
+      console.warn('Live camera error:', err);
+      setCameraError(err.message || 'Không thể mở Camera. Hãy bấm nút "📷 Chụp bằng máy" hoặc cho phép quyền truy cập Camera.');
     }
   }
 
-  const hint = mode === 'palm' 
-    ? '* Mẹo: Chụp rõ toàn bộ lòng bàn tay, đủ sáng, không bị bóng râm che khuất.' 
-    : '* Mẹo: Chụp chính diện, rõ 5 ngũ quan, đủ sáng, không đeo kính và không che trán.';
+  function switchCamera() {
+    const nextFacing = cameraFacing === 'user' ? 'environment' : 'user';
+    setCameraFacing(nextFacing);
+    startCamera(nextFacing);
+  }
+
+  function closeCamera() {
+    stopStream();
+    setIsLiveCamera(false);
+    setCameraError('');
+  }
+
+  function snapPhoto() {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    const w = video.videoWidth || 640;
+    const h = video.videoHeight || 480;
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (cameraFacing === 'user') {
+      ctx.translate(w, 0);
+      ctx.scale(-1, 1);
+    }
+    ctx.drawImage(video, 0, 0, w, h);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+    closeCamera();
+    setImageDataUrl(dataUrl);
+    setPreviewUrl(dataUrl);
+    if (autoAnalyze) {
+      runAnalysis(dataUrl);
+    } else {
+      setResult('Đã chụp ảnh xong. Bấm nút "Xem tướng trực tiếp ngay" để nhận kết quả phân tích.');
+    }
+  }
+
+  async function handleFileChange(e) {
+    const selectedFile = e.target.files?.[0];
+    if (!selectedFile) return;
+    try {
+      setLoading(true);
+      setResult('Đang tối ưu hóa ảnh...');
+      const optimized = await optimizeImage(selectedFile, 1600, 0.85);
+      setImageDataUrl(optimized);
+      setPreviewUrl(optimized);
+      if (autoAnalyze) {
+        runAnalysis(optimized);
+      } else {
+        setResult('Ảnh đã sẵn sàng. Bấm nút "Xem tướng trực tiếp ngay" để AI phân tích.');
+      }
+    } catch (err) {
+      setResult('⚠️ ' + (err.message || 'Lỗi khi tải ảnh.'));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleNativeCamera(e) {
+    handleFileChange(e);
+  }
+
+  async function runAnalysis(explicitImage = '') {
+    const targetImage = explicitImage || imageDataUrl;
+    if (!targetImage && !note.trim()) {
+      return setResult('Bạn cần chụp ảnh hoặc tải ảnh lên trước nhé.');
+    }
+    setLoading(true);
+    setResult(isFace ? '🔍 AI đang quét nhận diện ngũ quan, thần thái và đối chiếu nhân tướng...' : '🔍 AI đang quét phân tích đường chỉ tay...');
+    try {
+      const payload = isFace
+        ? {
+            mode: 'face',
+            image: targetImage,
+            faceImage: targetImage,
+            facePart: focusPart,
+            faceNote: note,
+            geminiModel: 'gemini-3.5-flash-lite',
+            clientTime: new Date().toLocaleString('vi-VN')
+          }
+        : {
+            mode: 'palm',
+            image: targetImage,
+            palmImage: targetImage,
+            palmLine: focusPart,
+            palmNote: note,
+            geminiModel: 'gemini-3.5-flash-lite',
+            clientTime: new Date().toLocaleString('vi-VN')
+          };
+
+      const d = await apiJSON('/api/vision-ai', payload);
+      const text = d.text || d.reply || 'Không có kết quả trả về từ AI.';
+      setResult(text);
+      saveHistory(title, text);
+    } catch (e) {
+      console.error('Vision analysis error:', e);
+      const fb = window.MysticEngine
+        ? (mode === 'palm' ? window.MysticEngine.Palmistry.analyze(note, '') : window.MysticEngine.Face.analyze(note, ''))
+        : (mode === 'palm' ? '### Lỗi tải Mystic Engine - Chỉ Tay' : '### Lỗi tải Mystic Engine - Tướng Mặt');
+      const fallbackMsg = fb + '\n\n*(Lưu ý: Đang hiển thị kết quả phân tích offline do máy chủ: ' + (e.message || 'Mất kết nối') + ')*';
+      setResult(fallbackMsg);
+      saveHistory(title + ' local', fallbackMsg);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const faceOptions = [
+    'Tổng quan ngũ quan & thần thái',
+    'Trán (Cung Quan Lộc, tiền vận & trí tuệ)',
+    'Mắt (Thần khí, tâm tư & năng lượng)',
+    'Mũi (Cung Tài Bạch, tài vận & ý chí)',
+    'Miệng & Cằm (Cung Điền Trạch, hậu vận & phúc đức)'
+  ];
+
+  const palmOptions = [
+    'Tổng quan các đường tay',
+    'Sinh đạo (Sức khỏe, sức sống & biến cố)',
+    'Trí đạo (Tư duy, quyết định & tài năng)',
+    'Tâm đạo (Tình cảm, hôn nhân & cảm xúc)',
+    'Sự nghiệp (Thời vận & bước ngoặt thành công)'
+  ];
+
+  const options = isFace ? faceOptions : palmOptions;
 
   return (
     <section className="tool-grid">
-      <div className="premium-panel">
+      <div className="premium-panel vision-tool-container">
         <h2>{icon} {title}</h2>
-        <p style={{fontSize:'0.85em', color:'#ffd700', marginBottom:'15px', fontStyle:'italic'}}>{hint}</p>
-        
-        <div style={{margin: '10px 0', display: 'flex', flexDirection: 'column', gap: '10px'}}>
-          <input type="file" accept="image/*" onChange={e=>setFile(e.target.files?.[0])} style={{width: '100%', padding: '10px', background: 'rgba(255,255,255,0.08)', borderRadius: '12px', color: '#fff'}} />
-          <textarea value={note} onChange={e=>setNote(e.target.value)} placeholder="Ghi chú thêm (Mình quan tâm sự nghiệp...)" style={{width: '100%', minHeight: '60px', padding: '10px', background: 'rgba(255,255,255,0.08)', borderRadius: '12px', color: '#fff', border: 'none', resize: 'none'}} />
+        <p style={{fontSize:'0.85em', color:'#ffd700', margin:'0 0 10px', fontStyle:'italic'}}>{defaultHint}</p>
+
+        {/* Input ẩn để kích hoạt camera máy và bộ chọn tệp */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          style={{display: 'none'}}
+          onChange={handleFileChange}
+        />
+        <input
+          ref={nativeCameraInputRef}
+          type="file"
+          accept="image/*"
+          capture={isFace ? 'user' : 'environment'}
+          style={{display: 'none'}}
+          onChange={handleNativeCamera}
+        />
+
+        {/* Action bar: Các nút chụp ảnh và tải ảnh */}
+        {!isLiveCamera && (
+          <div className="vision-actions">
+            <button
+              type="button"
+              className="vision-action-btn primary-camera"
+              onClick={() => startCamera(cameraFacing)}
+            >
+              📸 Chụp trực tiếp
+            </button>
+            <button
+              type="button"
+              className="vision-action-btn"
+              onClick={() => nativeCameraInputRef.current && nativeCameraInputRef.current.click()}
+            >
+              📷 Chụp bằng máy
+            </button>
+            <button
+              type="button"
+              className="vision-action-btn"
+              onClick={() => fileInputRef.current && fileInputRef.current.click()}
+            >
+              📁 Tải ảnh có sẵn
+            </button>
+          </div>
+        )}
+
+        {/* Live Camera Viewfinder */}
+        {isLiveCamera && (
+          <div className="vision-camera-box">
+            <div style={{position: 'relative'}}>
+              <video
+                ref={videoRef}
+                playsInline
+                autoPlay
+                muted
+                className={`vision-video ${cameraFacing === 'user' ? 'mirror' : ''}`}
+              />
+              {isFace && (
+                <div className="vision-face-guide">
+                  <div className="vision-face-oval"></div>
+                  <span className="vision-guide-text">Căn khuôn mặt vào giữa khung</span>
+                </div>
+              )}
+            </div>
+
+            {cameraError && (
+              <div style={{padding: '10px', color: '#ff7b7b', fontSize: '13px', background: 'rgba(255,0,0,0.15)', textAlign: 'center'}}>
+                {cameraError}
+              </div>
+            )}
+
+            <div className="vision-cam-ctrls">
+              <button
+                type="button"
+                className="vision-action-btn"
+                style={{padding: '8px 12px', fontSize: '12px'}}
+                onClick={switchCamera}
+                title="Đổi camera trước/sau"
+              >
+                🔄 Đổi cam
+              </button>
+
+              <button
+                type="button"
+                className="vision-snap-btn"
+                onClick={snapPhoto}
+                title="Bấm để chụp ảnh"
+              >
+                📸
+              </button>
+
+              <button
+                type="button"
+                className="vision-action-btn"
+                style={{padding: '8px 12px', fontSize: '12px', background: 'rgba(255,50,50,0.25)', borderColor: 'rgba(255,80,80,0.4)'}}
+                onClick={closeCamera}
+                title="Hủy chụp"
+              >
+                ❌ Đóng
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Image Preview & Scanner */}
+        {previewUrl && !isLiveCamera && (
+          <div className="vision-preview-card">
+            <div className="vision-preview-img-wrap">
+              {loading && <div className="vision-scan-bar"></div>}
+              <img src={previewUrl} alt="Ảnh xem tướng" className="vision-preview-img" />
+            </div>
+            <div className="vision-preview-status">
+              <span>{loading ? '🔍 Đang quét nhận diện...' : '✅ Ảnh đã sẵn sàng'}</span>
+              <div style={{display: 'flex', gap: '6px'}}>
+                <button
+                  type="button"
+                  className="vision-retake-btn"
+                  onClick={() => startCamera(cameraFacing)}
+                >
+                  📸 Chụp lại
+                </button>
+                <button
+                  type="button"
+                  className="vision-retake-btn"
+                  onClick={() => fileInputRef.current && fileInputRef.current.click()}
+                >
+                  📁 Đổi ảnh
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tùy chọn xem và ghi chú */}
+        <div style={{display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '4px'}}>
+          <label style={{fontSize: '13px', color: '#c3d9ff'}}>
+            Bộ phận muốn xem kỹ:
+            <select
+              value={focusPart}
+              onChange={e => setFocusPart(e.target.value)}
+              style={{width: '100%', marginTop: '4px', padding: '10px', background: 'rgba(255,255,255,0.08)', borderRadius: '12px', color: '#fff', border: '1px solid rgba(255,255,255,0.15)'}}
+            >
+              {options.map((opt, i) => (
+                <option key={i} value={opt} style={{background: '#071534', color: '#fff'}}>{opt}</option>
+              ))}
+            </select>
+          </label>
+
+          <textarea
+            value={note}
+            onChange={e => setNote(e.target.value)}
+            placeholder={isFace ? "Ghi chú thêm nếu muốn (Ví dụ: Mình muốn xem kỹ cung Tài Bạch, sự nghiệp năm nay...)" : "Ghi chú thêm nếu ảnh chưa rõ..."}
+            style={{width: '100%', minHeight: '60px', padding: '10px', background: 'rgba(255,255,255,0.08)', borderRadius: '12px', color: '#fff', border: '1px solid rgba(255,255,255,0.15)', resize: 'none'}}
+          />
+
+          <label className="vision-auto-toggle">
+            <input
+              type="checkbox"
+              checked={autoAnalyze}
+              onChange={e => setAutoAnalyze(e.target.checked)}
+            />
+            <span>⚡ Tự động phân tích xem ngay sau khi chụp ảnh</span>
+          </label>
         </div>
-        
-        <button className="primary" style={{width: '100%', marginTop: '5px', height: '44px'}} onClick={run}>✨ Phân tích ngay</button>
+
+        <button
+          className="primary"
+          style={{width: '100%', marginTop: '6px', height: '46px', fontSize: '15px', fontWeight: 'bold'}}
+          disabled={loading || (!imageDataUrl && !note.trim())}
+          onClick={() => runAnalysis()}
+        >
+          {loading ? '⌛ AI đang phân tích trực tiếp...' : '✨ Xem tướng trực tiếp ngay'}
+        </button>
       </div>
       <Result text={result}/>
     </section>

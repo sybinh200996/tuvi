@@ -1392,8 +1392,8 @@ DỮ LIỆU:
     }
 
     const parts = [{ text: instruction }];
-    const palmPart = dataUrlToPart(palmImage);
-    const facePartData = dataUrlToPart(faceImage);
+    const palmPart = dataUrlToPart(finalPalmImage);
+    const facePartData = dataUrlToPart(finalFaceImage);
 
     if (isPalm && palmPart) {
       parts.push({ text: "Ảnh lòng bàn tay:" });

@@ -645,7 +645,173 @@ async function generateNumerology(){
 }
 
 async function generateLove(){setLoading('loveResult',true);try{const payload={name1:$('loveName1').value,birth1:$('loveBirth1').value,name2:$('loveName2').value,birth2:$('loveBirth2').value,focus:$('loveFocus').value};const data=await postJSON('/api/love-ai',payload);const text=data.text||data.result||data.answer;$('loveResult').innerHTML=htmlResult('💕 Kết quả tình duyên AI',text);saveHistory('Tình duyên',text)}catch(e){const text=`### Tình duyên tham khảo\n- Hai người cần xem sự hòa hợp qua cách giao tiếp, nhịp sống và mục tiêu dài hạn.\n- Điểm mạnh: có thể bổ sung cho nhau nếu biết lắng nghe.\n- Điểm cần tránh: im lặng, thử lòng, nóng vội.\n- Lời khuyên: dùng tử vi như tham khảo, tình cảm thật nằm ở hành động hằng ngày.`;$('loveResult').innerHTML=htmlResult('💕 Kết quả tình duyên',text);saveHistory('Tình duyên local',text)}finally{setLoading('loveResult',false)}}
-async function analyzeVision(kind){const isPalm=kind==='palm';const resultId=isPalm?'palmResult':'faceResult';const file=$(isPalm?'palmImage':'faceImage').files[0];const note=$(isPalm?'palmNote':'faceNote').value;setLoading(resultId,true);try{const image=file?await fileToDataURL(file):'';const payload={mode:isPalm?'palm':'face',palmImage:isPalm?image:'',faceImage:isPalm?'':image,palmLine:isPalm?$('palmLine').value:'',palmNote:isPalm?note:'',facePart:isPalm?'':$('facePart').value,faceNote:isPalm?'':note,clientTime:new Date().toLocaleString('vi-VN')};const data=await postJSON('/api/vision-ai',payload);const text=data.text||data.result||data.answer||'Không có nội dung trả về.';$(resultId).innerHTML=htmlResult(isPalm?'🖐 Kết quả xem chỉ tay AI':'🙂 Kết quả xem tướng AI',text);saveHistory(isPalm?'Xem chỉ tay':'Xem tướng',text)}catch(e){const text=isPalm?`### Chỉ tay tham khảo\n- Sinh đạo: tượng trưng sức bền và nhịp sống.\n- Trí đạo: tượng trưng tư duy, cách quyết định.\n- Tâm đạo: tượng trưng cảm xúc và tình cảm.\n- Ảnh cần rõ lòng bàn tay để AI phân tích sâu hơn.`:`### Xem tướng tham khảo\n- Ngũ quan cân đối thường tạo cảm giác hài hòa.\n- Thần thái sáng thể hiện sự tự tin.\n- Kết quả chỉ là tham khảo văn hóa, không dùng để định danh hoặc kết luận sức khỏe.`;$(resultId).innerHTML=htmlResult(isPalm?'🖐 Kết quả xem chỉ tay':'🙂 Kết quả xem tướng',text);saveHistory(isPalm?'Xem chỉ tay local':'Xem tướng local',text)}finally{setLoading(resultId,false)}}
+let desktopWebcamStreams = {};
+let desktopWebcamFacing = { face: 'user', palm: 'environment' };
+let desktopVisionDataUrls = {};
+
+async function startDesktopWebcam(kind){
+  stopDesktopWebcam(kind);
+  const isFace = kind === 'face';
+  const box = $(isFace ? 'faceWebcamBox' : 'palmWebcamBox');
+  const video = $(isFace ? 'faceWebcamVideo' : 'palmWebcamVideo');
+  const preview = $(isFace ? 'facePreviewCard' : 'palmPreviewCard');
+  if (preview) preview.style.display = 'none';
+  if (!box || !video) return;
+  box.style.display = 'block';
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast('Trình duyệt chưa hỗ trợ Live Webcam trực tiếp. Vui lòng chọn tải ảnh hoặc chụp bằng máy.');
+      box.style.display = 'none';
+      return;
+    }
+    const facing = desktopWebcamFacing[kind] || (isFace ? 'user' : 'environment');
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: facing }, width: { ideal: 1280 }, height: { ideal: 720 } },
+      audio: false
+    });
+    desktopWebcamStreams[kind] = stream;
+    video.srcObject = stream;
+    await video.play().catch(()=>{});
+  } catch(e) {
+    console.warn('Webcam error:', e);
+    toast('Không thể mở Camera: ' + (e.message || 'Cần cấp quyền truy cập Camera'));
+    box.style.display = 'none';
+  }
+}
+
+function stopDesktopWebcam(kind){
+  const stream = desktopWebcamStreams[kind];
+  if (stream) {
+    try { stream.getTracks().forEach(t => t.stop()); } catch(e){}
+    desktopWebcamStreams[kind] = null;
+  }
+  const isFace = kind === 'face';
+  const box = $(isFace ? 'faceWebcamBox' : 'palmWebcamBox');
+  if (box) box.style.display = 'none';
+}
+
+function switchDesktopWebcam(kind){
+  desktopWebcamFacing[kind] = (desktopWebcamFacing[kind] === 'user') ? 'environment' : 'user';
+  startDesktopWebcam(kind);
+}
+
+function snapDesktopWebcam(kind){
+  const isFace = kind === 'face';
+  const video = $(isFace ? 'faceWebcamVideo' : 'palmWebcamVideo');
+  if (!video) return;
+  const w = video.videoWidth || 640;
+  const h = video.videoHeight || 480;
+  const canvas = document.createElement('canvas');
+  canvas.width = w; canvas.height = h;
+  const ctx = canvas.getContext('2d');
+  if (desktopWebcamFacing[kind] === 'user') {
+    ctx.translate(w, 0);
+    ctx.scale(-1, 1);
+  }
+  ctx.drawImage(video, 0, 0, w, h);
+  const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+  stopDesktopWebcam(kind);
+  desktopVisionDataUrls[kind] = dataUrl;
+  
+  const previewCard = $(isFace ? 'facePreviewCard' : 'palmPreviewCard');
+  const previewImg = $(isFace ? 'facePreview' : 'palmPreview');
+  const statusText = $(isFace ? 'facePreviewStatusText' : 'palmPreviewStatusText');
+  if (previewImg) previewImg.src = dataUrl;
+  if (previewCard) previewCard.style.display = 'block';
+  if (statusText) statusText.textContent = '✅ Đã chụp ảnh xong - Sẵn sàng xem';
+  
+  const autoCheckbox = $(isFace ? 'faceAutoAnalyze' : 'palmAutoAnalyze');
+  if (autoCheckbox && autoCheckbox.checked) {
+    analyzeVision(kind);
+  } else {
+    toast('Đã chụp ảnh xong! Bấm nút "Xem tướng trực tiếp ngay" để AI phân tích.');
+  }
+}
+
+async function handleDesktopVisionFile(event, kind){
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const isFace = kind === 'face';
+  stopDesktopWebcam(kind);
+  try {
+    const dataUrl = await fileToDataURL(file);
+    desktopVisionDataUrls[kind] = dataUrl;
+    const previewCard = $(isFace ? 'facePreviewCard' : 'palmPreviewCard');
+    const previewImg = $(isFace ? 'facePreview' : 'palmPreview');
+    const statusText = $(isFace ? 'facePreviewStatusText' : 'palmPreviewStatusText');
+    if (previewImg) previewImg.src = dataUrl;
+    if (previewCard) previewCard.style.display = 'block';
+    if (statusText) statusText.textContent = '✅ Ảnh đã tải lên - Sẵn sàng xem';
+    
+    const autoCheckbox = $(isFace ? 'faceAutoAnalyze' : 'palmAutoAnalyze');
+    if (autoCheckbox && autoCheckbox.checked) {
+      analyzeVision(kind);
+    } else {
+      toast('Đã tải ảnh lên! Bấm nút "Xem tướng trực tiếp ngay" để AI phân tích.');
+    }
+  } catch(e) {
+    toast('Lỗi đọc ảnh: ' + e.message);
+  }
+}
+
+async function analyzeVision(kind){
+  const isPalm = kind === 'palm';
+  const isFace = !isPalm;
+  const resultId = isPalm ? 'palmResult' : 'faceResult';
+  const scanBar = $(isFace ? 'faceScanBar' : 'palmScanBar');
+  const statusText = $(isFace ? 'facePreviewStatusText' : 'palmPreviewStatusText');
+  
+  let image = desktopVisionDataUrls[kind] || '';
+  if (!image) {
+    const fileInput = $(isPalm ? 'palmImage' : 'faceImage');
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+      image = await fileToDataURL(fileInput.files[0]);
+      desktopVisionDataUrls[kind] = image;
+    }
+  }
+  
+  const note = $(isPalm ? 'palmNote' : 'faceNote')?.value || '';
+  if (!image && !note.trim()) {
+    return toast(isFace ? 'Vui lòng chụp ảnh hoặc tải ảnh khuôn mặt lên trước nhé.' : 'Vui lòng chụp ảnh hoặc tải ảnh bàn tay lên trước nhé.');
+  }
+
+  setLoading(resultId, true);
+  if (scanBar) scanBar.style.display = 'block';
+  if (statusText) statusText.textContent = isFace ? '🔍 AI đang quét phân tích ngũ quan & thần thái...' : '🔍 AI đang quét phân tích đường tay...';
+
+  try {
+    const payload = {
+      mode: isPalm ? 'palm' : 'face',
+      image: image,
+      palmImage: isPalm ? image : '',
+      faceImage: isPalm ? '' : image,
+      palmLine: isPalm ? ($('palmLine')?.value || 'Tổng quan các đường tay') : '',
+      palmNote: isPalm ? note : '',
+      facePart: isPalm ? '' : ($('facePart')?.value || 'Tổng quan ngũ quan & thần thái'),
+      faceNote: isPalm ? '' : note,
+      geminiModel: 'gemini-3.5-flash-lite',
+      clientTime: new Date().toLocaleString('vi-VN')
+    };
+
+    const data = await postJSON('/api/vision-ai', payload);
+    const text = data.text || data.result || data.answer || 'Không có nội dung trả về từ AI.';
+    $(resultId).innerHTML = htmlResult(isPalm ? '🖐 Kết quả xem chỉ tay AI' : '🙂 Kết quả xem tướng trực tiếp AI', text);
+    saveHistory(isPalm ? 'Xem chỉ tay' : 'Xem tướng', text);
+    if (statusText) statusText.textContent = '✅ Đã hoàn tất phân tích';
+  } catch(e) {
+    console.error('Vision API error:', e);
+    const text = isPalm
+      ? `### Chỉ tay tham khảo\n- Sinh đạo: tượng trưng sức bền và nhịp sống.\n- Trí đạo: tượng trưng tư duy, cách quyết định.\n- Tâm đạo: tượng trưng cảm xúc và tình cảm.\n- Ảnh cần rõ lòng bàn tay để AI phân tích sâu hơn.`
+      : `### Xem tướng tham khảo\n- Ngũ quan cân đối tạo cảm giác hài hòa và phúc khí.\n- Thần thái sáng, ánh mắt tự tin thể hiện nội lực vững vàng.\n- Kết quả luận giải văn hóa mang tính tham khảo hướng thiện và phát huy thế mạnh cá nhân.`;
+    $(resultId).innerHTML = htmlResult(isPalm ? '🖐 Kết quả xem chỉ tay' : '🙂 Kết quả xem tướng', text);
+    saveHistory(isPalm ? 'Xem chỉ tay local' : 'Xem tướng local', text);
+    if (statusText) statusText.textContent = '⚠️ Đã xem ở chế độ dự phòng';
+  } finally {
+    setLoading(resultId, false);
+    if (scanBar) scanBar.style.display = 'none';
+  }
+}
+
 async function simpleTool(kind){const map={astrology:['astrologyResult','🪐 Kết quả chiêm tinh',`Cung: ${$('zodiac')?.value||''}\nCâu hỏi: ${$('astroQuestion')?.value||''}`],fengshui:['fengshuiResult','☯ Kết quả phong thủy',`Năm sinh: ${$('fengYear')?.value||''}\nCâu hỏi: ${$('fengAsk')?.value||''}`],tarot:['tarotResult','🃏 Kết quả bói bài',$('tarotAsk')?.value||'']};const [id,title,prompt]=map[kind];setLoading(id,true);try{const data=await postJSON('/api/chat-ai',{message:`${title}. ${prompt}`});const text=data.text||data.answer||data.result;$(id).innerHTML=htmlResult(title,text);saveHistory(title,text)}catch(e){const text=`### ${title}\n- Hiện chưa kết nối được AI server.\n- Nội dung bạn hỏi: ${prompt}\n- Lời khuyên: xem đây là gợi ý tham khảo, nên đối chiếu với tình hình thực tế.`;$(id).innerHTML=htmlResult(title,text);saveHistory(title+' local',text)}finally{setLoading(id,false)}}
 async function deepAnalyze(){const q=$('deepAsk').value.trim();if(!q)return toast('Nhập chủ đề đã nhé');setLoading('deepResult',true);try{const data=await postJSON('/api/chat-ai',{message:`Phân tích sâu theo nhiều lớp, rõ ràng, có lời khuyên thực tế: ${q}`});const text=data.text||data.answer||data.result;$('deepResult').innerHTML=htmlResult('🤯 AI phân tích sâu',text);saveHistory('AI phân tích sâu',text)}catch(e){const text=`### Phân tích sâu local\n- Vấn đề: ${q}\n- Lớp 1: xác định mục tiêu thật sự.\n- Lớp 2: xem rủi ro, nguồn lực, thời gian.\n- Lớp 3: chọn bước nhỏ làm ngay hôm nay.\n- Lời khuyên: đừng ôm quá nhiều hướng cùng lúc.`;$('deepResult').innerHTML=htmlResult('🤯 AI phân tích sâu',text);saveHistory('AI phân tích sâu local',text)}finally{setLoading('deepResult',false)}}
 
