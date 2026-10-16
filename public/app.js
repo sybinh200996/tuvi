@@ -242,8 +242,12 @@ function routeTo(route,push=true){
   document.querySelectorAll('.side-menu button.link').forEach(btn=>btn.classList.remove('active'));
   if(push) location.hash='#/'+route;
   requestAnimationFrame(()=>{
-    const targetTop=Math.max(0,page.getBoundingClientRect().top+window.pageYOffset-18);
-    window.scrollTo({top:targetTop,behavior:'smooth'});
+    if (route === 'chat') {
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    } else {
+      const targetTop=Math.max(0,page.getBoundingClientRect().top+window.pageYOffset-18);
+      window.scrollTo({top:targetTop,behavior:'smooth'});
+    }
     const scrollers=page.querySelectorAll('.chat-log,.pro-chat-log,.result-panel,.side-menu');
     scrollers.forEach(el=>{try{el.scrollTop=0}catch{}});
   });
