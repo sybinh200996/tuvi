@@ -1,4 +1,4 @@
-const CACHE = "v47-dangnam-auth-fix-20261016";
+const CACHE = "v49-desktop-chat-lock-20261016-1748";
 const APP_SHELL = [
   "./",
   "./index.html",
