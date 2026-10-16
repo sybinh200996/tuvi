@@ -83,16 +83,16 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
 }));
 
-// Rate Limiters chống spam API (20 requests / 15 phút cho AI)
+// Rate Limiters chống spam API (25 requests / 15 phút cho AI)
 const aiLimiter = rateLimit({
   windowMs: Number(process.env.RATE_LIMIT_AI_WINDOW_MS) || 15 * 60 * 1000,
-  max: Number(process.env.RATE_LIMIT_AI_MAX) || 20,
+  max: Number(process.env.RATE_LIMIT_AI_MAX) || 25,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
     res.status(429).json({
       ok: false,
-      error: "Bạn đã đạt giới hạn 20 yêu cầu AI trong 15 phút. Vui lòng đợi ít phút trước khi gửi tiếp."
+      error: "Hệ thống Đặng Năm AI: Bạn đã đạt giới hạn 25 yêu cầu AI trong 15 phút. Vui lòng tạm nghỉ ít phút trước khi tiếp tục trò chuyện cùng AI."
     });
   }
 });
@@ -1747,6 +1747,187 @@ ${cleanMessage}`;
   }
 });
 
+// =========================================================================
+// PHASE 1: ENDPOINT SSE STREAMING ĐA TẦNG (/api/chat-stream)
+// Chuẩn SSE: Content-Type text/event-stream, no-buffer Nginx, 12s timeout fallback
+// =========================================================================
+app.post("/api/chat-stream", aiLimiter, async (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+  res.flushHeaders?.();
+
+  let clientConnected = true;
+  let activeAbortController = null;
+
+  req.on("close", () => {
+    clientConnected = false;
+    if (activeAbortController) {
+      try { activeAbortController.abort(); } catch {}
+    }
+  });
+
+  const sendData = (obj) => {
+    if (!clientConnected || res.writableEnded) return;
+    try {
+      res.write(`data: ${JSON.stringify(obj)}\n\n`);
+    } catch (e) {
+      clientConnected = false;
+    }
+  };
+
+  try {
+    const { message, history = [], birthProfile = null, destinyProfile = null } = req.body || {};
+    const cleanMessage = String(message || "").trim();
+
+    if (!cleanMessage) {
+      sendData({ error: "Nội dung tin nhắn không được để trống." });
+      res.write("data: [DONE]\n\n");
+      return res.end();
+    }
+
+    const user = await currentUserFromRequest(req);
+    const profile = birthProfile || destinyProfile || user?.destinyProfile || null;
+
+    let systemPrompt = `Bạn là Đặng Năm AI (dangnam.online) - Trợ lý Trí Tuệ Nhân Tạo & Chuyên gia Luận giải Mệnh lý, Phong thủy, Tử vi học cao cấp. Bạn trả lời bằng tiếng Việt trang trọng, sâu sắc, thực tế, mạch lạc và thấu cảm.`;
+
+    if (profile && (profile.fullName || profile.name || profile.birthDate)) {
+      const pName = profile.fullName || profile.name || "Đương số";
+      const pGender = profile.gender || "Nam";
+      const pBirthDate = profile.birthDate || profile.dob || "Chưa rõ";
+      const pBirthTime = profile.birthTime || profile.time || "";
+      const pCalendar = (profile.calendarType === "lunar" || profile.calendar === "lunar") ? "Âm lịch" : "Dương lịch";
+      const pPlace = profile.birthPlace || profile.place || "";
+      const pConcern = profile.concern || profile.question || "";
+
+      systemPrompt += `\n\n[HỒ SƠ BẢN MỆNH CỦA ĐƯƠNG SỐ]
+- Họ và tên: ${pName}
+- Giới tính: ${pGender}
+- Ngày sinh: ${pBirthDate} (${pCalendar})
+${pBirthTime ? `- Giờ sinh: ${pBirthTime}\n` : ""}${pPlace ? `- Nơi sinh: ${pPlace}\n` : ""}${pConcern ? `- Mối quan tâm đặc biệt: ${pConcern}\n` : ""}
+LƯU Ý QUAN TRỌNG: Bạn ĐÃ CÓ ĐẦY ĐỦ THÔNG TIN BẢN MỆNH của đương số ở trên. Tuyệt đối KHÔNG hỏi lại ngày tháng năm sinh hoặc giới tính. Hãy trực tiếp sử dụng thông tin này để luận giải chi tiết, chính xác và chuyên sâu bằng tiếng Việt trang trọng.`;
+    }
+
+    // Thứ tự ưu tiên 3 tầng tự phục hồi: Groq <-> Gemini <-> OpenRouter (kèm OpenAI/Claude fallback)
+    const priorityList = [
+      { id: "groq", model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile" },
+      { id: "gemini", model: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite" },
+      { id: "openrouter", model: process.env.OPENROUTER_MODEL || "deepseek/deepseek-r1:free" },
+      { id: "openai", model: process.env.OPENAI_MODEL || "gpt-4o-mini" },
+      { id: "claude", model: process.env.CLAUDE_MODEL || "claude-3-5-haiku-latest" }
+    ];
+
+    const availableProviders = priorityList.filter(item => Boolean(pickProviderKey(item.id, user)));
+
+    if (!availableProviders.length) {
+      sendData({ error: "Chưa có nhà cung cấp AI nào được cấu hình API Key trên máy chủ." });
+      res.write("data: [DONE]\n\n");
+      return res.end();
+    }
+
+    let streamCompleted = false;
+    let chunksEmitted = 0;
+
+    for (const providerConfig of availableProviders) {
+      if (!clientConnected || streamCompleted) break;
+      const currentProvider = providerConfig.id;
+      const apiKey = pickProviderKey(currentProvider, user);
+      const model = providerConfig.model;
+
+      const controller = new AbortController();
+      activeAbortController = controller;
+
+      // Timeout 12 giây cho việc khởi tạo kết nối và nhận token đầu tiên
+      let timeoutId = setTimeout(() => {
+        if (chunksEmitted === 0) {
+          console.warn(`[AI_STREAM_TIMEOUT] Provider ${currentProvider} vượt quá 12s chưa phản hồi. Chuyển fallback...`);
+          try { controller.abort(); } catch {}
+        }
+      }, 12000);
+
+      try {
+        console.log(`[AI_STREAM] Đang gọi ${currentProvider} (${model})...`);
+        const onChunkHandler = (chunk) => {
+          if (!clientConnected) return;
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+          }
+          chunksEmitted++;
+          sendData({ content: hideModelLeakServer(chunk), provider: currentProvider });
+        };
+
+        if (currentProvider === "gemini") {
+          await streamGeminiText({
+            apiKey,
+            model,
+            parts: [{ text: cleanMessage }],
+            systemPrompt,
+            history,
+            onChunk: onChunkHandler,
+            signal: controller.signal
+          });
+        } else if (currentProvider === "claude") {
+          await streamClaude({
+            apiKey,
+            model,
+            prompt: cleanMessage,
+            systemPrompt,
+            history,
+            onChunk: onChunkHandler,
+            signal: controller.signal
+          });
+        } else {
+          await streamOpenAICompatible({
+            provider: currentProvider,
+            apiKey,
+            model,
+            prompt: cleanMessage,
+            systemPrompt,
+            history,
+            onChunk: onChunkHandler,
+            signal: controller.signal
+          });
+        }
+
+        if (timeoutId) clearTimeout(timeoutId);
+        streamCompleted = true;
+        break; // Hoàn thành stream thành công
+      } catch (err) {
+        if (timeoutId) clearTimeout(timeoutId);
+        console.warn(`[AI_STREAM_FALLBACK] Provider ${currentProvider} gặp lỗi: ${err.message}.`);
+        if (!clientConnected) break;
+        // Nếu đã emit được chunk mà đứt kết nối giữa chừng, không restart lại từ đầu
+        if (chunksEmitted > 0) {
+          console.log(`[AI_STREAM] Provider ${currentProvider} đã stream ${chunksEmitted} chunks.`);
+          streamCompleted = true;
+          break;
+        }
+        // Chưa emit chunk nào -> tiếp tục vòng lặp fallback sang provider tiếp theo
+      } finally {
+        if (activeAbortController === controller) activeAbortController = null;
+      }
+    }
+
+    if (!streamCompleted && chunksEmitted === 0 && clientConnected) {
+      sendData({ error: "Hệ thống Đặng Năm AI đang bận hoặc tất cả các nhà cung cấp AI đều quá tải. Vui lòng thử lại sau ít phút." });
+    }
+
+    if (clientConnected && !res.writableEnded) {
+      res.write("data: [DONE]\n\n");
+      res.end();
+    }
+  } catch (globalErr) {
+    console.error("[CHAT_STREAM_FATAL_ERROR]", globalErr);
+    if (clientConnected && !res.writableEnded) {
+      sendData({ error: cleanError(globalErr) });
+      res.write("data: [DONE]\n\n");
+      res.end();
+    }
+  }
+});
+
 app.post("/api/multi-ai/chat", aiLimiter, async (req, res) => {
   const isStreamRequested = req.query.stream === "true" || req.body?.stream === true || (req.headers.accept && req.headers.accept.includes("text/event-stream"));
   if (isStreamRequested) {
@@ -1942,7 +2123,19 @@ ${cleanMessage}`;
 app.get("/api/health", (req, res) => {
   res.json({
     ok: true,
+    status: "healthy",
     hasGeminiKey: Boolean(process.env.GEMINI_API_KEY),
+    providers: {
+      groq: Boolean(process.env.GROQ_API_KEY),
+      gemini: Boolean(process.env.GEMINI_API_KEY),
+      openrouter: Boolean(process.env.OPENROUTER_API_KEY),
+      openai: Boolean(process.env.OPENAI_API_KEY),
+      claude: Boolean(process.env.CLAUDE_API_KEY),
+      deepseek: Boolean(process.env.DEEPSEEK_API_KEY),
+      grok: Boolean(process.env.GROK_API_KEY),
+      qwen: Boolean(process.env.QWEN_API_KEY),
+      mistral: Boolean(process.env.MISTRAL_API_KEY)
+    },
     models: MODELS,
     defaultModel: process.env.GEMINI_MODEL || "auto",
     imageModels: resolveImageModelOrder("auto"),
