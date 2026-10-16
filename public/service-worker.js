@@ -1,4 +1,4 @@
-const CACHE = "v46-dangnam-ai-streaming-20261016";
+const CACHE = "v47-dangnam-auth-fix-20261016";
 const APP_SHELL = [
   "./",
   "./index.html",

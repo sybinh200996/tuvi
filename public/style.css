@@ -2977,3 +2977,31 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
     letter-spacing: 10px;
   }
 }
+
+/* Auth Tabs Switcher */
+.auth-tabs-toggle {
+  display: flex;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.auth-tab-btn {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #a0aec0;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.auth-tab-btn.active {
+  background: linear-gradient(135deg, #00f0ff, #7000ff);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 240, 255, 0.35);
+}

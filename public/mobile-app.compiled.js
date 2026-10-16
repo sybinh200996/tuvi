@@ -272,9 +272,11 @@ async function loadDestinyProfileFromCloud() {
       headers: authHeaders()
     });
     const data = await res.json();
-    if (data.ok && data.destinyProfile) {
-      localStorage.setItem(DESTINY_STORAGE_KEY, JSON.stringify(data.destinyProfile));
-      return data.destinyProfile;
+    const p = data?.profile || data?.destinyProfile;
+    if (data.ok && p) {
+      localStorage.setItem(BIRTH_PROFILE_STORAGE_KEY, JSON.stringify(p));
+      localStorage.setItem(DESTINY_STORAGE_KEY, JSON.stringify(p));
+      return p;
     }
   } catch (e) {}
   return getDestinyProfile();
@@ -1451,12 +1453,26 @@ function Settings({
 }) {
   const [keys, setKeys] = useState({});
   const [user, setUser] = useState(() => readJSON('synam_user', null));
+  const [authMode, setAuthMode] = useState('login');
   const [account, setAccount] = useState({
     name: user?.name || '',
     email: user?.email || '',
     password: ''
   });
   const [socialLoading, setSocialLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    const token = localStorage.getItem('synam_token');
+    if (!token) return;
+    fetch('/api/auth/me', {
+      headers: authHeaders()
+    }).then(r => r.ok ? r.json() : null).then(d => {
+      if (d && d.user) {
+        localStorage.setItem('synam_user', JSON.stringify(d.user));
+        setUser(d.user);
+      }
+    }).catch(() => {});
+  }, []);
   async function handleSocialLogin(provider) {
     if (socialLoading) return;
     setSocialLoading(true);
@@ -1491,13 +1507,19 @@ function Settings({
       });
       alert(`Đăng nhập ${provider === 'google' ? 'Google' : 'Facebook'} thành công! Chào mừng ${data.user.name || data.user.email}`);
       await reload();
+      await loadDestinyProfileFromCloud();
     } catch (e) {
-      if (e.code === 'auth/popup-closed-by-user') {
+      if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
         setSocialLoading(false);
         return;
       }
       if (e.code === 'auth/unauthorized-domain') {
-        alert('Tên miền ' + window.location.hostname + ' chưa được cấp quyền trong Firebase Console. Vui lòng vào Firebase Console -> Authentication -> Settings -> Authorized domains -> Thêm "' + window.location.hostname + '" vào danh sách để hoàn tất.');
+        alert('Tên miền ' + window.location.hostname + ' chưa được cấp quyền trong Firebase Console.\n\nVui lòng vào Firebase Console -> Authentication -> Settings -> Authorized domains -> Thêm "' + window.location.hostname + '" vào danh sách để hoàn tất.');
+        setSocialLoading(false);
+        return;
+      }
+      if (e.code === 'auth/operation-not-allowed') {
+        alert(`Phương thức đăng nhập ${provider === 'google' ? 'Google' : 'Facebook'} chưa được kích hoạt trong Firebase Console.\n\n👉 Bạn hãy sử dụng form Đăng ký / Đăng nhập trực tiếp bằng Email & Mật khẩu ngay bên dưới nhé!`);
         setSocialLoading(false);
         return;
       }
@@ -1507,6 +1529,16 @@ function Settings({
     }
   }
   async function submitAccount(action) {
+    if (!account.email || !account.password) {
+      return alert('Vui lòng nhập đầy đủ Email và Mật khẩu.');
+    }
+    if (account.password.length < 6) {
+      return alert('Mật khẩu tối thiểu 6 ký tự.');
+    }
+    if (action === 'register' && !account.name) {
+      account.name = 'Thành viên Đặng Nam';
+    }
+    setLoading(true);
     try {
       const data = await apiJSON(`/api/auth/${action}`, account);
       localStorage.setItem('synam_user', JSON.stringify(data.user));
@@ -1517,16 +1549,24 @@ function Settings({
         email: data.user.email || '',
         password: ''
       });
-      alert(action === 'register' ? 'Đăng ký thành công.' : 'Đăng nhập thành công.');
+      alert(action === 'register' ? 'Đăng ký tài khoản thành công!' : `Đăng nhập thành công! Chào mừng ${data.user.name || data.user.email}`);
       await reload();
+      await loadDestinyProfileFromCloud();
     } catch (e) {
-      alert(e.message);
+      alert(e.message || 'Thao tác không thành công.');
+    } finally {
+      setLoading(false);
     }
   }
   async function logout() {
     try {
       await apiJSON('/api/auth/logout', {});
     } catch {}
+    try {
+      if (typeof window !== 'undefined' && window.firebase && window.firebase.apps && window.firebase.apps.length && window.firebase.auth) {
+        await window.firebase.auth().signOut().catch(() => {});
+      }
+    } catch (e) {}
     localStorage.removeItem('synam_user');
     localStorage.removeItem('synam_token');
     setUser(null);
@@ -1557,14 +1597,17 @@ function Settings({
     }
   }, user ? /*#__PURE__*/React.createElement("div", {
     style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '12px',
-      marginBottom: '14px',
-      padding: '12px',
+      padding: '14px',
       background: 'rgba(255,255,255,0.06)',
       borderRadius: '16px',
       border: '1px solid rgba(255,255,255,0.12)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      marginBottom: '12px'
     }
   }, user.avatar ? /*#__PURE__*/React.createElement("img", {
     src: user.avatar,
@@ -1623,7 +1666,43 @@ function Settings({
       color: '#ff8888',
       borderRadius: '10px'
     }
-  }, "Đăng xuất")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, "Đăng xuất"))) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      background: 'rgba(255,255,255,0.07)',
+      border: '1px solid rgba(255,255,255,0.12)',
+      borderRadius: '12px',
+      padding: '4px',
+      gap: '6px',
+      marginBottom: '14px'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setAuthMode('login'),
+    style: {
+      flex: 1,
+      padding: '8px 12px',
+      borderRadius: '8px',
+      border: 'none',
+      background: authMode === 'login' ? 'linear-gradient(135deg, #00f0ff, #7000ff)' : 'transparent',
+      color: authMode === 'login' ? '#fff' : '#a0aec0',
+      fontWeight: 'bold',
+      fontSize: '13px'
+    }
+  }, "🔐 Đăng nhập"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setAuthMode('register'),
+    style: {
+      flex: 1,
+      padding: '8px 12px',
+      borderRadius: '8px',
+      border: 'none',
+      background: authMode === 'register' ? 'linear-gradient(135deg, #00f0ff, #7000ff)' : 'transparent',
+      color: authMode === 'register' ? '#fff' : '#a0aec0',
+      fontWeight: 'bold',
+      fontSize: '13px'
+    }
+  }, "📝 Đăng ký")), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'grid',
       gridTemplateColumns: '1fr 1fr',
@@ -1641,7 +1720,8 @@ function Settings({
       color: '#fff',
       fontWeight: 900,
       textShadow: '0 1px 3px rgba(0,0,0,0.3)',
-      opacity: socialLoading ? 0.6 : 1
+      opacity: socialLoading ? 0.6 : 1,
+      padding: '10px'
     }
   }, "🔴 ", socialLoading ? 'Đang mở...' : 'Google'), /*#__PURE__*/React.createElement("button", {
     type: "button",
@@ -1654,7 +1734,8 @@ function Settings({
       color: '#fff',
       fontWeight: 900,
       textShadow: '0 1px 3px rgba(0,0,0,0.3)',
-      opacity: socialLoading ? 0.6 : 1
+      opacity: socialLoading ? 0.6 : 1,
+      padding: '10px'
     }
   }, "🔵 ", socialLoading ? 'Đang mở...' : 'Facebook')), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -1678,13 +1759,13 @@ function Settings({
       height: '1px',
       background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent)'
     }
-  })), /*#__PURE__*/React.createElement("input", {
+  })), authMode === 'register' && /*#__PURE__*/React.createElement("input", {
     value: account.name,
     onChange: e => setAccount(a => ({
       ...a,
       name: e.target.value
     })),
-    placeholder: "Tên hiển thị (để đăng ký)"
+    placeholder: "Họ và tên của bạn"
   }), /*#__PURE__*/React.createElement("input", {
     value: account.email,
     onChange: e => setAccount(a => ({
@@ -1692,7 +1773,7 @@ function Settings({
       email: e.target.value
     })),
     type: "email",
-    placeholder: "Email"
+    placeholder: "Email (vd: email@example.com)"
   }), /*#__PURE__*/React.createElement("input", {
     value: account.password,
     onChange: e => setAccount(a => ({
@@ -1700,17 +1781,42 @@ function Settings({
       password: e.target.value
     })),
     type: "password",
-    placeholder: "Mật khẩu từ 6 ký tự"
+    placeholder: "Mật khẩu (tối thiểu 6 ký tự)"
   }), /*#__PURE__*/React.createElement("div", {
-    className: "account-actions"
+    style: {
+      marginTop: '10px'
+    }
   }, /*#__PURE__*/React.createElement("button", {
     className: "primary",
     type: "button",
-    onClick: () => submitAccount('register')
-  }, "Đăng ký"), /*#__PURE__*/React.createElement("button", {
-    type: "button",
-    onClick: () => submitAccount('login')
-  }, "Đăng nhập")))), /*#__PURE__*/React.createElement("h2", null, "⚙️ Multi-AI API Keys"), /*#__PURE__*/React.createElement("p", null, "Nhập key cá nhân hoặc dùng key mặc định từ server."), /*#__PURE__*/React.createElement("div", {
+    disabled: loading,
+    onClick: () => submitAccount(authMode),
+    style: {
+      width: '100%',
+      padding: '12px'
+    }
+  }, loading ? 'Đang xử lý...' : authMode === 'register' ? '📝 Đăng ký tài khoản' : '🔐 Đăng nhập')), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      marginTop: '12px',
+      fontSize: '12px',
+      opacity: 0.85
+    }
+  }, authMode === 'login' ? /*#__PURE__*/React.createElement("span", null, "Chưa có tài khoản? ", /*#__PURE__*/React.createElement("b", {
+    style: {
+      color: '#00f0ff',
+      cursor: 'pointer',
+      textDecoration: 'underline'
+    },
+    onClick: () => setAuthMode('register')
+  }, "Đăng ký ngay")) : /*#__PURE__*/React.createElement("span", null, "Đã có tài khoản? ", /*#__PURE__*/React.createElement("b", {
+    style: {
+      color: '#00f0ff',
+      cursor: 'pointer',
+      textDecoration: 'underline'
+    },
+    onClick: () => setAuthMode('login')
+  }, "Đăng nhập ngay"))))), /*#__PURE__*/React.createElement("h2", null, "⚙️ Multi-AI API Keys"), /*#__PURE__*/React.createElement("p", null, "Nhập key cá nhân hoặc dùng key mặc định từ server."), /*#__PURE__*/React.createElement("div", {
     className: "key-grid"
   }, providers.map(p => /*#__PURE__*/React.createElement("label", {
     key: p.id

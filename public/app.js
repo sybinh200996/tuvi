@@ -1476,6 +1476,53 @@ async function initFirebaseAuth(){
   }
 }
 
+let currentDesktopAuthMode = 'login';
+
+function setDesktopAuthMode(mode) {
+  currentDesktopAuthMode = mode;
+  const isReg = mode === 'register';
+
+  const tabLogin = $('tabAuthLogin');
+  const tabReg = $('tabAuthRegister');
+  if (tabLogin) tabLogin.className = 'auth-tab-btn' + (!isReg ? ' active' : '');
+  if (tabReg) tabReg.className = 'auth-tab-btn' + (isReg ? ' active' : '');
+
+  const title = $('authFormTitle');
+  if (title) title.textContent = isReg ? '📝 Đăng ký tài khoản mới' : '🔐 Đăng nhập tài khoản';
+
+  const sub = $('authFormSub');
+  if (sub) sub.textContent = isReg ? 'Tạo tài khoản để cá nhân hóa luận giải và đồng bộ đa thiết bị.' : 'Đăng nhập để đồng bộ Hồ Sơ Bản Mệnh, lịch sử và cài đặt AI.';
+
+  const nameGrp = $('authNameGroup');
+  if (nameGrp) nameGrp.style.display = isReg ? 'block' : 'none';
+
+  const planGrp = $('authPlanGroup');
+  if (planGrp) planGrp.style.display = isReg ? 'block' : 'none';
+
+  const btn = $('authSubmitBtn');
+  if (btn) {
+    btn.innerHTML = isReg ? '📝 Đăng ký tài khoản' : '🔐 Đăng nhập';
+  }
+
+  const prompt = $('authSwitchPrompt');
+  if (prompt) prompt.textContent = isReg ? 'Đã có tài khoản?' : 'Chưa có tài khoản?';
+
+  const switchBtn = $('authSwitchBtn');
+  if (switchBtn) switchBtn.textContent = isReg ? 'Đăng nhập ngay' : 'Đăng ký ngay';
+}
+
+function toggleDesktopAuthMode() {
+  setDesktopAuthMode(currentDesktopAuthMode === 'login' ? 'register' : 'login');
+}
+
+function submitAuthForm() {
+  if (currentDesktopAuthMode === 'register') {
+    registerAccount();
+  } else {
+    loginAccount();
+  }
+}
+
 async function socialLogin(provider){
   try{
     toast(`Đang mở cửa sổ đăng nhập ${provider === 'google' ? 'Google' : 'Facebook'}...`);
@@ -1509,15 +1556,21 @@ async function socialLogin(provider){
     if ($('profileName')) $('profileName').value = data.user.name || '';
     if ($('profileEmail')) $('profileEmail').value = data.user.email || '';
     if ($('profilePlan')) $('profilePlan').value = data.user.plan || 'Free';
+    if ($('profilePassword')) $('profilePassword').value = '';
     setAccountStatus(data.user, 'Đăng nhập bằng ' + (provider === 'google' ? 'Google' : 'Facebook') + ' thành công.');
     toast(`Đăng nhập thành công! Chào mừng ${data.user.name || data.user.email}`);
+    await loadBirthProfileFromCloud();
   }catch(error){
     console.error('Social login error:', error);
-    if (error.code === 'auth/popup-closed-by-user') {
+    if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
       return;
     }
     if (error.code === 'auth/unauthorized-domain') {
-      alert('Tên miền ' + window.location.hostname + ' chưa được cấp quyền trong Firebase Console. Vui lòng vào Firebase Console -> Authentication -> Settings -> Authorized domains -> Thêm "' + window.location.hostname + '" vào danh sách để hoàn tất.');
+      alert('Tên miền ' + window.location.hostname + ' chưa được cấp quyền trong Firebase Console.\n\nVui lòng vào Firebase Console -> Authentication -> Settings -> Authorized domains -> Thêm "' + window.location.hostname + '" vào danh sách để hoàn tất.');
+      return;
+    }
+    if (error.code === 'auth/operation-not-allowed') {
+      alert(`Phương thức đăng nhập ${provider === 'google' ? 'Google' : 'Facebook'} chưa được kích hoạt trong Firebase Console (dự án dangnam-tuvi).\n\n👉 Bạn hãy vào Firebase Console -> Authentication -> Sign-in method -> Bật ${provider === 'google' ? 'Google' : 'Facebook'}.\n\nHiện tại bạn có thể đăng ký và đăng nhập tức thì bằng Email / Mật khẩu ở form bên dưới!`);
       return;
     }
     toast(error?.message || 'Đăng nhập mạng xã hội lỗi');
@@ -1525,86 +1578,165 @@ async function socialLogin(provider){
 }
 
 async function refreshSession(){
+  const token = localStorage.getItem('synam_token');
+  if(!token) return;
   try{
-    if(!localStorage.getItem('synam_token')) return;
-    const data=await getJSON('/api/auth/me');
-    localStorage.setItem('synam_user',JSON.stringify(data.user));
-    setAccountStatus(data.user,'Phiên đăng nhập còn hiệu lực.');
-  }catch{
-    localStorage.removeItem('synam_token');
-    localStorage.removeItem('synam_user');
-    setAccountStatus(null);
+    const res = await fetch('/api/auth/me', {
+      headers: { 'Authorization': 'Bearer ' + token }
+    });
+    if (res.status === 401) {
+      localStorage.removeItem('synam_token');
+      localStorage.removeItem('synam_user');
+      setAccountStatus(null);
+      return;
+    }
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.user) {
+        localStorage.setItem('synam_user', JSON.stringify(data.user));
+        setAccountStatus(data.user, 'Phiên đăng nhập còn hiệu lực.');
+      }
+    }
+  }catch(e){
+    console.warn('refreshSession note:', e.message);
   }
 }
 
 async function logoutAccount(){
-  try{ await postJSON('/api/auth/logout',{}); }catch{}
+  try{ await postJSON('/api/auth/logout', {}); }catch{}
+  try {
+    if (window.firebase && window.firebase.apps && window.firebase.apps.length && window.firebase.auth) {
+      await window.firebase.auth().signOut().catch(() => {});
+    }
+  } catch(e) {}
   localStorage.removeItem('synam_token');
   localStorage.removeItem('synam_user');
-  setAccountStatus(null,'Đã đăng xuất.');
-  toast('Đã đăng xuất');
+  if ($('profilePassword')) $('profilePassword').value = '';
+  setAccountStatus(null, 'Đã đăng xuất.');
+  toast('Đã đăng xuất tài khoản thành công');
 }
 
 function currentProfile(){
   return {
-    name:$('profileName')?.value||'Thành viên',
-    email:$('profileEmail')?.value||'',
-    password:$('profilePassword')?.value||'',
-    plan:$('profilePlan')?.value||'Free'
-  }
+    name: $('profileName')?.value?.trim() || 'Thành viên',
+    email: $('profileEmail')?.value?.trim() || '',
+    password: $('profilePassword')?.value || '',
+    plan: $('profilePlan')?.value || 'Free'
+  };
 }
-function setAccountStatus(user,msg=''){
-  const box=$('accountStatus'); if(!box)return;
+
+function setAccountStatus(user, msg = ''){
+  const box = $('accountStatus');
+  const pill = document.querySelector('.profile-pill');
   if(user){
-    const avatar=user.avatar?`<img class="account-avatar" src="${escapeHtml(user.avatar)}" alt="avatar">`:'<div class="account-avatar fake">👤</div>';
-    const providers=(user.providers||[]).map(p=>p==='google'?'Google':p==='facebook'?'Facebook':p).join(', ')||'Email/Mật khẩu';
-    box.innerHTML=`<div class="account-ok"><div class="account-head">${avatar}<div><h3>✅ Đã đăng nhập</h3><p><b>${escapeHtml(user.name||'Thành viên')}</b><br>${escapeHtml(user.email||'')}</p></div></div><p>Gói: <b>${escapeHtml(user.plan||'Free')}</b> · Nguồn: <b>${escapeHtml(providers)}</b></p>${msg?`<p>${escapeHtml(msg)}</p>`:''}<button type="button" onclick="logoutAccount()">🚪 Đăng xuất</button></div>`;
-    document.querySelector('.profile-pill')&&(document.querySelector('.profile-pill').innerHTML=`<span class="avatar">👤</span> ${escapeHtml(user?.name||'Tài khoản')} <b>${escapeHtml(user?.plan||'Free')}</b>`);
+    const avatar = user.avatar ? `<img class="account-avatar" src="${escapeHtml(user.avatar)}" alt="avatar">` : '<div class="account-avatar fake">👤</div>';
+    const providers = (user.providers || []).map(p => p === 'google' ? 'Google' : p === 'facebook' ? 'Facebook' : p).join(', ') || 'Email/Mật khẩu';
+    if (box) {
+      box.innerHTML = `
+        <div class="account-ok">
+          <div class="account-head">
+            ${avatar}
+            <div>
+              <h3>✅ Đã đăng nhập</h3>
+              <p><b>${escapeHtml(user.name || 'Thành viên')}</b><br><small style="color:#00f0ff;">${escapeHtml(user.email || '')}</small></p>
+            </div>
+          </div>
+          <p>Gói dịch vụ: <b>${escapeHtml(user.plan || 'Free')}</b> · Đăng nhập qua: <b>${escapeHtml(providers)}</b></p>
+          ${msg ? `<p style="color:#4ade80; font-size:12px; margin:4px 0;">${escapeHtml(msg)}</p>` : ''}
+          <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
+            <button type="button" class="primary" onclick="openDestinyProfileModal()">📜 Hồ Sơ Bản Mệnh</button>
+            <button type="button" onclick="logoutAccount()" style="background:rgba(239,68,68,0.2); border:1px solid rgba(239,68,68,0.5); color:#ff8888;">🚪 Đăng xuất</button>
+          </div>
+        </div>
+      `;
+    }
+    if (pill) {
+      pill.innerHTML = `<span class="avatar">👤</span> ${escapeHtml(user?.name || 'Tài khoản')} <b>${escapeHtml(user?.plan || 'Free')}</b>`;
+    }
   }else{
-    box.innerHTML=`<div class="account-warn"><h3>🔐 Chưa đăng nhập</h3><p>Đăng ký/đăng nhập để lưu hồ sơ thành viên. Lịch sử phân tích vẫn được lưu local trên máy.</p></div>`;
+    if (box) {
+      box.innerHTML = `
+        <div class="account-warn">
+          <h3>🔐 Chưa đăng nhập</h3>
+          <p>Đăng nhập hoặc đăng ký để lưu giữ vĩnh viễn Hồ Sơ Bản Mệnh, lịch sử luận giải tử vi và đồng bộ đa thiết bị.</p>
+        </div>
+      `;
+    }
+    if (pill) {
+      pill.innerHTML = `<span class="avatar">👤</span> Tài khoản <b>Guest</b>`;
+    }
   }
 }
+
 function loadAccount(){
   try{
-    const user=JSON.parse(localStorage.getItem('synam_user')||'null');
-    const profile=JSON.parse(localStorage.getItem('synam_profile')||'null');
-    if(profile){ if($('profileName'))$('profileName').value=profile.name||''; if($('profileEmail'))$('profileEmail').value=profile.email||''; if($('profilePlan'))$('profilePlan').value=profile.plan||'Free'; }
+    const user = JSON.parse(localStorage.getItem('synam_user') || 'null');
+    const profile = JSON.parse(localStorage.getItem('synam_profile') || 'null');
+    if(profile){
+      if($('profileName') && !$('profileName').value) $('profileName').value = profile.name || '';
+      if($('profileEmail') && !$('profileEmail').value) $('profileEmail').value = profile.email || '';
+      if($('profilePlan')) $('profilePlan').value = profile.plan || 'Free';
+    }
     setAccountStatus(user);
     initFirebaseAuth();
     refreshSession();
-  }catch{setAccountStatus(null);initFirebaseAuth()}
+  }catch{
+    setAccountStatus(null);
+    initFirebaseAuth();
+  }
 }
+
 function saveAccount(){
-  const p=currentProfile();
-  localStorage.setItem('synam_profile',JSON.stringify({name:p.name,email:p.email,plan:p.plan}));
+  const p = currentProfile();
+  localStorage.setItem('synam_profile', JSON.stringify({ name: p.name, email: p.email, plan: p.plan }));
   toast('Đã lưu hồ sơ local');
-  setAccountStatus(JSON.parse(localStorage.getItem('synam_user')||'null'));
+  setAccountStatus(JSON.parse(localStorage.getItem('synam_user') || 'null'));
 }
+
 async function registerAccount(){
-  const p=currentProfile();
-  if(!p.email || !p.password){toast('Nhập email và mật khẩu đã nhé');return}
+  const p = currentProfile();
+  if(!p.email || !p.password){
+    toast('Vui lòng nhập đầy đủ email và mật khẩu');
+    return;
+  }
+  if(p.password.length < 6){
+    toast('Mật khẩu tối thiểu 6 ký tự');
+    return;
+  }
   try{
-    const data=await postJSON('/api/auth/register',{name:p.name,email:p.email,password:p.password});
-    localStorage.setItem('synam_user',JSON.stringify(data.user));
-    localStorage.setItem('synam_token',data.token||'');
-    localStorage.setItem('synam_profile',JSON.stringify({name:p.name,email:p.email,plan:data.user.plan||'Free'}));
-    setAccountStatus(data.user,'Tài khoản đã tạo trên server.');
-    toast('Đăng ký thành công');
-  }catch(e){toast(parseError(e))}
+    const data = await postJSON('/api/auth/register', { name: p.name, email: p.email, password: p.password });
+    localStorage.setItem('synam_user', JSON.stringify(data.user));
+    localStorage.setItem('synam_token', data.token || '');
+    localStorage.setItem('synam_profile', JSON.stringify({ name: p.name, email: p.email, plan: data.user.plan || 'Free' }));
+    if ($('profilePassword')) $('profilePassword').value = '';
+    setAccountStatus(data.user, 'Tài khoản đã tạo thành công trên server.');
+    toast('Đăng ký tài khoản thành công!');
+    await loadBirthProfileFromCloud();
+  }catch(e){
+    toast(parseError(e));
+  }
 }
+
 async function loginAccount(){
-  const p=currentProfile();
-  if(!p.email || !p.password){toast('Nhập email và mật khẩu đã nhé');return}
+  const p = currentProfile();
+  if(!p.email || !p.password){
+    toast('Vui lòng nhập email và mật khẩu');
+    return;
+  }
   try{
-    const data=await postJSON('/api/auth/login',{email:p.email,password:p.password});
-    localStorage.setItem('synam_user',JSON.stringify(data.user));
-    localStorage.setItem('synam_token',data.token||'');
-    localStorage.setItem('synam_profile',JSON.stringify({name:data.user.name,email:data.user.email,plan:data.user.plan||'Free'}));
-    if($('profileName'))$('profileName').value=data.user.name||'';
-    if($('profilePlan'))$('profilePlan').value=data.user.plan||'Free';
-    setAccountStatus(data.user,'Đăng nhập thành công.');
-    toast('Đăng nhập thành công');
-  }catch(e){toast(parseError(e))}
+    const data = await postJSON('/api/auth/login', { email: p.email, password: p.password });
+    localStorage.setItem('synam_user', JSON.stringify(data.user));
+    localStorage.setItem('synam_token', data.token || '');
+    localStorage.setItem('synam_profile', JSON.stringify({ name: data.user.name, email: data.user.email, plan: data.user.plan || 'Free' }));
+    if($('profileName')) $('profileName').value = data.user.name || '';
+    if($('profilePlan')) $('profilePlan').value = data.user.plan || 'Free';
+    if ($('profilePassword')) $('profilePassword').value = '';
+    setAccountStatus(data.user, 'Đăng nhập thành công.');
+    toast(`Đăng nhập thành công! Chào mừng ${data.user.name || data.user.email}`);
+    await loadBirthProfileFromCloud();
+  }catch(e){
+    toast(parseError(e));
+  }
 }
 window.addEventListener('DOMContentLoaded',init);
 
@@ -1908,7 +2040,7 @@ document.addEventListener('DOMContentLoaded', renderDesktopZodiac);
 if (typeof window !== 'undefined') {
   window.addEventListener('load', () => {
     try {
-      if (window.firebase && window.firebase.auth) {
+      if (window.firebase && window.firebase.apps && window.firebase.apps.length && window.firebase.auth) {
         window.firebase.auth().onAuthStateChanged(async (user) => {
           if (user) {
             await loadBirthProfileFromCloud();

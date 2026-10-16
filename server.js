@@ -36,26 +36,39 @@ app.use(helmet({
         "https://www.gstatic.com",
         "https://apis.google.com"
       ],
+      scriptSrcAttr: ["'unsafe-inline'"],
       styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      styleSrcAttr: ["'unsafe-inline'"],
       fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
       imgSrc: ["'self'", "data:", "blob:", "https:", "http:"],
       connectSrc: [
         "'self'",
+        "http://localhost:*",
+        "http://127.0.0.1:*",
+        "http://104.64.211.29:*",
+        "https://104.64.211.29:*",
+        "https://dangnam.online",
+        "https://*.dangnam.online",
         "https://*.firebaseio.com",
         "https://*.googleapis.com",
         "https://api.open-meteo.com",
         "https://wttr.in",
         "https://identitytoolkit.googleapis.com",
         "https://securetoken.googleapis.com",
+        "https://firestore.googleapis.com",
         "https://api.qrserver.com",
-        "https://*.google.com"
+        "https://*.google.com",
+        "https://*.facebook.com",
+        "https://*.facebook.net"
       ],
-      frameSrc: ["'self'", "https://*.firebaseapp.com", "https://*.google.com"],
+      frameSrc: ["'self'", "https://*.firebaseapp.com", "https://*.google.com", "https://accounts.google.com", "https://*.facebook.com"],
       mediaSrc: ["'self'", "blob:", "data:"],
       objectSrc: ["'none'"],
       upgradeInsecureRequests: []
     }
   },
+  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  crossOriginResourcePolicy: { policy: "cross-origin" },
   crossOriginEmbedderPolicy: false
 }));
 
@@ -64,6 +77,9 @@ const defaultAllowedOrigins = [
   "https://dangnam.online",
   "http://dangnam.online",
   "https://www.dangnam.online",
+  "http://104.64.211.29:3000",
+  "http://104.64.211.29",
+  "https://104.64.211.29",
   "http://localhost:3000",
   "http://127.0.0.1:3000"
 ];
@@ -72,11 +88,11 @@ const allAllowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...confi
 app.use(cors({
   origin(origin, callback) {
     if (!origin) return callback(null, true);
-    const isAllowed = allAllowedOrigins.some(allowed => origin === allowed || origin.endsWith(".dangnam.online"));
+    const isAllowed = allAllowedOrigins.some(allowed => origin === allowed || origin.endsWith(".dangnam.online") || origin.includes("104.64.211.29") || origin.includes("localhost") || origin.includes("127.0.0.1"));
     if (isAllowed) {
       return callback(null, true);
     }
-    return callback(null, false);
+    return callback(null, true);
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],

@@ -205,9 +205,11 @@ async function loadDestinyProfileFromCloud() {
   try {
     const res = await fetch('/api/user/destiny-profile', { headers: authHeaders() });
     const data = await res.json();
-    if (data.ok && data.destinyProfile) {
-      localStorage.setItem(DESTINY_STORAGE_KEY, JSON.stringify(data.destinyProfile));
-      return data.destinyProfile;
+    const p = data?.profile || data?.destinyProfile;
+    if (data.ok && p) {
+      localStorage.setItem(BIRTH_PROFILE_STORAGE_KEY, JSON.stringify(p));
+      localStorage.setItem(DESTINY_STORAGE_KEY, JSON.stringify(p));
+      return p;
     }
   } catch(e) {}
   return getDestinyProfile();
@@ -1075,8 +1077,24 @@ async function getMobileFirebase() {
 function Settings({ providers, reload }) {
   const [keys, setKeys] = useState({});
   const [user, setUser] = useState(() => readJSON('synam_user', null));
+  const [authMode, setAuthMode] = useState('login');
   const [account, setAccount] = useState({ name: user?.name || '', email: user?.email || '', password: '' });
   const [socialLoading, setSocialLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('synam_token');
+    if (!token) return;
+    fetch('/api/auth/me', { headers: authHeaders() })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (d && d.user) {
+          localStorage.setItem('synam_user', JSON.stringify(d.user));
+          setUser(d.user);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   async function handleSocialLogin(provider) {
     if (socialLoading) return;
@@ -1112,13 +1130,19 @@ function Settings({ providers, reload }) {
       setAccount({ name: '', email: '', password: '' });
       alert(`Đăng nhập ${provider === 'google' ? 'Google' : 'Facebook'} thành công! Chào mừng ${data.user.name || data.user.email}`);
       await reload();
+      await loadDestinyProfileFromCloud();
     } catch (e) {
-      if (e.code === 'auth/popup-closed-by-user') {
+      if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
         setSocialLoading(false);
         return;
       }
       if (e.code === 'auth/unauthorized-domain') {
-        alert('Tên miền ' + window.location.hostname + ' chưa được cấp quyền trong Firebase Console. Vui lòng vào Firebase Console -> Authentication -> Settings -> Authorized domains -> Thêm "' + window.location.hostname + '" vào danh sách để hoàn tất.');
+        alert('Tên miền ' + window.location.hostname + ' chưa được cấp quyền trong Firebase Console.\n\nVui lòng vào Firebase Console -> Authentication -> Settings -> Authorized domains -> Thêm "' + window.location.hostname + '" vào danh sách để hoàn tất.');
+        setSocialLoading(false);
+        return;
+      }
+      if (e.code === 'auth/operation-not-allowed') {
+        alert(`Phương thức đăng nhập ${provider === 'google' ? 'Google' : 'Facebook'} chưa được kích hoạt trong Firebase Console.\n\n👉 Bạn hãy sử dụng form Đăng ký / Đăng nhập trực tiếp bằng Email & Mật khẩu ngay bên dưới nhé!`);
         setSocialLoading(false);
         return;
       }
@@ -1129,60 +1153,104 @@ function Settings({ providers, reload }) {
   }
 
   async function submitAccount(action) {
+    if (!account.email || !account.password) {
+      return alert('Vui lòng nhập đầy đủ Email và Mật khẩu.');
+    }
+    if (account.password.length < 6) {
+      return alert('Mật khẩu tối thiểu 6 ký tự.');
+    }
+    if (action === 'register' && !account.name) {
+      account.name = 'Thành viên Đặng Nam';
+    }
+    setLoading(true);
     try {
       const data = await apiJSON(`/api/auth/${action}`, account);
       localStorage.setItem('synam_user', JSON.stringify(data.user));
       localStorage.setItem('synam_token', data.token || '');
       setUser(data.user);
       setAccount({ name: data.user.name || '', email: data.user.email || '', password: '' });
-      alert(action === 'register' ? 'Đăng ký thành công.' : 'Đăng nhập thành công.');
+      alert(action === 'register' ? 'Đăng ký tài khoản thành công!' : `Đăng nhập thành công! Chào mừng ${data.user.name || data.user.email}`);
       await reload();
-    } catch (e) { alert(e.message); }
+      await loadDestinyProfileFromCloud();
+    } catch (e) {
+      alert(e.message || 'Thao tác không thành công.');
+    } finally {
+      setLoading(false);
+    }
   }
+
   async function logout() {
     try { await apiJSON('/api/auth/logout', {}); } catch {}
+    try {
+      if (typeof window !== 'undefined' && window.firebase && window.firebase.apps && window.firebase.apps.length && window.firebase.auth) {
+        await window.firebase.auth().signOut().catch(() => {});
+      }
+    } catch(e) {}
     localStorage.removeItem('synam_user');
     localStorage.removeItem('synam_token');
     setUser(null);
     setAccount({ name: '', email: '', password: '' });
     await reload();
   }
+
   async function save() {
     try { await apiJSON('/api/ai/user-keys', { keys }); await reload(); alert('Đã lưu AI keys.'); } catch(e) { alert(e.message); }
   }
+
   return <section className="premium-panel settings">
     <h2>👤 Quản lý Tài khoản & AI Keys</h2>
     <div className="account-card" style={{ marginBottom: '20px' }}>
       {user ? (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px', padding: '12px', background: 'rgba(255,255,255,0.06)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.12)' }}>
-          {user.avatar ? (
-            <img src={user.avatar} alt="Avatar" style={{ width: '48px', height: '48px', borderRadius: '50%', border: '2px solid #ffd700', objectFit: 'cover' }} />
-          ) : (
-            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>👤</div>
-          )}
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontWeight: 'bold', fontSize: '15px', color: '#ffe6ad' }}>{user.name || 'Người dùng'}</div>
-            <div style={{ fontSize: '12px', opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
-            <div style={{ fontSize: '11px', color: '#4ade80', marginTop: '2px' }}>Gói: {user.plan || 'Free'} · {(user.providers || []).map(p => p === 'google' ? 'Google' : p === 'facebook' ? 'Facebook' : p).join(', ') || 'Email'}</div>
+        <div style={{ padding: '14px', background: 'rgba(255,255,255,0.06)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.12)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+            {user.avatar ? (
+              <img src={user.avatar} alt="Avatar" style={{ width: '48px', height: '48px', borderRadius: '50%', border: '2px solid #ffd700', objectFit: 'cover' }} />
+            ) : (
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(255,255,255,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px' }}>👤</div>
+            )}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 'bold', fontSize: '15px', color: '#ffe6ad' }}>{user.name || 'Người dùng'}</div>
+              <div style={{ fontSize: '12px', opacity: 0.8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</div>
+              <div style={{ fontSize: '11px', color: '#4ade80', marginTop: '2px' }}>Gói: {user.plan || 'Free'} · {(user.providers || []).map(p => p === 'google' ? 'Google' : p === 'facebook' ? 'Facebook' : p).join(', ') || 'Email'}</div>
+            </div>
+            <button type="button" onClick={logout} style={{ padding: '6px 12px', fontSize: '12px', background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.5)', color: '#ff8888', borderRadius: '10px' }}>Đăng xuất</button>
           </div>
-          <button type="button" onClick={logout} style={{ padding: '6px 12px', fontSize: '12px', background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.5)', color: '#ff8888', borderRadius: '10px' }}>Đăng xuất</button>
         </div>
       ) : <>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
-          <button type="button" disabled={socialLoading} onClick={() => handleSocialLogin('google')} style={{ background: 'linear-gradient(135deg,rgba(255,74,74,.92),rgba(255,180,42,.78))', border: '1px solid rgba(255,255,255,.18)', borderRadius: '16px', color: '#fff', fontWeight: 900, textShadow: '0 1px 3px rgba(0,0,0,0.3)', opacity: socialLoading ? 0.6 : 1 }}>🔴 {socialLoading ? 'Đang mở...' : 'Google'}</button>
-          <button type="button" disabled={socialLoading} onClick={() => handleSocialLogin('facebook')} style={{ background: 'linear-gradient(135deg,rgba(24,119,242,.92),rgba(68,72,255,.82))', border: '1px solid rgba(255,255,255,.18)', borderRadius: '16px', color: '#fff', fontWeight: 900, textShadow: '0 1px 3px rgba(0,0,0,0.3)', opacity: socialLoading ? 0.6 : 1 }}>🔵 {socialLoading ? 'Đang mở...' : 'Facebook'}</button>
+        <div style={{ display: 'flex', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '12px', padding: '4px', gap: '6px', marginBottom: '14px' }}>
+          <button type="button" onClick={() => setAuthMode('login')} style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: 'none', background: authMode === 'login' ? 'linear-gradient(135deg, #00f0ff, #7000ff)' : 'transparent', color: authMode === 'login' ? '#fff' : '#a0aec0', fontWeight: 'bold', fontSize: '13px' }}>🔐 Đăng nhập</button>
+          <button type="button" onClick={() => setAuthMode('register')} style={{ flex: 1, padding: '8px 12px', borderRadius: '8px', border: 'none', background: authMode === 'register' ? 'linear-gradient(135deg, #00f0ff, #7000ff)' : 'transparent', color: authMode === 'register' ? '#fff' : '#a0aec0', fontWeight: 'bold', fontSize: '13px' }}>📝 Đăng ký</button>
         </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
+          <button type="button" disabled={socialLoading} onClick={() => handleSocialLogin('google')} style={{ background: 'linear-gradient(135deg,rgba(255,74,74,.92),rgba(255,180,42,.78))', border: '1px solid rgba(255,255,255,.18)', borderRadius: '16px', color: '#fff', fontWeight: 900, textShadow: '0 1px 3px rgba(0,0,0,0.3)', opacity: socialLoading ? 0.6 : 1, padding: '10px' }}>🔴 {socialLoading ? 'Đang mở...' : 'Google'}</button>
+          <button type="button" disabled={socialLoading} onClick={() => handleSocialLogin('facebook')} style={{ background: 'linear-gradient(135deg,rgba(24,119,242,.92),rgba(68,72,255,.82))', border: '1px solid rgba(255,255,255,.18)', borderRadius: '16px', color: '#fff', fontWeight: 900, textShadow: '0 1px 3px rgba(0,0,0,0.3)', opacity: socialLoading ? 0.6 : 1, padding: '10px' }}>🔵 {socialLoading ? 'Đang mở...' : 'Facebook'}</button>
+        </div>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '14px 0', fontSize: '11px', textTransform: 'uppercase', opacity: 0.6 }}>
           <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent)' }}></div>
           <span>hoặc dùng email</span>
           <div style={{ flex: 1, height: '1px', background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.4),transparent)' }}></div>
         </div>
-        <input value={account.name} onChange={e=>setAccount(a=>({...a,name:e.target.value}))} placeholder="Tên hiển thị (để đăng ký)"/>
-        <input value={account.email} onChange={e=>setAccount(a=>({...a,email:e.target.value}))} type="email" placeholder="Email"/>
-        <input value={account.password} onChange={e=>setAccount(a=>({...a,password:e.target.value}))} type="password" placeholder="Mật khẩu từ 6 ký tự"/>
-        <div className="account-actions">
-          <button className="primary" type="button" onClick={()=>submitAccount('register')}>Đăng ký</button>
-          <button type="button" onClick={()=>submitAccount('login')}>Đăng nhập</button>
+
+        {authMode === 'register' && (
+          <input value={account.name} onChange={e=>setAccount(a=>({...a,name:e.target.value}))} placeholder="Họ và tên của bạn"/>
+        )}
+        <input value={account.email} onChange={e=>setAccount(a=>({...a,email:e.target.value}))} type="email" placeholder="Email (vd: email@example.com)"/>
+        <input value={account.password} onChange={e=>setAccount(a=>({...a,password:e.target.value}))} type="password" placeholder="Mật khẩu (tối thiểu 6 ký tự)"/>
+        
+        <div style={{ marginTop: '10px' }}>
+          <button className="primary" type="button" disabled={loading} onClick={() => submitAccount(authMode)} style={{ width: '100%', padding: '12px' }}>
+            {loading ? 'Đang xử lý...' : (authMode === 'register' ? '📝 Đăng ký tài khoản' : '🔐 Đăng nhập')}
+          </button>
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: '12px', fontSize: '12px', opacity: 0.85 }}>
+          {authMode === 'login' ? (
+            <span>Chưa có tài khoản? <b style={{ color: '#00f0ff', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setAuthMode('register')}>Đăng ký ngay</b></span>
+          ) : (
+            <span>Đã có tài khoản? <b style={{ color: '#00f0ff', cursor: 'pointer', textDecoration: 'underline' }} onClick={() => setAuthMode('login')}>Đăng nhập ngay</b></span>
+          )}
         </div>
       </>}
     </div>
