@@ -324,6 +324,8 @@ async function streamChatResponse({ url, payload, signal, onStart, onDelta, onDo
     let currentEvent = 'message';
     let fullText = '';
 
+    let isTerminated = false;
+
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -344,6 +346,7 @@ async function streamChatResponse({ url, payload, signal, onStart, onDelta, onDo
         if (trimmed.startsWith('data: ')) {
           const rawData = trimmed.slice(6).trim();
           if (rawData === '[DONE]') {
+            isTerminated = true;
             if (typeof onDone === 'function') onDone(fullText, { label: 'Đặng Năm AI' });
             return fullText;
           }
@@ -359,6 +362,7 @@ async function streamChatResponse({ url, payload, signal, onStart, onDelta, onDo
             } else if (currentEvent === 'start') {
               if (typeof onStart === 'function') onStart(data);
             } else if (currentEvent === 'done' || data.done) {
+              isTerminated = true;
               if (typeof onDone === 'function') onDone(data.fullText || fullText, data);
             }
           } catch(pe) {
@@ -369,6 +373,9 @@ async function streamChatResponse({ url, payload, signal, onStart, onDelta, onDo
           }
         }
       }
+    }
+    if (!isTerminated && typeof onDone === 'function') {
+      onDone(fullText, { label: 'Đặng Năm AI' });
     }
     return fullText;
   } catch (err) {

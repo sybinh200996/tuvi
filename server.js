@@ -20,6 +20,7 @@ const PORT = process.env.PORT || 3000;
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const configuredCorsOrigins = String(process.env.CORS_ORIGIN || '').split(',').map(value => value.trim()).filter(Boolean);
 
+app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
 // Cấu hình bảo mật Helmet với CSP phù hợp cho CDN, Firebase và PWA
@@ -49,6 +50,7 @@ app.use(helmet({
         "https://104.64.211.29:*",
         "https://dangnam.online",
         "https://*.dangnam.online",
+        "https://*.firebaseapp.com",
         "https://*.firebaseio.com",
         "https://*.googleapis.com",
         "https://api.open-meteo.com",
@@ -58,6 +60,8 @@ app.use(helmet({
         "https://firestore.googleapis.com",
         "https://api.qrserver.com",
         "https://*.google.com",
+        "https://accounts.google.com",
+        "https://apis.google.com",
         "https://*.facebook.com",
         "https://*.facebook.net"
       ],
@@ -67,7 +71,7 @@ app.use(helmet({
       upgradeInsecureRequests: []
     }
   },
-  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  crossOriginOpenerPolicy: false,
   crossOriginResourcePolicy: { policy: "cross-origin" },
   crossOriginEmbedderPolicy: false
 }));
@@ -99,23 +103,23 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"]
 }));
 
-// Rate Limiters chống spam API (25 requests / 15 phút cho AI)
+// Rate Limiters chống spam API
 const aiLimiter = rateLimit({
   windowMs: Number(process.env.RATE_LIMIT_AI_WINDOW_MS) || 15 * 60 * 1000,
-  max: Number(process.env.RATE_LIMIT_AI_MAX) || 25,
+  max: Number(process.env.RATE_LIMIT_AI_MAX) || 60,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
     res.status(429).json({
       ok: false,
-      error: "Hệ thống Đặng Năm AI: Bạn đã đạt giới hạn 25 yêu cầu AI trong 15 phút. Vui lòng tạm nghỉ ít phút trước khi tiếp tục trò chuyện cùng AI."
+      error: "Hệ thống Đặng Năm AI: Bạn đã đạt giới hạn yêu cầu AI trong 15 phút. Vui lòng tạm nghỉ ít phút trước khi tiếp tục trò chuyện cùng AI."
     });
   }
 });
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: Number(process.env.RATE_LIMIT_AUTH_MAX) || 30,
+  max: Number(process.env.RATE_LIMIT_AUTH_MAX) || 60,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {

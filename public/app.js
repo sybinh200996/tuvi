@@ -593,6 +593,153 @@ async function streamChatResponse({ url, payload, signal, onStart, onDelta, onDo
   }
 }
 
+function formatMarkdownSafe(text) {
+  if (typeof marked !== 'undefined' && marked.parse) {
+    try {
+      const rawHtml = marked.parse(String(text));
+      return typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(rawHtml) : rawHtml;
+    } catch(e) {}
+  }
+  return typeof markdownish === 'function' ? markdownish(text) : escapeHtml(text).replace(/\n/g, '<br>');
+}
+
+async function analyzeCung(cungName, cungChi, cungDesc) {
+  document.querySelectorAll('.cung-cell').forEach(el => {
+    el.classList.toggle('active-cung', el.dataset.cung === cungName);
+  });
+  
+  const badge = $('tuviActiveCungBadge');
+  if (badge) badge.textContent = `Cung ${cungName} [${cungChi || ''}]`;
+
+  const heading = $('tuviResultHeading');
+  if (heading) heading.textContent = `🔮 Luận Giải Chuyên Sâu: Cung ${cungName} (${cungChi || ''})`;
+
+  const resultSection = $('tuviResultSection');
+  const resultContent = $('tuviResultContent');
+  const actionBar = $('tuviActionBar');
+  if (actionBar) actionBar.style.display = 'none';
+
+  if (resultContent) {
+    resultContent.innerHTML = `<span class="content-body"><span class="typing-dots"><i></i><i></i><i></i></span> Đang kết nối trí tuệ nhân tạo Đặng Năm AI luận Cung ${cungName}...</span><span class="streaming-cursor"></span>`;
+  }
+
+  if (resultSection) {
+    resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  const profile = getBirthProfile();
+  const prompt = `Hãy đóng vai bậc thầy Tử Vi Đẩu Số Đặng Năm AI, luận giải chi tiết, thấu đáo và chuyên sâu về Cung ${cungName} (địa chi ${cungChi} - ý nghĩa: ${cungDesc}) trên lá số Tử Vi cho bản mệnh đương số. Kết hợp phân tích tính cách, thời vận, điểm cát hung và đưa ra lời khuyên thực tế để kích hoạt tài lộc, bình an, hanh thông sự nghiệp.`;
+
+  let accumulated = '';
+  try {
+    await streamChatResponse({
+      url: '/api/chat-stream',
+      payload: {
+        message: prompt,
+        history: [],
+        birthProfile: profile
+      },
+      onDelta: (chunk, full) => {
+        accumulated = full;
+        if (resultContent) {
+          resultContent.dataset.rawMarkdown = full;
+          resultContent.innerHTML = formatMarkdownSafe(full) + '<span class="streaming-cursor"></span>';
+        }
+      },
+      onDone: (finalFull) => {
+        const finalText = finalFull || accumulated || 'Đã hoàn thành luận giải.';
+        if (resultContent) {
+          resultContent.dataset.rawMarkdown = finalText;
+          resultContent.innerHTML = formatMarkdownSafe(finalText);
+        }
+        if (actionBar) {
+          actionBar.style.display = 'flex';
+          actionBar.dataset.rawText = finalText;
+        }
+        lastResult = finalText;
+        saveHistory(`Tử Vi: Cung ${cungName}`, finalText);
+      },
+      onError: (err) => {
+        if (resultContent) {
+          resultContent.innerHTML = `<span style="color:#ff7888;">⚠️ Chưa thể kết nối AI: ${escapeHtml(err.message || err)}. Vui lòng thử lại sau ít giây.</span>`;
+        }
+      }
+    });
+  } catch (e) {
+    if (resultContent) {
+      resultContent.innerHTML = `<span style="color:#ff7888;">⚠️ Lỗi: ${escapeHtml(e.message || e)}</span>`;
+    }
+  }
+}
+
+async function analyzeTuviPrompt(promptText) {
+  const badge = $('tuviActiveCungBadge');
+  if (badge) badge.textContent = 'Luận Toàn Cục';
+
+  const heading = $('tuviResultHeading');
+  if (heading) heading.textContent = `🔮 Luận Giải: ${promptText.slice(0, 45)}...`;
+
+  const resultSection = $('tuviResultSection');
+  const resultContent = $('tuviResultContent');
+  const actionBar = $('tuviActionBar');
+  if (actionBar) actionBar.style.display = 'none';
+
+  if (resultContent) {
+    resultContent.innerHTML = `<span class="content-body"><span class="typing-dots"><i></i><i></i><i></i></span> Đang kết nối trí tuệ nhân tạo Đặng Năm AI...</span><span class="streaming-cursor"></span>`;
+  }
+
+  if (resultSection) {
+    resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  const profile = getBirthProfile();
+
+  let accumulated = '';
+  try {
+    await streamChatResponse({
+      url: '/api/chat-stream',
+      payload: {
+        message: promptText,
+        history: [],
+        birthProfile: profile
+      },
+      onDelta: (chunk, full) => {
+        accumulated = full;
+        if (resultContent) {
+          resultContent.dataset.rawMarkdown = full;
+          resultContent.innerHTML = formatMarkdownSafe(full) + '<span class="streaming-cursor"></span>';
+        }
+      },
+      onDone: (finalFull) => {
+        const finalText = finalFull || accumulated || 'Đã hoàn thành luận giải.';
+        if (resultContent) {
+          resultContent.dataset.rawMarkdown = finalText;
+          resultContent.innerHTML = formatMarkdownSafe(finalText);
+        }
+        if (actionBar) {
+          actionBar.style.display = 'flex';
+          actionBar.dataset.rawText = finalText;
+        }
+        lastResult = finalText;
+        saveHistory('Tử Vi Đặng Năm AI', finalText);
+      },
+      onError: (err) => {
+        if (resultContent) {
+          resultContent.innerHTML = `<span style="color:#ff7888;">⚠️ Chưa thể kết nối AI: ${escapeHtml(err.message || err)}.</span>`;
+        }
+      }
+    });
+  } catch (e) {
+    if (resultContent) {
+      resultContent.innerHTML = `<span style="color:#ff7888;">⚠️ Lỗi: ${escapeHtml(e.message || e)}</span>`;
+    }
+  }
+}
+
+function generateTuvi() {
+  return analyzeTuviPrompt('Luận giải tổng quan vận mệnh, cục diện lá số và đại vận then chốt cho đương số theo thông tin bản mệnh.');
+}
+
 function appendChatActions(container, text) {
   if (!container || !text) return;
   const existing = container.querySelector('.msg-action-bar');
