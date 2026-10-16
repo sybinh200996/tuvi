@@ -1,3 +1,33 @@
+
+let currentChatAbortController = null;
+
+const CHAT_PERSONAS = {
+  tuvi: "Bạn là Đại Sư Tử Vi Đặng Năm, chuyên gia thẩm định tử vi đẩu số, an sao, hóa giải vận hạn và tướng pháp. Luận giải sâu sắc, thấu triệt, đĩnh đạc, kết hợp hài hòa giữa thuật số cổ truyền và giải pháp thực tế.",
+  phongthuy: "Bạn là Chuyên Gia Phong Thủy Đặng Năm, am tường bát trạch, huyền không phi tinh, loan đầu, ngũ hành sinh khắc. Luận giải chi tiết về phương vị, màu sắc, bố trí không gian giúp gia chủ kích tài vận, an gia hòa khí.",
+  tarot: "Bạn là Tarot Reader Đặng Năm, kết nối sâu sắc với trực giác và năng lượng vũ trụ. Luận giải hình tượng biểu trưng của các lá bài Tarot, thấu hiểu tâm lý và định hướng giải pháp tích cực cho người hỏi.",
+  assistant: "Bạn là Đặng Năm AI Pro - Trợ lý trí tuệ nhân tạo toàn năng, phản hồi nhanh chóng, chính xác, logic, phân tích chuyên sâu mọi dữ liệu, văn bản, mã code và câu hỏi."
+};
+
+function onChatPersonaChange() {
+  const sel = document.getElementById('chatPersona');
+  if (sel) {
+    currentChatPersona = sel.value;
+    localStorage.setItem('synam_chat_persona', currentChatPersona);
+    toast(`Đã chuyển phong cách: ${sel.options[sel.selectedIndex].text}`);
+  }
+}
+
+function onChatProviderChange() {
+  const sel = document.getElementById('chatProvider');
+  if (sel) {
+    toast(`Đã chọn Engine: ${sel.options[sel.selectedIndex].text}`);
+  }
+}
+
+let currentChatPersona = localStorage.getItem('synam_chat_persona') || 'assistant';
+let isChatStreaming = false;
+let userChatScrolledUp = false;
+
 const routes=[['home','Trang Chủ','home'],['tuvi','Tử Vi','tuvi'],['palm','Xem Chỉ Tay','palm'],['face','Xem Tướng','face'],['astrology','Chiêm Tinh','astro'],['love','Tình Duyên','love'],['numerology','Thần Số Học','num'],['chat','AI Chat','chat'],['ai','Multi AI','deep'],['fengshui','Phong Thủy','feng'],['tarot','Bói Bài','tarot'],['history','Lịch Sử','history']];
 let lastResult='';
 const $=id=>document.getElementById(id);
@@ -24,6 +54,8 @@ function getDestinyProfile() {
 }
 
 function updateDestinyBadgeAndThienBan(profile) {
+  try { updateChatDestinyContextBar(); } catch(e) {}
+
   const p = profile || getBirthProfile();
   const hasProfile = Boolean(p && (p.fullName || p.name) && p.birthDate);
 
@@ -995,8 +1027,20 @@ function startVoiceInput(){
 }
 function stopVoiceInput(){try{voiceRecognizer?.stop?.()}catch{} voiceListening=false;setVoiceStatus('🎙️ Đã dừng nghe',false)}
 function toggleVoiceInput(){voiceListening?stopVoiceInput():startVoiceInput()}
-function scrollChatBottom(){const el=$('chatLog'); if(el) el.scrollTop=el.scrollHeight}
-function newProChat(){if(!confirm('Tạo cuộc chat mới? Bộ nhớ hội thoại hiện tại sẽ được làm mới, lịch sử cũ vẫn nằm trong mục Lịch sử.'))return; clearChatMemory(); const log=$('chatLog'); if(log) log.innerHTML='<div class="msg ai-welcome"><b>✨ Cuộc chat mới</b><br>Năm muốn hỏi gì tiếp? Bấm 🎤 để nói hoặc gõ nội dung bên dưới.</div>'; lastResult='';}
+function scrollChatBottom(force = false){
+  const el=$('chatLog');
+  if(!el) return;
+  if(force || !userChatScrolledUp){
+    el.scrollTop = el.scrollHeight;
+    userChatScrolledUp = false;
+    const btn = $('scrollBottomBtn');
+    if (btn) btn.style.display = 'none';
+  }
+}
+function newProChat(){
+  const welcomeBox = $('mysticWelcomeState');
+  if (welcomeBox) welcomeBox.style.display = 'flex';
+if(!confirm('Tạo cuộc chat mới? Bộ nhớ hội thoại hiện tại sẽ được làm mới, lịch sử cũ vẫn nằm trong mục Lịch sử.'))return; clearChatMemory(); const log=$('chatLog'); if(log) log.innerHTML='<div class="msg ai-welcome"><b>✨ Cuộc chat mới</b><br>Năm muốn hỏi gì tiếp? Bấm 🎤 để nói hoặc gõ nội dung bên dưới.</div>'; lastResult='';}
 
 function previewImage(e,id){const f=e.target.files[0];if(!f)return;const img=$(id);img.src=URL.createObjectURL(f);img.style.display='block'}
 function copyCameraFile(e,targetInputId,previewId){
@@ -1233,6 +1277,11 @@ async function sendChat(customPrompt){
   const q = typeof customPrompt === 'string' ? customPrompt.trim() : (input?.value || '').trim();
   const attachments=[...chatAttachments];
   if(!q && !attachments.length){toast('Nhập câu hỏi hoặc tải ảnh/file lên đã nhé');return}
+
+  // 1. Hide Welcome empty state box
+  const welcomeBox = $('mysticWelcomeState');
+  if (welcomeBox) welcomeBox.style.display = 'none';
+
   const history=getChatHistoryForAI(30);
   rememberChatTurn('user', q||'Phân tích file/ảnh đã tải lên');
   if (input && typeof customPrompt !== 'string') {
@@ -1243,14 +1292,22 @@ async function sendChat(customPrompt){
   $('chatLog').insertAdjacentHTML('beforeend',`<div class="msg me">${getChatUserRoleHtml()}${escapeHtml(q||'Phân tích file/ảnh đã tải lên')}${attachLabel}</div>`);
 
   const msgId = 'ai-msg-' + Date.now();
-  $('chatLog').insertAdjacentHTML('beforeend',`<div class="msg ai-msg" id="${msgId}"><span class="msg-role">🤖 Đặng Năm AI</span><span class="content-body"><span class="typing-dots"><i></i><i></i><i></i></span> Đang kết nối trí tuệ nhân tạo...</span><span class="streaming-cursor"></span></div>`);
-  scrollChatBottom();
+  // 2. Insert initial AI msg with Mystic Shimmer thinking
+  $('chatLog').insertAdjacentHTML('beforeend',`<div class="msg ai-msg" id="${msgId}"><span class="msg-role">🤖 Đặng Năm AI</span><span class="content-body"><div class="mystic-thinking-shimmer"><span class="shimmer-sparkle">✦</span> Đặng Năm AI đang an sao & luận giải...</div></span><span class="streaming-cursor"></span></div>`);
+  scrollChatBottom(true);
 
   chatAttachments=[];renderChatAttachments();
 
   const msgElem = $(msgId);
   const bodyElem = msgElem?.querySelector('.content-body');
   const cursorElem = msgElem?.querySelector('.streaming-cursor');
+
+  // Setup abort controller and button state
+  if (currentChatAbortController) {
+    try { currentChatAbortController.abort(); } catch(e) {}
+  }
+  currentChatAbortController = new AbortController();
+  setChatSendBtnState(true);
 
   try{
     if(!attachments.length && isWeatherQuestionClient(q)){
@@ -1261,7 +1318,9 @@ async function sendChat(customPrompt){
           if (bodyElem) bodyElem.innerHTML = markdownish(cleanText);
           if (cursorElem) cursorElem.remove();
           appendChatActions(msgElem, cleanText);
-          lastResult=cleanText;rememberChatTurn('assistant',cleanText);saveHistory('Đặng Năm Weather Core',cleanText);scrollChatBottom();speakText(cleanText);
+          lastResult=cleanText;rememberChatTurn('assistant',cleanText);saveHistory('Đặng Năm Weather Core',cleanText);scrollChatBottom(true);speakText(cleanText);
+          setChatSendBtnState(false);
+          currentChatAbortController = null;
           return;
         }
       }catch(_weatherErr){}
@@ -1273,6 +1332,7 @@ async function sendChat(customPrompt){
     const answerStyle=$('chatAnswerStyle')?.value||'detailed';
     const context={clientTime:new Date().toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}),source:'Đặng Năm AI Chat',today:new Date().toLocaleDateString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh',weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})};
     const destinyProfile = getDestinyProfile();
+    const personaPrompt = CHAT_PERSONAS[currentChatPersona] || CHAT_PERSONAS.assistant;
 
     const streamUrl = attachments.length ? '/api/chat-ai/stream' : '/api/chat-stream';
     const payload = attachments.length ? {
@@ -1285,10 +1345,14 @@ async function sendChat(customPrompt){
       provider,
       model,
       council,
+      persona: currentChatPersona,
+      personaPrompt,
       destinyProfile: getBirthProfile()
     } : {
       message: q,
       history,
+      persona: currentChatPersona,
+      personaPrompt,
       birthProfile: getBirthProfile()
     };
 
@@ -1296,6 +1360,7 @@ async function sendChat(customPrompt){
     await streamChatResponse({
       url: streamUrl,
       payload,
+      signal: currentChatAbortController.signal,
       onStart: (meta) => {
         if (bodyElem && !accumulatedText) {
           bodyElem.innerHTML = '';
@@ -1319,16 +1384,27 @@ async function sendChat(customPrompt){
         checkGeminiStatus();
         scrollChatBottom();
         speakText(text);
+        setChatSendBtnState(false);
+        currentChatAbortController = null;
       },
       onError: (err) => {
+        setChatSendBtnState(false);
+        currentChatAbortController = null;
         throw err;
       }
     });
   }catch(e){
-    const err=parseError(e);
+    setChatSendBtnState(false);
+    currentChatAbortController = null;
+    const isAborted = e?.name === 'AbortError' || String(e).includes('abort');
     if (cursorElem) cursorElem.remove();
     if (bodyElem) {
-      bodyElem.innerHTML = `<span style="color:#ff8595;"><b>⚠️ AI chưa phản hồi được.</b><br>${escapeHtml(err)}<br><small>Kiểm tra API key / quota hoặc thử lại sau ít giây.</small></span>`;
+      if (isAborted) {
+        bodyElem.innerHTML += `<div class="msg-aborted-pill"><small>⏹️ Đã dừng tạo câu trả lời theo yêu cầu</small></div>`;
+      } else {
+        const err=parseError(e);
+        bodyElem.innerHTML = `<span style="color:#ff8595;"><b>⚠️ AI chưa phản hồi được.</b><br>${escapeHtml(err)}<br><small>Kiểm tra API key / quota hoặc thử lại sau ít giây.</small></span>`;
+      }
     }
     scrollChatBottom();
     lastResult='';
@@ -2210,3 +2286,90 @@ if (typeof window !== 'undefined') {
     } catch(e) {}
   });
 }
+
+
+function updateChatDestinyContextBar() {
+  const p = getBirthProfile();
+  const bar = document.getElementById('chatDestinyContextBar');
+  const textEl = document.getElementById('chatDestinyContextText');
+  const sideCard = document.getElementById('sidebarDestinyCard');
+  const welcomeTitle = document.getElementById('mysticWelcomeTitle');
+
+  const hasP = Boolean(p && (p.fullName || p.name) && p.birthDate);
+  const name = hasP ? (p.fullName || p.name) : '';
+  const bDate = hasP ? p.birthDate : '';
+  const menh = hasP ? (p.menh || 'Bản mệnh') : '';
+
+  if (textEl) {
+    if (hasP) {
+      textEl.innerHTML = `✨ Ngữ cảnh: <b>${escapeHtml(name)}</b> • ${escapeHtml(bDate)} • Mệnh <b>${escapeHtml(menh)}</b>`;
+    } else {
+      textEl.innerHTML = `⚠️ Chưa gắn hồ sơ bản mệnh • <span style="text-decoration:underline;">Nhập ngày sinh giúp AI luận chuẩn 100%</span>`;
+    }
+  }
+
+  if (sideCard) {
+    if (hasP) {
+      sideCard.innerHTML = `<div class="side-destiny-box"><b>📜 ${escapeHtml(name)}</b><p>${escapeHtml(bDate)} • ${escapeHtml(menh)}</p><button type="button" onclick="openDestinyProfileModal()">Sửa hồ sơ</button></div>`;
+    } else {
+      sideCard.innerHTML = `<div class="side-destiny-box empty"><p>Chưa có hồ sơ bản mệnh</p><button type="button" onclick="openDestinyProfileModal()">+ Tạo hồ sơ</button></div>`;
+    }
+  }
+
+  if (welcomeTitle && hasP) {
+    welcomeTitle.textContent = `Chào ${name}, Đặng Năm AI sẵn sàng luận giải!`;
+  }
+}
+
+
+function handleChatLogScroll(el) {
+  if (!el) return;
+  const isUp = (el.scrollHeight - el.scrollTop - el.clientHeight) > 130;
+  userChatScrolledUp = isUp;
+  const btn = document.getElementById('scrollBottomBtn');
+  if (btn) {
+    btn.style.display = isUp ? 'inline-flex' : 'none';
+  }
+}
+
+function handleSendOrStopChat() {
+  if (isChatStreaming) {
+    stopCurrentChatStream();
+  } else {
+    sendChat();
+  }
+}
+
+function stopCurrentChatStream() {
+  if (currentChatAbortController) {
+    try {
+      currentChatAbortController.abort();
+    } catch(e) {}
+    currentChatAbortController = null;
+  }
+  isChatStreaming = false;
+  setChatSendBtnState(false);
+  const cursor = document.querySelector('.streaming-cursor');
+  if (cursor) cursor.remove();
+  toast('Đã dừng tạo phản hồi');
+}
+
+function setChatSendBtnState(streaming) {
+  isChatStreaming = streaming;
+  const btn = document.getElementById('chatSendBtn');
+  if (!btn) return;
+  if (streaming) {
+    btn.classList.add('is-generating');
+    btn.innerHTML = '<span class="send-label">⏹️ Dừng</span>';
+    btn.title = 'Bấm để dừng tạo câu trả lời';
+  } else {
+    btn.classList.remove('is-generating');
+    btn.innerHTML = '<span class="send-label">➤ Gửi</span>';
+    btn.title = 'Gửi tin nhắn';
+  }
+}
+
+// Initialize Chat Destiny Context Bar
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => { try { updateChatDestinyContextBar(); } catch(e) {} }, 800);
+});

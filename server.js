@@ -1798,7 +1798,7 @@ app.post("/api/chat-stream", aiLimiter, async (req, res) => {
   };
 
   try {
-    const { message, history = [], birthProfile = null, destinyProfile = null } = req.body || {};
+    const { message, history = [], birthProfile = null, destinyProfile = null, persona = null, personaPrompt = null } = req.body || {};
     const cleanMessage = String(message || "").trim();
 
     if (!cleanMessage) {
@@ -1811,6 +1811,9 @@ app.post("/api/chat-stream", aiLimiter, async (req, res) => {
     const profile = birthProfile || destinyProfile || user?.destinyProfile || null;
 
     let systemPrompt = `Bạn là Đặng Năm AI (dangnam.online) - Trợ lý Trí Tuệ Nhân Tạo & Chuyên gia Luận giải Mệnh lý, Phong thủy, Tử vi học cao cấp. Bạn trả lời bằng tiếng Việt trang trọng, sâu sắc, thực tế, mạch lạc và thấu cảm.`;
+    if (personaPrompt) {
+      systemPrompt = String(personaPrompt) + "\n\n" + systemPrompt;
+    }
 
     if (profile && (profile.fullName || profile.name || profile.birthDate)) {
       const pName = profile.fullName || profile.name || "Đương số";

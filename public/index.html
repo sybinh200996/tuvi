@@ -7,7 +7,7 @@
   <meta name="description" content="Đặng Năm Mystic - AI tử vi, chỉ tay, xem tướng, chiêm tinh, chat, lịch sử và tài khoản." />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="assets/icon.svg" />
-  <link rel="stylesheet" href="style.css?v=1791907000" />
+  <link rel="stylesheet" href="style.css?v=1791908000" />
   
       <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
@@ -290,90 +290,80 @@
 </style>
 <style id="desktop-chat-lock-fix">
 /* ========================================================
-   DEFINITIVE DESKTOP CHAT EXPAND & STRETCH FIX - DANGNAM.ONLINE
-   Stretches chat container to full comfortable height,
-   guarantees all buttons & input are fully visible, no black void.
+   MODERN MYSTIC LUXURY CHAT AI - DANGNAM.ONLINE
+   Full-screen immersive AI pair with Persona & Context Bar
 ======================================================== */
+
+/* Global Chat Page Flow */
+html,
+body[data-route="chat"] {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  height: auto !important;
+  min-height: 100vh !important;
+  background: radial-gradient(circle at 50% 10%, #0d1633 0%, #060a1a 100%) !important;
+}
+
+body[data-route="chat"] .hero-section {
+  display: block !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  max-height: 48px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  overflow: visible !important;
+}
+body[data-route="chat"] .hero-section::before,
+body[data-route="chat"] .hero-section::after,
+body[data-route="chat"] .hero-person,
+body[data-route="chat"] .hero-center,
+body[data-route="chat"] .feature-tabs-wrap {
+  display: none !important;
+}
+body[data-route="chat"] .topbar {
+  position: sticky !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  z-index: 99 !important;
+  padding: 4px 16px !important;
+  border-radius: 0 0 16px 16px !important;
+  background: rgba(5, 12, 31, 0.94) !important;
+  backdrop-filter: blur(14px) !important;
+  box-sizing: border-box !important;
+}
+
+body[data-route="chat"] .app {
+  position: relative !important;
+  width: 100% !important;
+  max-width: 1420px !important;
+  margin: 0 auto !important;
+  padding: 6px 14px 92px 14px !important;
+  height: auto !important;
+  min-height: calc(100vh - 60px) !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+body[data-route="chat"] #page-chat.page.active,
+body[data-route="chat"] .chat-pro-page {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+}
+
+/* Chat Shell: 2-column on desktop */
 @media (min-width: 769px) {
-  /* A. Let the page breathe with normal height & scrolling */
-  html,
-  body[data-route="chat"] {
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-    height: auto !important;
-    min-height: 100vh !important;
-    max-height: none !important;
-  }
-
-  /* B. Sticky sleek topbar (48px) */
-  body[data-route="chat"] .hero-section {
-    display: block !important;
-    height: 48px !important;
-    min-height: 48px !important;
-    max-height: 48px !important;
-    margin: 0 0 10px 0 !important;
-    padding: 0 !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-    overflow: visible !important;
-  }
-  body[data-route="chat"] .hero-section::before,
-  body[data-route="chat"] .hero-section::after,
-  body[data-route="chat"] .hero-person,
-  body[data-route="chat"] .hero-center,
-  body[data-route="chat"] .feature-tabs-wrap {
-    display: none !important;
-  }
-  body[data-route="chat"] .topbar {
-    position: sticky !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    height: 48px !important;
-    min-height: 48px !important;
-    z-index: 99 !important;
-    padding: 4px 16px !important;
-    border-radius: 0 0 16px 16px !important;
-    background: rgba(5, 12, 31, 0.92) !important;
-    backdrop-filter: blur(14px) !important;
-    box-sizing: border-box !important;
-  }
-
-  /* C. App wrapper: Normal flow, stretches down, clears bottom nav */
-  body[data-route="chat"] .app {
-    position: relative !important;
-    top: auto !important;
-    bottom: auto !important;
-    left: auto !important;
-    right: auto !important;
-    width: 100% !important;
-    max-width: 1400px !important;
-    margin: 0 auto !important;
-    padding: 4px 16px 90px 16px !important;
-    height: auto !important;
-    min-height: calc(100vh - 60px) !important;
-    box-sizing: border-box !important;
-    overflow: visible !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
-
-  body[data-route="chat"] #page-chat.page.active,
-  body[data-route="chat"] .chat-pro-page {
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 1 1 auto !important;
-    width: 100% !important;
-    height: auto !important;
-    min-height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: visible !important;
-  }
-
-  /* D. Chat Shell: Expansive 2-column grid stretching tall (min 640px, default calc(100vh - 165px)) */
   body[data-route="chat"] .chat-pro-shell {
     display: grid !important;
     grid-template-columns: 280px minmax(0, 1fr) !important;
@@ -382,261 +372,414 @@
     flex: 1 1 auto !important;
     height: calc(100vh - 165px) !important;
     min-height: 640px !important;
-    max-height: 960px !important;
-    box-sizing: border-box !important;
-    overflow: visible !important;
+    max-height: 980px !important;
   }
-
-  /* E. Left Sidebar */
-  body[data-route="chat"] .chat-pro-sidebar {
+}
+@media (max-width: 768px) {
+  body[data-route="chat"] .chat-pro-shell {
     display: flex !important;
     flex-direction: column !important;
-    height: 100% !important;
-    overflow-y: auto !important;
-    padding: 14px !important;
-    border-radius: 20px !important;
-    background: linear-gradient(145deg, rgba(8, 18, 46, 0.90), rgba(6, 12, 34, 0.88)) !important;
-    border: 1px solid rgba(91, 213, 255, 0.25) !important;
-    backdrop-filter: blur(18px) !important;
-    box-sizing: border-box !important;
+    width: 100% !important;
     gap: 10px !important;
-    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.35) !important;
+    min-height: calc(100dvh - 150px) !important;
   }
+  body[data-route="chat"] .chat-pro-sidebar {
+    display: none !important;
+  }
+  .desktop-only { display: none !important; }
+}
 
-  /* F. Main Chat Panel: Expansive, clean flex column */
-  body[data-route="chat"] .chat-pro-main {
-    display: flex !important;
-    flex-direction: column !important;
-    height: 100% !important;
-    overflow: hidden !important;
-    padding: 14px 18px 12px 18px !important;
-    border-radius: 20px !important;
-    box-sizing: border-box !important;
-    background: linear-gradient(145deg, rgba(8, 18, 46, 0.92), rgba(6, 12, 34, 0.90)) !important;
-    border: 1px solid rgba(91, 213, 255, 0.25) !important;
-    backdrop-filter: blur(20px) !important;
-    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.4) !important;
-  }
+/* Sidebar Styling */
+body[data-route="chat"] .chat-pro-sidebar {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  overflow-y: auto !important;
+  padding: 14px !important;
+  border-radius: 20px !important;
+  background: linear-gradient(155deg, rgba(10, 18, 48, 0.94), rgba(7, 12, 34, 0.90)) !important;
+  border: 1px solid rgba(91, 213, 255, 0.25) !important;
+  backdrop-filter: blur(20px) !important;
+  box-sizing: border-box !important;
+  gap: 12px !important;
+  box-shadow: 0 16px 50px rgba(0, 0, 0, 0.4) !important;
+}
 
-  /* Header */
-  body[data-route="chat"] .chat-pro-head {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    flex: 0 0 auto !important;
-    margin-bottom: 4px !important;
-    padding-bottom: 4px !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  }
-  body[data-route="chat"] .chat-pro-head h2 { font-size: 16px !important; margin: 0 !important; }
-  body[data-route="chat"] .chat-pro-head p { font-size: 11.5px !important; margin: 0 !important; color: #94a3b8 !important; }
-  body[data-route="chat"] .chat-head-actions { display: flex !important; gap: 6px !important; align-items: center !important; }
-  body[data-route="chat"] .chat-head-actions button {
-    padding: 4px 10px !important;
-    font-size: 11.5px !important;
-    height: 30px !important;
-    border-radius: 8px !important;
-  }
+/* Main Chat Container */
+body[data-route="chat"] .chat-pro-main {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  padding: 12px 18px 12px 18px !important;
+  border-radius: 22px !important;
+  box-sizing: border-box !important;
+  background: linear-gradient(155deg, rgba(8, 17, 46, 0.94), rgba(6, 11, 32, 0.92)) !important;
+  border: 1px solid rgba(91, 213, 255, 0.25) !important;
+  backdrop-filter: blur(24px) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45) !important;
+  position: relative !important;
+}
 
-  /* AI Toolbar */
-  body[data-route="chat"] .chat-mobile-settings {
-    flex: 0 0 auto !important;
-    margin: 4px 0 6px 0 !important;
-  }
-  body[data-route="chat"] .chat-mobile-settings > summary { display: none !important; }
-  body[data-route="chat"] .chat-mobile-settings-content {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    align-items: center !important;
-    gap: 8px 12px !important;
-  }
-  body[data-route="chat"] .chat-mode-tabs.pro-tabs {
-    margin: 0 !important;
-    flex: 0 0 auto !important;
-  }
-  body[data-route="chat"] .chat-mode-tabs.pro-tabs button {
-    padding: 4px 12px !important;
-    font-size: 12px !important;
-    border-radius: 8px !important;
-  }
-  body[data-route="chat"] .multi-ai-toolbar.pro-toolbar {
-    display: flex !important;
-    flex-wrap: wrap !important;
-    align-items: center !important;
-    gap: 6px 10px !important;
-    margin: 0 !important;
-    flex: 1 1 auto !important;
-  }
-  body[data-route="chat"] .multi-ai-toolbar.pro-toolbar label {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 5px !important;
-    font-size: 11.5px !important;
-    margin: 0 !important;
-    color: #cbd5e1 !important;
-    white-space: nowrap !important;
-  }
-  body[data-route="chat"] .multi-ai-toolbar.pro-toolbar select,
-  body[data-route="chat"] .multi-ai-toolbar.pro-toolbar input {
-    height: 30px !important;
-    min-height: 30px !important;
-    padding: 2px 10px !important;
-    font-size: 11.5px !important;
-    border-radius: 8px !important;
-    background: rgba(2, 10, 27, 0.75) !important;
-    border: 1px solid rgba(112, 179, 255, 0.35) !important;
-    color: #fff !important;
-  }
-  body[data-route="chat"] .voice-status {
-    flex: 0 0 auto !important;
-    margin: 2px 0 6px 0 !important;
-    padding: 3px 10px !important;
-    font-size: 11px !important;
-    border-radius: 8px !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  }
+/* Modern Mystic Header */
+.mystic-head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex: 0 0 auto !important;
+  margin-bottom: 6px !important;
+  padding-bottom: 8px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  gap: 8px !important;
+}
+.chat-head-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.chat-online-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #e2e8f0 !important;
+  white-space: nowrap !important;
+}
+.pulse-dot {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: #10b981 !important;
+  box-shadow: 0 0 10px #10b981 !important;
+  animation: pulseGreen 2s infinite !important;
+}
+@keyframes pulseGreen {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
 
-  /* G. MESSAGE LOG: Spacious flex scroller */
-  body[data-route="chat"] .chat-pro-main .pro-chat-log {
-    display: block !important;
-    flex: 1 1 0px !important;
-    height: auto !important;
-    min-height: 140px !important;
-    max-height: none !important;
-    overflow-y: auto !important;
-    padding: 12px 16px !important;
-    border-radius: 14px !important;
-    margin-bottom: 6px !important;
-    scroll-behavior: smooth !important;
-    background: rgba(2, 8, 23, 0.35) !important;
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    box-sizing: border-box !important;
-  }
-  body[data-route="chat"] .chat-pro-main .pro-chat-log .msg {
-    max-width: 82% !important;
-    margin: 8px 0 !important;
-    padding: 10px 14px !important;
-    font-size: 14px !important;
-    line-height: 1.55 !important;
-    border-radius: 14px !important;
-  }
+.mystic-selector-group {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+.selector-item {
+  display: inline-flex !important;
+  align-items: center !important;
+  background: rgba(2, 10, 28, 0.8) !important;
+  border: 1px solid rgba(112, 179, 255, 0.35) !important;
+  border-radius: 10px !important;
+  padding: 2px 8px !important;
+  gap: 4px !important;
+}
+.selector-icon { font-size: 13px !important; }
+.selector-item select {
+  background: transparent !important;
+  border: none !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  outline: none !important;
+  cursor: pointer !important;
+  padding: 3px 0 !important;
+}
 
-  /* H. ALL FOOTER CONTROLS 100% VISIBLE & EXPANDED */
-  body[data-route="chat"] .chat-pro-main .chat-quick-prompts {
-    flex: 0 0 auto !important;
-    flex-shrink: 0 !important;
-    display: flex !important;
-    gap: 8px !important;
-    overflow-x: auto !important;
-    padding: 4px 0 !important;
-    margin: 4px 0 !important;
-    scrollbar-width: none !important;
-    border: none !important;
-  }
-  body[data-route="chat"] .chat-pro-main .chat-quick-prompts::-webkit-scrollbar { display: none !important; }
-  body[data-route="chat"] .chat-pro-main .chat-quick-prompts .quick-chip {
-    flex: 0 0 auto !important;
-    font-size: 11.5px !important;
-    padding: 5px 12px !important;
-    border-radius: 999px !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 1px solid rgba(255, 215, 0, 0.4) !important;
-    color: #ffe685 !important;
-    cursor: pointer !important;
-    white-space: nowrap !important;
-    transition: all 0.2s ease !important;
-  }
-  body[data-route="chat"] .chat-pro-main .chat-quick-prompts .quick-chip:hover {
-    background: rgba(255, 215, 0, 0.2) !important;
-    border-color: #ffd700 !important;
-    transform: translateY(-1px) !important;
-  }
+/* Chat Message Log */
+body[data-route="chat"] .chat-pro-main .pro-chat-log {
+  display: block !important;
+  flex: 1 1 0px !important;
+  height: auto !important;
+  min-height: 120px !important;
+  max-height: none !important;
+  overflow-y: auto !important;
+  padding: 14px 16px !important;
+  border-radius: 16px !important;
+  margin-bottom: 6px !important;
+  scroll-behavior: smooth !important;
+  background: rgba(2, 8, 23, 0.38) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-sizing: border-box !important;
+  position: relative !important;
+}
 
-  body[data-route="chat"] .chat-pro-main .chat-upload-bar.pro-upload {
-    flex: 0 0 auto !important;
-    flex-shrink: 0 !important;
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    gap: 8px !important;
-    margin: 4px 0 !important;
-    padding: 4px 10px !important;
-    border-radius: 10px !important;
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    align-items: center !important;
-  }
-  body[data-route="chat"] .chat-pro-main .chat-upload-bar.pro-upload :is(.upload-chip, .clear-attachments) {
-    padding: 4px 10px !important;
-    font-size: 11.5px !important;
-    border-radius: 8px !important;
-    white-space: nowrap !important;
-    cursor: pointer !important;
-  }
+/* Mystic Empty Welcome State */
+.mystic-welcome-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px 16px 14px;
+  animation: fadeIn 0.4s ease;
+}
+.mandala-orb {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 215, 0, 0.28), rgba(139, 92, 246, 0.24), transparent);
+  border: 1.5px solid rgba(255, 215, 0, 0.6);
+  display: grid;
+  place-items: center;
+  font-size: 24px;
+  color: #ffd700;
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
+  margin-bottom: 12px;
+  animation: rotateOrb 16s linear infinite;
+}
+@keyframes rotateOrb {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.mystic-welcome-box h3 {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  background: linear-gradient(135deg, #ffe066, #ffb703 60%, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.mystic-welcome-box p {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0 0 20px;
+  max-width: 480px;
+}
 
-  body[data-route="chat"] .chat-pro-main .chat-attachments {
-    flex: 0 0 auto !important;
-    flex-shrink: 0 !important;
-    max-height: 48px !important;
-    overflow-y: auto !important;
-    margin-bottom: 2px !important;
+/* 2x2 Suggestion Cards Grid */
+.mystic-suggestion-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  max-width: 700px;
+}
+@media (max-width: 600px) {
+  .mystic-suggestion-grid {
+    grid-template-columns: 1fr;
   }
+}
+.mystic-sug-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+.mystic-sug-card:hover {
+  background: rgba(255, 215, 0, 0.12);
+  border-color: rgba(255, 215, 0, 0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+}
+.sug-icon { font-size: 22px; flex-shrink: 0; }
+.sug-content b {
+  display: block;
+  font-size: 13px;
+  color: #ffe066;
+  margin-bottom: 2px;
+}
+.sug-content p {
+  font-size: 11.5px;
+  color: #cbd5e1;
+  margin: 0;
+  line-height: 1.35;
+}
 
-  body[data-route="chat"] .chat-pro-main .chat-input.pro-input {
-    flex: 0 0 auto !important;
-    flex-shrink: 0 !important;
-    margin-top: 4px !important;
-    margin-bottom: 2px !important;
-    display: grid !important;
-    grid-template-columns: auto minmax(0, 1fr) auto auto auto !important;
-    gap: 8px !important;
-    align-items: center !important;
-    padding: 6px 12px !important;
-    border-radius: 16px !important;
-    background: rgba(12, 22, 48, 0.96) !important;
-    border: 1px solid rgba(95, 172, 255, 0.45) !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
-    position: static !important;
-    bottom: auto !important;
-    z-index: 10 !important;
-  }
-  body[data-route="chat"] .chat-pro-main .chat-input.pro-input textarea {
-    min-height: 42px !important;
-    max-height: 90px !important;
-    height: 42px !important;
-    padding: 10px 14px !important;
-    font-size: 14px !important;
-    line-height: 1.4 !important;
-    border-radius: 10px !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-    border: 1px solid rgba(121, 218, 255, 0.25) !important;
-    color: #fff !important;
-  }
-  body[data-route="chat"] .chat-pro-main .chat-input.pro-input button {
-    height: 42px !important;
-    border-radius: 10px !important;
-    padding: 0 12px !important;
-    font-size: 13.5px !important;
-  }
-  body[data-route="chat"] .chat-pro-main .chat-input.pro-input .voice-btn {
-    width: 42px !important;
-    min-width: 42px !important;
-    padding: 0 !important;
-    font-size: 18px !important;
-  }
-  body[data-route="chat"] .chat-pro-main .chat-input.pro-input .quick-voice-btn,
-  body[data-route="chat"] .chat-pro-main .chat-input.pro-input .quick-stop-btn {
-    width: 40px !important;
-    min-width: 40px !important;
-    padding: 0 !important;
-    font-size: 15px !important;
-  }
-  body[data-route="chat"] .chat-pro-main .chat-input.pro-input #chatSendBtn {
-    padding: 0 18px !important;
-    font-weight: 800 !important;
-    background: linear-gradient(135deg, #18c8ff, #7f35ff 70%, #b646ff) !important;
-    color: #fff !important;
-  }
+/* Active Profile Context Bar */
+.chat-destiny-context-bar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 5px 12px !important;
+  margin: 4px 0 6px 0 !important;
+  border-radius: 10px !important;
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.12), rgba(139, 92, 246, 0.10)) !important;
+  border: 1px solid rgba(255, 215, 0, 0.3) !important;
+  font-size: 12px !important;
+  color: #fef08a !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+.chat-destiny-context-bar:hover {
+  background: linear-gradient(90deg, rgba(255, 215, 0, 0.20), rgba(139, 92, 246, 0.18)) !important;
+  border-color: #ffd700 !important;
+}
+.destiny-edit-chip {
+  font-size: 11px !important;
+  color: #ffd700 !important;
+  font-weight: 700 !important;
+  margin-left: 8px !important;
+  padding: 1px 6px !important;
+  border-radius: 6px !important;
+  background: rgba(255, 215, 0, 0.15) !important;
+}
+
+/* Floating Capsule Composer */
+.mystic-composer {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto !important;
+  gap: 8px !important;
+  align-items: center !important;
+  padding: 6px 12px !important;
+  border-radius: 18px !important;
+  background: rgba(12, 22, 48, 0.96) !important;
+  border: 1px solid rgba(95, 172, 255, 0.45) !important;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5) !important;
+  margin-top: 4px !important;
+}
+.mystic-composer:focus-within {
+  border-color: #ffd700 !important;
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.25) !important;
+}
+.composer-icon-btn {
+  background: transparent !important;
+  border: none !important;
+  font-size: 20px !important;
+  cursor: pointer !important;
+  padding: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #94a3b8 !important;
+  transition: color 0.2s !important;
+}
+.composer-icon-btn:hover { color: #ffd700 !important; }
+
+.mystic-composer textarea {
+  min-height: 42px !important;
+  max-height: 120px !important;
+  height: 42px !important;
+  padding: 9px 12px !important;
+  font-size: 14px !important;
+  line-height: 1.45 !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(121, 218, 255, 0.25) !important;
+  color: #fff !important;
+  resize: none !important;
+  box-sizing: border-box !important;
+}
+
+.composer-send-btn {
+  height: 40px !important;
+  min-width: 82px !important;
+  padding: 0 16px !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+  font-size: 13.5px !important;
+  border: none !important;
+  background: linear-gradient(135deg, #00f0ff, #7f35ff 70%, #b646ff) !important;
+  color: #fff !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 0 14px rgba(0, 240, 255, 0.35) !important;
+}
+.composer-send-btn:hover { filter: brightness(1.15) !important; transform: translateY(-1px) !important; }
+
+/* Stop Generating Button State */
+.composer-send-btn.is-generating {
+  background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.6) !important;
+  animation: pulseRed 1.6s infinite !important;
+}
+@keyframes pulseRed {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+/* Mystic Shimmer Thinking State */
+.mystic-thinking-shimmer {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #fef08a;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(255, 215, 0, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  animation: shimmerGlow 2s ease-in-out infinite;
+}
+.shimmer-sparkle {
+  color: #ffd700;
+  animation: rotateOrb 3s linear infinite;
+}
+@keyframes shimmerGlow {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; text-shadow: 0 0 10px rgba(255, 215, 0, 0.6); }
+}
+
+/* Floating Scroll Bottom Button */
+.scroll-bottom-pill {
+  position: absolute !important;
+  bottom: 120px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  background: rgba(15, 23, 42, 0.95) !important;
+  border: 1px solid #ffd700 !important;
+  color: #ffe066 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  padding: 6px 14px !important;
+  border-radius: 999px !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5) !important;
+  cursor: pointer !important;
+  z-index: 50 !important;
+  transition: all 0.2s ease !important;
+}
+.scroll-bottom-pill:hover {
+  background: #ffd700 !important;
+  color: #0b0f19 !important;
+}
+
+/* Rich Mystic Markdown Elements */
+.mystic-bold {
+  color: #fbbf24 !important;
+  font-weight: 700 !important;
+  text-shadow: 0 0 8px rgba(251, 191, 36, 0.25) !important;
+}
+.mystic-sec-card {
+  margin: 10px 0 !important;
+  padding: 10px 14px !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 215, 0, 0.22) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+}
+.mystic-sec-title {
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  color: #ffe066 !important;
+  margin-bottom: 6px !important;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.15) !important;
+  padding-bottom: 4px !important;
+}
+.mystic-quote {
+  border-left: 3px solid #fbbf24 !important;
+  background: rgba(251, 191, 36, 0.06) !important;
+  padding: 8px 12px !important;
+  margin: 8px 0 !important;
+  border-radius: 0 8px 8px 0 !important;
+  font-style: italic !important;
+  color: #f1f5f9 !important;
+}
+.msg-aborted-pill {
+  margin-top: 6px;
+  color: #f87171;
+  font-size: 11.5px;
 }
 </style>
 </head>
@@ -921,34 +1064,93 @@
               <button class="active">💬 Chat AI</button>
             </div>
 
-            <div class="chat-pro-head">
-              <div>
-                <h2>🤖 AI Chat Pro</h2>
-                <p>Hỏi đáp cùng Đặng Năm AI, hỗ trợ phân tích dữ liệu, văn bản, hình ảnh và giọng nói.</p>
+            <div class="chat-pro-head mystic-head">
+              <div class="chat-head-left">
+                <button type="button" class="chat-icon-btn history-toggle-btn" onclick="toggleHistoryDrawer()" title="Lịch sử chat">🕒 <span class="desktop-only">Lịch sử</span></button>
+                <button type="button" class="chat-icon-btn new-chat-action-btn" onclick="newProChat()" title="Cuộc chat mới">＋ <span class="desktop-only">Chat mới</span></button>
+                <div class="chat-online-badge"><span class="pulse-dot"></span> Đặng Năm AI</div>
+              </div>
+              <div class="chat-head-center">
+                <!-- Unified Engine & Persona Selector -->
+                <div class="mystic-selector-group">
+                  <div class="selector-item">
+                    <span class="selector-icon">⚡</span>
+                    <select id="chatProvider" onchange="onChatProviderChange()" title="Chọn Engine AI">
+                      <option value="auto">Auto Router (Tối ưu)</option>
+                      <option value="gemini">Gemini 2.5 Pro</option>
+                      <option value="claude">Claude 3.5 Sonnet</option>
+                      <option value="groq">Groq LLaMA 3 (Siêu tốc)</option>
+                      <option value="openai">ChatGPT-4o</option>
+                      <option value="deepseek">DeepSeek R1/Pro</option>
+                      <option value="openrouter">OpenRouter Free</option>
+                      <option value="grok">Grok AI</option>
+                      <option value="qwen">Qwen 2.5</option>
+                      <option value="mistral">Mistral Large</option>
+                    </select>
+                  </div>
+                  <div class="selector-item">
+                    <span class="selector-icon">🎭</span>
+                    <select id="chatPersona" onchange="onChatPersonaChange()" title="Phong cách luận giải">
+                      <option value="tuvi">🔮 Đại Sư Tử Vi</option>
+                      <option value="phongthuy">☯️ Chuyên Gia Phong Thủy</option>
+                      <option value="tarot">🃏 Tarot Reader</option>
+                      <option value="assistant" selected>💬 Trợ Lý Đa Năng</option>
+                    </select>
+                  </div>
+                  <input id="chatModel" type="hidden" value="">
+                  <select id="chatAnswerStyle" style="display:none;"><option value="detailed" selected>Chi tiết</option></select>
+                  <label class="council-toggle" style="display:none;"><input id="chatCouncil" type="checkbox"></label>
+                </div>
               </div>
               <div class="chat-head-actions">
-                <button type="button" class="chat-icon-btn" onclick="openDesktopHistory()">🕒 Lịch sử</button>
-                <button type="button" class="chat-icon-btn" onclick="newProChat()">＋ Cuộc chat mới</button>
-                <button type="button" class="chat-icon-btn" onclick="speakLastResult()">🔊 Đọc</button>
-                <button type="button" class="chat-icon-btn" onclick="routeTo('ai')">⚙️ Cài đặt AI</button>
+                <button type="button" id="voiceToggleHeadBtn" class="chat-icon-btn" onclick="toggleQuickSpeakReply()" title="Bật/Tắt giọng đọc">🔊 <span class="desktop-only">Đọc</span></button>
+                <button type="button" class="chat-icon-btn" onclick="openDestinyProfileModal()" title="Hồ sơ Bản mệnh">📜 <span class="desktop-only">Lá số</span></button>
               </div>
             </div>
-            <details class="chat-mobile-settings" open>
-              <summary>⚙️ Tùy chọn AI và chế độ chat</summary>
-              <div class="chat-mobile-settings-content">
-                <div class="chat-mode-tabs pro-tabs">
-                  <button id="modeChat" class="active" onclick="setChatMode('chat')">💬 Hỏi đáp</button>
-                </div>
-                <div class="multi-ai-toolbar pro-toolbar">
-                  <label>AI Provider<select id="chatProvider"><option value="auto">Auto Router</option><option value="gemini">Gemini</option><option value="groq">Groq Free/Nhanh</option><option value="openrouter">OpenRouter Free</option><option value="openai">ChatGPT/OpenAI</option><option value="claude">Claude</option><option value="deepseek">DeepSeek</option><option value="grok">Grok</option><option value="qwen">Qwen</option><option value="mistral">Mistral</option></select></label>
-                  <label>Model tùy chọn<input id="chatModel" placeholder="Để trống = Tự động chọn Model cao cấp nhất"></label>
-                  <label>Độ chi tiết<select id="chatAnswerStyle"><option value="detailed" selected>Chi tiết chuyên nghiệp</option><option value="expert">Chuyên gia sâu</option><option value="concise">Ngắn gọn</option></select></label>
-                  <label class="council-toggle"><input id="chatCouncil" type="checkbox"> Hội Đồng AI</label>
+            <div id="voiceStatus" class="voice-status">🎙️ Sẵn sàng nhận giọng nói</div>
+            <div id="chatLog" class="chat-log pro-chat-log" onscroll="handleChatLogScroll(this)">
+              <!-- Mystic Empty Welcome State -->
+              <div id="mysticWelcomeState" class="mystic-welcome-box">
+                <div class="mandala-orb">✦</div>
+                <h3 id="mysticWelcomeTitle">Đặng Năm Mystic AI</h3>
+                <p id="mysticWelcomeSub">Trợ lý luận giải Tử vi, Phong thủy & Đa nhiệm trí tuệ nhân tạo thế hệ mới</p>
+                
+                <div class="mystic-suggestion-grid">
+                  <div class="mystic-sug-card" onclick="sendQuickPrompt('🔮 Luận giải tổng quan vận hạn & tài lộc năm 2026 chi tiết theo lá số của tôi')">
+                    <span class="sug-icon">🔮</span>
+                    <div class="sug-content">
+                      <b>Vận Hạn 2026</b>
+                      <p>Luận giải đại vận, tài lộc & sao chiếu mệnh năm Bính Ngọ</p>
+                    </div>
+                  </div>
+                  <div class="mystic-sug-card" onclick="sendQuickPrompt('💞 Xem mức độ hợp tuổi, ngũ hành và đường tình duyên gia đạo giữa tôi và người thương')">
+                    <span class="sug-icon">💞</span>
+                    <div class="sug-content">
+                      <b>Tình Duyên & Hợp Tuổi</b>
+                      <p>Phân tích ngũ hành cung phi, thiên can địa chi đôi lứa</p>
+                    </div>
+                  </div>
+                  <div class="mystic-sug-card" onclick="sendQuickPrompt('☯️ Tư vấn màu sắc may mắn, hướng bàn làm việc và vật phẩm phong thủy kích tài lộc năm nay')">
+                    <span class="sug-icon">☯️</span>
+                    <div class="sug-content">
+                      <b>Phong Thủy Kích Tài</b>
+                      <p>Màu sắc tương sinh, hướng nạp vượng khí và phương vị</p>
+                    </div>
+                  </div>
+                  <div class="mystic-sug-card" onclick="sendQuickPrompt('🃏 Rút 1 lá bài Tarot dự đoán năng lượng và thông điệp vũ trụ gửi tới tôi hôm nay')">
+                    <span class="sug-icon">🃏</span>
+                    <div class="sug-content">
+                      <b>Thông Điệp Tarot</b>
+                      <p>Rút lá bài khai mở trực giác và lời khuyên hành động</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </details>
-            <div id="voiceStatus" class="voice-status">🎙️ Sẵn sàng nhận giọng nói</div>
-            <div id="chatLog" class="chat-log pro-chat-log"><div class="msg ai-welcome"><b>👋 Chào bạn!</b><br>Mình là Đặng Năm AI Pro. Hỏi gì cũng được: app, code, thời tiết, ảnh/file, ý tưởng. Mình sẽ trả lời rõ ràng, đúng trọng tâm hơn.</div></div>
+            </div>
+            <!-- Floating Scroll Down Button -->
+            <button id="scrollBottomBtn" type="button" class="scroll-bottom-pill" onclick="scrollChatBottom(true)" style="display:none;">
+              ↓ Xuống tin mới
+            </button>
             <div class="chat-quick-prompts" style="display:flex;gap:6px;overflow-x:auto;padding:8px 0;scrollbar-width:none;">
               <button type="button" class="quick-chip" onclick="sendQuickPrompt('🌟 Luận giải tổng quan vận hạn năm 2026')">🌟 Vận hạn 2026</button>
               <button type="button" class="quick-chip" onclick="sendQuickPrompt('💰 Phân tích cung Tài Bạch & Quan Lộc')">💰 Tài Bạch & Quan Lộc</button>
@@ -1050,7 +1252,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="mystic-engine.js"></script><script src="app.js?v=1791907000"></script>
+  <script src="mystic-engine.js"></script><script src="app.js?v=1791908000"></script>
 
   <!-- App Download Modal -->
   <div id="appDownloadModal" class="modal-overlay" onclick="if(event.target===this) closeAppModal()">

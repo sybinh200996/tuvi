@@ -1,4 +1,4 @@
-const CACHE = "v50-desktop-chat-expand-20261016-1835";
+const CACHE = "v51-modern-mystic-chat-20261016-1850";
 const APP_SHELL = [
   "./",
   "./index.html",
