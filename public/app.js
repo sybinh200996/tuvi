@@ -3,16 +3,203 @@ let lastResult='';
 const $=id=>document.getElementById(id);
 function init(){renderTabs();renderHistory();loadAccount();loadVoicePrefs();initVietnameseVoices();startClock();loadDestinyProfileToForm();loadDestinyProfileFromCloud().then(loadDestinyProfileToForm);const firstRoute=location.hash?.replace('#/','')||(window.matchMedia&&window.matchMedia('(max-width: 760px)').matches?'chat':'home');routeTo(firstRoute,false);window.addEventListener('hashchange',()=>routeTo(location.hash.replace('#/','')||'home',false));checkGeminiStatus();loadAIProviders();setTimeout(()=>{if(window.matchMedia&&window.matchMedia('(max-width:760px)').matches&&$('chatText')){$('chatText').focus({preventScroll:true});}},600);}
 
+const BIRTH_PROFILE_STORAGE_KEY = 'dangnam_birth_profile';
+const DESTINY_STORAGE_KEY = 'synam_destiny_profile';
+
+function getBirthProfile() {
+  try {
+    const raw = localStorage.getItem(BIRTH_PROFILE_STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+    const legacy = localStorage.getItem(DESTINY_STORAGE_KEY);
+    if (legacy) return JSON.parse(legacy);
+    const legacy2 = localStorage.getItem('dangnam_destiny_profile');
+    if (legacy2) return JSON.parse(legacy2);
+  } catch(e) {}
+  const u = typeof getUserData === 'function' ? getUserData() : null;
+  return u?.birthProfile || u?.destinyProfile || null;
+}
+
+function getDestinyProfile() {
+  return getBirthProfile();
+}
+
+function updateDestinyBadgeAndThienBan(profile) {
+  const p = profile || getBirthProfile();
+  const hasProfile = Boolean(p && (p.fullName || p.name) && p.birthDate);
+
+  const navBadge = $('destinyBadge');
+  if (navBadge) {
+    navBadge.textContent = hasProfile ? 'Đã lưu' : 'Chưa lưu';
+    navBadge.className = 'destiny-badge-status ' + (hasProfile ? 'saved' : 'not-saved');
+  }
+
+  const boardBadge = $('tuviBoardBadge');
+  if (boardBadge) {
+    boardBadge.textContent = hasProfile ? 'Đã lưu' : 'Chưa lưu';
+    boardBadge.className = 'destiny-badge-status ' + (hasProfile ? 'saved' : 'not-saved');
+  }
+
+  if ($('tbName')) $('tbName').textContent = (p && (p.fullName || p.name)) ? (p.fullName || p.name) : 'Chưa lưu hồ sơ';
+  if ($('tbGender')) $('tbGender').textContent = (p && p.gender) ? p.gender : 'Nam';
+  if ($('tbCalendar')) $('tbCalendar').textContent = (p && p.calendarType === 'lunar') ? 'Âm lịch' : 'Dương lịch';
+  if ($('tbBirth')) $('tbBirth').textContent = (p && p.birthDate) ? p.birthDate : 'Chưa cập nhật';
+  if ($('tbHour')) $('tbHour').textContent = (p && (p.birthHour || p.birthTime)) ? (p.birthHour || p.birthTime) : 'Giờ Ngọ (11h-13h)';
+}
+
+function openDestinyProfileModal() {
+  const modal = $('destinyModal');
+  if (!modal) return;
+  const p = getBirthProfile() || {};
+  if ($('destinyModalFullName')) $('destinyModalFullName').value = p.fullName || p.name || '';
+  if ($('destinyModalGender')) $('destinyModalGender').value = p.gender || 'Nam';
+  if ($('destinyModalCalendarType')) $('destinyModalCalendarType').value = p.calendarType || 'solar';
+  if ($('destinyModalBirthDate')) $('destinyModalBirthDate').value = p.birthDate || '';
+  if ($('destinyModalBirthHour')) $('destinyModalBirthHour').value = p.birthHour || (p.birthTime ? `Giờ Ngọ (11h00 - 12h59)` : 'Ngọ (11h00 - 12h59)');
+  if ($('destinyModalBirthPlace')) $('destinyModalBirthPlace').value = p.birthPlace || '';
+  modal.style.display = 'flex';
+}
+
+function closeDestinyProfileModal() {
+  const modal = $('destinyModal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function saveBirthProfile(profile) {
+  if (!profile) return;
+  try {
+    localStorage.setItem(BIRTH_PROFILE_STORAGE_KEY, JSON.stringify(profile));
+    localStorage.setItem(DESTINY_STORAGE_KEY, JSON.stringify(profile));
+    localStorage.setItem('dangnam_destiny_profile', JSON.stringify(profile));
+  } catch(e) {}
+
+  updateDestinyBadgeAndThienBan(profile);
+
+  try {
+    await fetch('/api/user/destiny-profile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('synam_token') || ''}`
+      },
+      body: JSON.stringify({ profile, birthProfile: profile, destinyProfile: profile })
+    });
+  } catch(e) {}
+
+  try {
+    if (window.firebase && window.firebase.apps && window.firebase.apps.length && window.firebase.firestore) {
+      const auth = window.firebase.auth();
+      const currentUser = auth.currentUser;
+      if (currentUser && currentUser.uid) {
+        const db = window.firebase.firestore();
+        await db.collection('users').doc(currentUser.uid).set({
+          birthProfile: profile,
+          destinyProfile: profile,
+          updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        await db.collection('destiny_profiles').doc(currentUser.uid).set({
+          ...profile,
+          uid: currentUser.uid,
+          updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      }
+    }
+  } catch(err) {
+    console.warn('Firestore sync note:', err.message);
+  }
+}
+
+async function saveDestinyProfile(profile) {
+  return saveBirthProfile(profile);
+}
+
+async function saveBirthProfileFromModal() {
+  const fullName = $('destinyModalFullName')?.value?.trim();
+  const birthDate = $('destinyModalBirthDate')?.value;
+  if (!fullName || !birthDate) {
+    toast('Vui lòng điền họ tên và ngày sinh');
+    return;
+  }
+  const profile = {
+    fullName,
+    gender: $('destinyModalGender')?.value || 'Nam',
+    calendarType: $('destinyModalCalendarType')?.value || 'solar',
+    birthDate,
+    birthHour: $('destinyModalBirthHour')?.value || 'Ngọ (11h00 - 12h59)',
+    birthPlace: $('destinyModalBirthPlace')?.value?.trim() || '',
+    updatedAt: new Date().toISOString()
+  };
+
+  await saveBirthProfile(profile);
+  closeDestinyProfileModal();
+  toast('✅ Đã lưu Hồ Sơ Bản Mệnh thành công!');
+}
+
+async function loadBirthProfileFromCloud() {
+  try {
+    if (window.firebase && window.firebase.apps && window.firebase.apps.length && window.firebase.firestore) {
+      const auth = window.firebase.auth();
+      const currentUser = auth.currentUser;
+      if (currentUser && currentUser.uid) {
+        const db = window.firebase.firestore();
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        if (userDoc.exists) {
+          const udata = userDoc.data();
+          const p = udata.birthProfile || udata.destinyProfile;
+          if (p && (p.fullName || p.name)) {
+            localStorage.setItem(BIRTH_PROFILE_STORAGE_KEY, JSON.stringify(p));
+            localStorage.setItem(DESTINY_STORAGE_KEY, JSON.stringify(p));
+            updateDestinyBadgeAndThienBan(p);
+            return p;
+          }
+        }
+        const doc = await db.collection('destiny_profiles').doc(currentUser.uid).get();
+        if (doc.exists) {
+          const cloudData = doc.data();
+          if (cloudData && (cloudData.fullName || cloudData.name)) {
+            localStorage.setItem(BIRTH_PROFILE_STORAGE_KEY, JSON.stringify(cloudData));
+            localStorage.setItem(DESTINY_STORAGE_KEY, JSON.stringify(cloudData));
+            updateDestinyBadgeAndThienBan(cloudData);
+            return cloudData;
+          }
+        }
+      }
+    }
+  } catch(e) {}
+
+  try {
+    const res = await fetch('/api/user/destiny-profile', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('synam_token') || ''}` }
+    });
+    const data = await res.json();
+    if (data.ok && (data.profile || data.destinyProfile)) {
+      const p = data.profile || data.destinyProfile;
+      localStorage.setItem(BIRTH_PROFILE_STORAGE_KEY, JSON.stringify(p));
+      localStorage.setItem(DESTINY_STORAGE_KEY, JSON.stringify(p));
+      updateDestinyBadgeAndThienBan(p);
+      return p;
+    }
+  } catch(e) {}
+
+  const local = getBirthProfile();
+  updateDestinyBadgeAndThienBan(local);
+  return local;
+}
+
+async function loadDestinyProfileFromCloud() {
+  return loadBirthProfileFromCloud();
+}
+
 function loadDestinyProfileToForm() {
-  const p = getDestinyProfile();
+  const p = getBirthProfile();
+  updateDestinyBadgeAndThienBan(p);
   if (!p) return;
   if ($('name') && !$('name').value) $('name').value = p.fullName || p.name || '';
   if ($('gender') && p.gender) $('gender').value = p.gender;
   if ($('birthDate') && !$('birthDate').value) $('birthDate').value = p.birthDate || '';
-  if ($('birthTime') && !$('birthTime').value) $('birthTime').value = p.birthTime || '';
+  if ($('birthTime') && !$('birthTime').value) $('birthTime').value = p.birthHour || p.birthTime || '';
   if ($('calendarType') && p.calendarType) $('calendarType').value = p.calendarType;
   if ($('birthPlace') && !$('birthPlace').value) $('birthPlace').value = p.birthPlace || '';
-  if ($('lifeConcern') && !$('lifeConcern').value) $('lifeConcern').value = p.concern || '';
 }
 
 async function handleSaveDestinyProfile() {
@@ -20,6 +207,7 @@ async function handleSaveDestinyProfile() {
     fullName: $('name')?.value?.trim() || '',
     gender: $('gender')?.value || 'Nam',
     birthDate: $('birthDate')?.value || '',
+    birthHour: $('birthTime')?.value || 'Ngọ (11h00 - 12h59)',
     birthTime: $('birthTime')?.value || '',
     calendarType: $('calendarType')?.value || 'solar',
     birthPlace: $('birthPlace')?.value?.trim() || '',
@@ -28,7 +216,7 @@ async function handleSaveDestinyProfile() {
   if (!profile.fullName || !profile.birthDate) {
     return toast('Vui lòng nhập họ tên và ngày sinh');
   }
-  await saveDestinyProfile(profile);
+  await saveBirthProfile(profile);
   toast('✅ Đã lưu Hồ Sơ Bản Mệnh thành công!');
 }
 
@@ -122,84 +310,7 @@ function toggleVoiceInputEnabled(){
 
 function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2400)}
 function setLoading(id,on=true){$(id)?.classList.toggle('loading',on)}
-const DESTINY_STORAGE_KEY = 'synam_destiny_profile';
 
-function getDestinyProfile() {
-  try {
-    const raw = localStorage.getItem(DESTINY_STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch(e) {}
-  const u = typeof getUserData === 'function' ? getUserData() : null;
-  return u?.destinyProfile || null;
-}
-
-async function saveDestinyProfile(profile) {
-  if (!profile) return;
-  try {
-    localStorage.setItem(DESTINY_STORAGE_KEY, JSON.stringify(profile));
-  } catch(e) {}
-
-  try {
-    await fetch('/api/user/destiny-profile', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('synam_token') || ''}`
-      },
-      body: JSON.stringify({ profile })
-    });
-  } catch(e) {}
-
-  try {
-    if (window.firebase && window.firebase.apps && window.firebase.apps.length && window.firebase.firestore) {
-      const auth = window.firebase.auth();
-      const currentUser = auth.currentUser;
-      if (currentUser && currentUser.uid) {
-        const db = window.firebase.firestore();
-        await db.collection('destiny_profiles').doc(currentUser.uid).set({
-          ...profile,
-          uid: currentUser.uid,
-          updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-      }
-    }
-  } catch(err) {
-    console.warn('Firestore sync note:', err.message);
-  }
-}
-
-async function loadDestinyProfileFromCloud() {
-  try {
-    if (window.firebase && window.firebase.apps && window.firebase.apps.length && window.firebase.firestore) {
-      const auth = window.firebase.auth();
-      const currentUser = auth.currentUser;
-      if (currentUser && currentUser.uid) {
-        const db = window.firebase.firestore();
-        const doc = await db.collection('destiny_profiles').doc(currentUser.uid).get();
-        if (doc.exists) {
-          const cloudData = doc.data();
-          if (cloudData && (cloudData.fullName || cloudData.name)) {
-            localStorage.setItem(DESTINY_STORAGE_KEY, JSON.stringify(cloudData));
-            return cloudData;
-          }
-        }
-      }
-    }
-  } catch(e) {}
-
-  try {
-    const res = await fetch('/api/user/destiny-profile', {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('synam_token') || ''}` }
-    });
-    const data = await res.json();
-    if (data.ok && data.profile) {
-      localStorage.setItem(DESTINY_STORAGE_KEY, JSON.stringify(data.profile));
-      return data.profile;
-    }
-  } catch(e) {}
-
-  return getDestinyProfile();
-}
 
 function copyCurrentResult(target) {
   let text = '';
@@ -222,15 +333,15 @@ function copyCurrentResult(target) {
 function exportResultToPrint(title = 'Bản Luận Giải Đặng Năm AI', content = '') {
   const text = typeof content === 'string' ? content : (lastResult || '');
   if (!text) return toast('Chưa có nội dung để xuất bản');
-  const printWindow = window.open('', '_blank', 'width=840,height=900');
+  const printWindow = window.open('', '_blank', 'width=860,height=920');
   if (!printWindow) {
     alert('Trình duyệt đã chặn popup. Vui lòng cấp quyền mở pop-up để xem và in/lưu PDF.');
     return;
   }
 
-  const cleanTitle = title || 'Bản Luận Giải Mệnh Số';
+  const cleanTitle = title || 'Bản Luận Giải Mệnh Số & Tử Vi';
   const now = new Date().toLocaleString('vi-VN');
-  const profile = getDestinyProfile();
+  const profile = getBirthProfile() || {};
 
   const html = `<!DOCTYPE html>
 <html lang="vi">
@@ -238,13 +349,13 @@ function exportResultToPrint(title = 'Bản Luận Giải Đặng Năm AI', cont
   <meta charset="UTF-8">
   <title>${cleanTitle} - dangnam.online</title>
   <style>
-    @page { size: A4; margin: 18mm; }
+    @page { size: A4 portrait; margin: 16mm 14mm; }
     body {
-      font-family: 'Times New Roman', serif, system-ui;
+      font-family: 'Times New Roman', Times, serif;
       background: #fff;
-      color: #1a1a1a;
-      line-height: 1.65;
-      padding: 30px;
+      color: #111;
+      line-height: 1.7;
+      padding: 36px 40px;
       margin: 0;
       position: relative;
     }
@@ -253,20 +364,20 @@ function exportResultToPrint(title = 'Bản Luận Giải Đặng Năm AI', cont
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%) rotate(-35deg);
-      font-size: 54pt;
+      font-size: 56pt;
       font-weight: 900;
-      color: rgba(180, 140, 50, 0.08);
+      color: rgba(184, 134, 11, 0.07);
       white-space: nowrap;
       pointer-events: none;
       z-index: 0;
       text-transform: uppercase;
-      letter-spacing: 8px;
+      letter-spacing: 10px;
     }
     .header {
       text-align: center;
-      border-bottom: 2px solid #b8860b;
-      padding-bottom: 14px;
-      margin-bottom: 22px;
+      border-bottom: 2.5px double #b8860b;
+      padding-bottom: 16px;
+      margin-bottom: 20px;
       position: relative;
       z-index: 1;
     }
@@ -278,14 +389,15 @@ function exportResultToPrint(title = 'Bản Luận Giải Đặng Năm AI', cont
       text-transform: uppercase;
     }
     .subbrand {
-      font-size: 11pt;
+      font-size: 10.5pt;
       color: #555;
       margin-top: 4px;
+      letter-spacing: 1px;
     }
     .doc-title {
       font-size: 16pt;
       color: #111;
-      margin-top: 10px;
+      margin-top: 12px;
       text-transform: uppercase;
       font-weight: bold;
     }
@@ -294,7 +406,7 @@ function exportResultToPrint(title = 'Bản Luận Giải Đặng Năm AI', cont
       border: 1px solid #e0d5be;
       border-radius: 8px;
       padding: 12px 18px;
-      margin-bottom: 20px;
+      margin-bottom: 22px;
       font-size: 11pt;
       position: relative;
       z-index: 1;
@@ -307,22 +419,26 @@ function exportResultToPrint(title = 'Bản Luận Giải Đặng Năm AI', cont
     }
     .content {
       font-size: 12pt;
-      line-height: 1.7;
+      line-height: 1.75;
       position: relative;
       z-index: 1;
     }
-    .content h1, .content h2, .content h3 {
+    .content h1, .content h2, .content h3, .content h4 {
       color: #8b6508;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid #f0e6d2;
       padding-bottom: 4px;
       margin-top: 18px;
     }
     .content ul, .content ol {
       padding-left: 24px;
     }
+    .content p {
+      margin: 8px 0;
+      text-align: justify;
+    }
     .footer {
       margin-top: 36px;
-      border-top: 1px solid #ccc;
+      border-top: 1px solid #ddd;
       padding-top: 12px;
       font-size: 9.5pt;
       color: #666;
@@ -333,8 +449,8 @@ function exportResultToPrint(title = 'Bản Luận Giải Đặng Năm AI', cont
     }
     .print-actions {
       position: fixed;
-      top: 15px;
-      right: 15px;
+      top: 16px;
+      right: 16px;
       z-index: 999;
       display: flex;
       gap: 8px;
@@ -343,11 +459,12 @@ function exportResultToPrint(title = 'Bản Luận Giải Đặng Năm AI', cont
       background: #8b6508;
       color: #fff;
       border: none;
-      padding: 10px 16px;
-      border-radius: 6px;
+      padding: 10px 18px;
+      border-radius: 8px;
       font-weight: bold;
+      font-size: 13px;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      box-shadow: 0 4px 14px rgba(0,0,0,0.18);
     }
     @media print {
       .print-actions { display: none !important; }
@@ -363,26 +480,25 @@ function exportResultToPrint(title = 'Bản Luận Giải Đặng Năm AI', cont
   <div class="print-watermark">dangnam.online</div>
   <div class="header">
     <div class="brand">✦ ĐẶNG NĂM AI ✦</div>
-    <div class="subbrand">HỆ THỐNG TRÍ TUỆ NHÂN TẠO LUẬN GIẢI MỆNH LÝ & PHONG THỦY HỌC</div>
+    <div class="subbrand">HỆ THỐNG TRÍ TUỆ NHÂN TẠO LUẬN GIẢI MỆNH LÝ & PHONG THỦY HỌC · DANGNAM.ONLINE</div>
     <div class="doc-title">${cleanTitle}</div>
   </div>
-  ${profile && (profile.fullName || profile.name) ? `
   <div class="meta-box">
     <div class="meta-row">
-      <span><b>Đương số:</b> ${profile.fullName || profile.name}</span>
+      <span><b>Đương số:</b> ${profile.fullName || profile.name || 'Chưa định danh'}</span>
       <span><b>Giới tính:</b> ${profile.gender || 'Nam'}</span>
       <span><b>Ngày sinh:</b> ${profile.birthDate || 'Chưa rõ'} (${profile.calendarType === 'lunar' ? 'Âm lịch' : 'Dương lịch'})</span>
-      ${profile.birthTime ? `<span><b>Giờ sinh:</b> ${profile.birthTime}</span>` : ''}
+      <span><b>Giờ sinh:</b> ${profile.birthHour || profile.birthTime || 'Chưa rõ'}</span>
     </div>
-    ${profile.concern ? `<div class="meta-row"><span><b>Mối quan tâm:</b> ${profile.concern}</span></div>` : ''}
-  </div>` : ''}
+    ${profile.birthPlace ? `<div class="meta-row"><span><b>Nơi sinh:</b> ${profile.birthPlace}</span></div>` : ''}
+  </div>
   <div class="content">
-    ${typeof markdownish === 'function' ? markdownish(text) : text.replace(/\\n/g, '<br>')}
+    ${typeof formatMarkdownSafe === 'function' ? formatMarkdownSafe(text) : (typeof markdownish === 'function' ? markdownish(text) : String(text).split('\n').join('<br>'))}
   </div>
   <div class="footer">
     <span>Nguồn xuất bản: <b>dangnam.online</b> (Đặng Năm AI)</span>
     <span>Thời gian: ${now}</span>
-    <span>Lưu ý: Luận giải mang tính tham khảo văn hóa & chiêm nghiệm</span>
+    <span>Ghi chú: Luận giải mang tính chất tham khảo học thuật chiêm nghiệm</span>
   </div>
   <script>
     setTimeout(() => { window.print(); }, 400);
@@ -395,7 +511,7 @@ function exportResultToPrint(title = 'Bản Luận Giải Đặng Năm AI', cont
   printWindow.document.close();
 }
 
-async function streamChatResponse({ url, payload, onStart, onDelta, onDone, onError }) {
+async function streamChatResponse({ url, payload, signal, onStart, onDelta, onDone, onError }) {
   try {
     const res = await fetch(url, {
       method: 'POST',
@@ -403,7 +519,8 @@ async function streamChatResponse({ url, payload, onStart, onDelta, onDone, onEr
         'Content-Type': 'application/json',
         'Accept': 'text/event-stream'
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      ...(signal ? { signal } : {})
     });
 
     if (!res.ok) {
@@ -416,6 +533,7 @@ async function streamChatResponse({ url, payload, onStart, onDelta, onDone, onEr
     let buffer = '';
     let currentEvent = 'message';
     let fullText = '';
+    let isTerminated = false;
 
     while (true) {
       const { done, value } = await reader.read();
@@ -435,21 +553,29 @@ async function streamChatResponse({ url, payload, onStart, onDelta, onDone, onEr
           continue;
         }
         if (trimmed.startsWith('data: ')) {
-          const rawData = trimmed.slice(6);
+          const rawData = trimmed.slice(6).trim();
+          if (rawData === '[DONE]') {
+            isTerminated = true;
+            if (typeof onDone === 'function') onDone(fullText, { label: 'Đặng Năm AI' });
+            return;
+          }
           try {
             const data = JSON.parse(rawData);
-            if (currentEvent === 'start') {
+            if (data.error) {
+              throw new Error(data.error || 'Lỗi streaming từ AI');
+            }
+            const chunk = data.content ?? data.chunk ?? (data.choices && data.choices[0]?.delta?.content) ?? '';
+            if (chunk) {
+              fullText += chunk;
+              if (typeof onDelta === 'function') onDelta(chunk, fullText);
+            } else if (currentEvent === 'start') {
               if (typeof onStart === 'function') onStart(data);
-            } else if (currentEvent === 'delta') {
-              fullText += data.chunk || '';
-              if (typeof onDelta === 'function') onDelta(data.chunk || '', fullText);
-            } else if (currentEvent === 'done') {
+            } else if (currentEvent === 'done' || data.done) {
+              isTerminated = true;
               if (typeof onDone === 'function') onDone(data.fullText || fullText, data);
-            } else if (currentEvent === 'error') {
-              throw new Error(data.message || 'Lỗi streaming từ AI');
             }
           } catch(jsonErr) {
-            if (currentEvent === 'delta') {
+            if (rawData && rawData !== '[DONE]') {
               fullText += rawData;
               if (typeof onDelta === 'function') onDelta(rawData, fullText);
             }
@@ -458,7 +584,9 @@ async function streamChatResponse({ url, payload, onStart, onDelta, onDone, onEr
       }
     }
 
-    if (typeof onDone === 'function') onDone(fullText);
+    if (!isTerminated && typeof onDone === 'function') {
+      onDone(fullText);
+    }
   } catch(err) {
     if (typeof onError === 'function') onError(err);
     else throw err;
@@ -986,8 +1114,8 @@ async function sendChat(customPrompt){
     const context={clientTime:new Date().toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}),source:'Đặng Năm AI Chat',today:new Date().toLocaleDateString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh',weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})};
     const destinyProfile = getDestinyProfile();
 
-    const streamUrl = attachments.length ? '/api/chat-ai/stream' : '/api/multi-ai/stream';
-    const payload = {
+    const streamUrl = attachments.length ? '/api/chat-ai/stream' : '/api/chat-stream';
+    const payload = attachments.length ? {
       message: q,
       question: q,
       attachments,
@@ -997,7 +1125,11 @@ async function sendChat(customPrompt){
       provider,
       model,
       council,
-      destinyProfile
+      destinyProfile: getBirthProfile()
+    } : {
+      message: q,
+      history,
+      birthProfile: getBirthProfile()
     };
 
     let accumulatedText = '';
@@ -1770,3 +1902,19 @@ function selectZodiac(id) {
 }
 
 document.addEventListener('DOMContentLoaded', renderDesktopZodiac);
+
+
+// Lắng nghe Firebase Auth để tự động đồng bộ Hồ Sơ Bản Mệnh từ Firestore
+if (typeof window !== 'undefined') {
+  window.addEventListener('load', () => {
+    try {
+      if (window.firebase && window.firebase.auth) {
+        window.firebase.auth().onAuthStateChanged(async (user) => {
+          if (user) {
+            await loadBirthProfileFromCloud();
+          }
+        });
+      }
+    } catch(e) {}
+  });
+}

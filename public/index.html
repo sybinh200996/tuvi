@@ -304,6 +304,7 @@
       <nav class="topbar">
         <button class="icon-btn menu-btn" onclick="toggleMenu(true)">☰</button>
         <div class="top-actions"><span id="liveClock" class="live-clock">Đang lấy giờ...</span><span id="geminiStatus" class="ai-status warn">Gemini: kiểm tra...</span>
+          <button id="destinyNavBtn" class="destiny-nav-pill" onclick="openDestinyProfileModal()" title="Hồ Sơ Bản Mệnh"><span class="destiny-nav-icon">📜</span> <span class="destiny-nav-text">Hồ Sơ Bản Mệnh</span> <span id="destinyBadge" class="destiny-badge-status not-saved">Chưa lưu</span></button>
           <button class="icon-btn" onclick="speakLastResult()">🔊</button>
           <button class="icon-btn" onclick="routeTo('account')">🌐</button>
           <button class="icon-btn" onclick="openAppModal()" title="Tải App Mobile" style="width:auto; padding: 0 10px; font-weight:bold; font-size: 13px;">📱 Tải App</button>
@@ -363,7 +364,170 @@
 
     <section id="page-deep" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();analyzeDeep()"><h2>🧠 AI Phân Tích Chuyên Sâu PRO</h2><p class="muted">Cung cấp thông tin chi tiết nhất để AI tổng hợp đa lớp và luận giải chuyên sâu.</p><label>Họ tên<input id="deepName" placeholder="Vd: Nguyễn Văn A"></label><label>Ngày tháng năm sinh<input id="deepBirth" type="date"></label><label>Câu hỏi hoặc vấn đề<textarea id="deepAsk" placeholder="Trình bày rõ vấn đề bạn đang gặp phải hoặc điều muốn hỏi thật chi tiết..."></textarea></label><label>Khía cạnh tập trung<select id="deepFocus"><option>Tổng quan cuộc đời & Vận hạn</option><option>Công danh sự nghiệp & Tài lộc</option><option>Tình duyên & Hôn nhân</option><option>Phân tích tâm lý & Lời khuyên</option></select></label><button class="primary">✦ Bắt Đầu Phân Tích Sâu</button></form><article id="deepResult" class="result-panel"><h2>Kết quả phân tích sâu</h2><p>Vui lòng điền thông tin và bấm bắt đầu để AI xử lý.</p></article></div></section>
 
-    <section id="page-tuvi" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();generateMystic()"><h2>📜 Hồ Sơ Bản Mệnh & Tử Vi</h2><p class="instruction-hint" style="font-size:0.85em;color:#7df6ff;margin:0 0 10px;">* Lưu hồ sơ bản mệnh một lần để AI ghi nhớ và tự động luận giải mọi khía cạnh mà không cần hỏi lại.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><label>Họ và tên<input id="name" placeholder="Ví dụ: Đặng Văn Năm"></label><label>Giới tính<select id="gender"><option>Nam</option><option>Nữ</option></select></label></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><label>Ngày sinh Dương lịch<input id="birthDate" type="date"></label><label>Giờ sinh<input id="birthTime" type="time"></label></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><label>Loại lịch<select id="calendarType"><option value="solar">Dương lịch</option><option value="lunar">Âm lịch</option></select></label><label>Nơi sinh / Quê quán<input id="birthPlace" placeholder="Tỉnh / Thành phố"></label></div><label>Mối bận tâm chính<input id="lifeConcern" placeholder="Công danh sự nghiệp, tài lộc, tình duyên, hay sức khỏe..."></label><div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;"><button type="button" class="primary" style="flex:1;" onclick="handleSaveDestinyProfile()">💾 Lưu Hồ Sơ Bản Mệnh</button><button class="primary" style="background:linear-gradient(135deg,#00f0ff,#7f35ff);">🔮 AI Luận Giải Tử Vi</button><button type="button" onclick="localMystic()">📜 Luận local</button></div><div class="tuvi-quick-prompts-bar" style="margin-top:16px;"><span class="quick-prompts-title" style="display:block;font-size:12px;color:#a0c4ff;margin-bottom:6px;">✨ Gợi ý nhanh cho AI:</span><div style="display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="quick-chip" onclick="sendQuickPrompt('🌟 Luận giải tổng quan vận hạn năm 2026')">🌟 Vận hạn 2026</button><button type="button" class="quick-chip" onclick="sendQuickPrompt('💰 Phân tích cung Tài Bạch & Quan Lộc')">💰 Tài Bạch & Quan Lộc</button><button type="button" class="quick-chip" onclick="sendQuickPrompt('📅 Xem ngày tốt cát nhật tuần này')">📅 Xem ngày tốt</button><button type="button" class="quick-chip" onclick="sendQuickPrompt('❤️ Luận giải Tình duyên & Hôn nhân')">❤️ Tình duyên</button><button type="button" class="quick-chip" onclick="sendQuickPrompt('🛡️ Phương pháp Cải vận & Hóa giải hung tinh')">🛡️ Cải vận</button></div></div></form><article id="report" class="result-panel"><h2>Kết quả tử vi</h2><p>Điền thông tin bản mệnh hoặc chọn gợi ý nhanh ở trên để bắt đầu luận giải.</p></article></div></section>
+    <section id="page-tuvi" class="page">
+      <div class="tuvi-page-shell">
+        <div class="tuvi-header-banner">
+          <div class="tuvi-header-title-wrap">
+            <h2>📜 Bàn Lá Số Tử Vi 12 Cung Tương Tác</h2>
+            <p>Bố cục 12 Cung chuẩn Đẩu Số truyền thống kết hợp trí tuệ nhân tạo Đặng Năm AI. Chạm vào bất kỳ cung nào để luận giải chi tiết theo thời gian thực.</p>
+          </div>
+          <button type="button" class="destiny-quick-edit-btn" onclick="openDestinyProfileModal()">
+            <span>👤 Hồ Sơ Bản Mệnh</span>
+            <span id="tuviBoardBadge" class="destiny-badge-status not-saved">Chưa lưu</span>
+          </button>
+        </div>
+
+        <!-- Bàn Lá Số Tử Vi 12 Cung 4x4 CSS Grid -->
+        <div class="tuvi-board-wrap">
+          <div class="tuvi-grid-4x4">
+            <!-- HÀNG 1 (ĐỈNH): Tỵ, Ngọ, Mùi, Thân -->
+            <div class="cung-cell cell-ty" data-cung="Tật Ách" data-chi="Tỵ" onclick="analyzeCung('Tật Ách', 'Tỵ', 'Sức khỏe, bệnh tật, thể chất, ách nạn và phương pháp phòng ngừa giải ách')">
+              <div class="cung-top"><span class="cung-chi">TỴ</span><span class="cung-tag">Hỏa</span></div>
+              <h3 class="cung-title">TẬT ÁCH</h3>
+              <p class="cung-desc">Sức khỏe · Bệnh tật · Phòng ách</p>
+              <div class="cung-action-pill">🔮 Luận Cung</div>
+            </div>
+
+            <div class="cung-cell cell-ngo" data-cung="Thiên Di" data-chi="Ngọ" onclick="analyzeCung('Thiên Di', 'Ngọ', 'Xuất hành, đi xa, xuất ngoại, môi trường giao tiếp xã hội và quý nhân phù trợ')">
+              <div class="cung-top"><span class="cung-chi">NGỌ</span><span class="cung-tag">Hỏa</span></div>
+              <h3 class="cung-title">THIÊN DI</h3>
+              <p class="cung-desc">Xuất ngoại · Đi xa · Quý nhân</p>
+              <div class="cung-action-pill">🔮 Luận Cung</div>
+            </div>
+
+            <div class="cung-cell cell-mui" data-cung="Nô Bộc" data-chi="Mùi" onclick="analyzeCung('Nô Bộc', 'Mùi', 'Bạn bè, đồng nghiệp, cộng sự làm ăn, người dưới quyền và quan hệ xã hội')">
+              <div class="cung-top"><span class="cung-chi">MÙI</span><span class="cung-tag">Thổ</span></div>
+              <h3 class="cung-title">NÔ BỘC</h3>
+              <p class="cung-desc">Bạn bè · Đồng nghiệp · Tri kỷ</p>
+              <div class="cung-action-pill">🔮 Luận Cung</div>
+            </div>
+
+            <div class="cung-cell cell-than" data-cung="Quan Lộc" data-chi="Thân" onclick="analyzeCung('Quan Lộc', 'Thân', 'Sự nghiệp, học vấn, thi cử, chức vị, thăng tiến và quan vận công danh')">
+              <div class="cung-top"><span class="cung-chi">THÂN</span><span class="cung-tag">Kim</span></div>
+              <h3 class="cung-title">QUAN LỘC</h3>
+              <p class="cung-desc">Công danh · Sự nghiệp · Thăng tiến</p>
+              <div class="cung-action-pill">🔮 Luận Cung</div>
+            </div>
+
+            <!-- HÀNG 2: Thìn (Trái), THIÊN BÀN (Giữa 2x2), Dậu (Phải) -->
+            <div class="cung-cell cell-thin" data-cung="Tài Bạch" data-chi="Thìn" onclick="analyzeCung('Tài Bạch', 'Thìn', 'Tiền bạc, tài lộc, nguồn thu nhập, khả năng tích lũy của cải và đầu tư')">
+              <div class="cung-top"><span class="cung-chi">THÌN</span><span class="cung-tag">Thổ</span></div>
+              <h3 class="cung-title">TÀI BẠCH</h3>
+              <p class="cung-desc">Tiền tài · Làm ăn · Của cải</p>
+              <div class="cung-action-pill">🔮 Luận Cung</div>
+            </div>
+
+            <!-- THIÊN BÀN TRUNG TÂM (grid-column: 2 / 4; grid-row: 2 / 4) -->
+            <div class="thien-ban">
+              <div class="thien-ban-badge">✦ THIÊN BÀN TỬ VI ✦</div>
+              <div class="thien-ban-brand">ĐẶNG NĂM AI · dangnam.online</div>
+              
+              <div class="thien-ban-info-card">
+                <div class="tb-name" id="tbName">Đặng Văn Năm</div>
+                <div class="tb-grid-details">
+                  <div class="tb-item"><span>Giới tính:</span> <b id="tbGender">Nam</b></div>
+                  <div class="tb-item"><span>Loại lịch:</span> <b id="tbCalendar">Dương lịch</b></div>
+                  <div class="tb-item"><span>Ngày sinh:</span> <b id="tbBirth">Chưa cập nhật</b></div>
+                  <div class="tb-item"><span>Canh giờ:</span> <b id="tbHour">Giờ Ngọ (11h-13h)</b></div>
+                </div>
+              </div>
+
+              <div class="thien-ban-controls">
+                <button type="button" class="tb-edit-btn" onclick="openDestinyProfileModal()">✏️ Sửa nhanh hồ sơ</button>
+                <button type="button" class="tb-overall-btn" onclick="analyzeTuviPrompt('Luận giải tổng quan vận mệnh, cục diện lá số và đại vận then chốt')">🔮 Luận Toàn Cục</button>
+              </div>
+
+              <!-- Gợi ý hỏi nhanh ngay dưới Thiên Bàn -->
+              <div class="thien-ban-quick-prompts">
+                <button type="button" class="tb-chip" onclick="analyzeTuviPrompt('Luận giải tổng quan vận mệnh, bản mệnh âm dương ngũ hành và xu hướng cuộc đời')">🌟 Luận tổng quan vận mệnh</button>
+                <button type="button" class="tb-chip" onclick="analyzeTuviPrompt('Phân tích chi tiết Công danh & Tài lộc năm nay cho đương số')">💼 Công danh & Tài lộc năm nay</button>
+                <button type="button" class="tb-chip" onclick="analyzeTuviPrompt('Luận giải chuyên sâu Tình duyên, Hôn nhân & Gia đạo')">❤️ Tình duyên & Gia đạo</button>
+                <button type="button" class="tb-chip" onclick="analyzeTuviPrompt('Xem các hạn xấu cần phòng tránh và phương pháp hóa giải, cải vận tích đức')">🛡️ Hạn & Cách hóa giải</button>
+              </div>
+            </div>
+
+            <div class="cung-cell cell-dau" data-cung="Điền Trạch" data-chi="Dậu" onclick="analyzeCung('Điền Trạch', 'Dậu', 'Đất đai, nhà ở, bất động sản, cơ nghiệp tổ phụ và phong thủy nơi cư trú')">
+              <div class="cung-top"><span class="cung-chi">DẬU</span><span class="cung-tag">Kim</span></div>
+              <h3 class="cung-title">ĐIỀN TRẠCH</h3>
+              <p class="cung-desc">Nhà cửa · Đất đai · Cơ nghiệp</p>
+              <div class="cung-action-pill">🔮 Luận Cung</div>
+            </div>
+
+            <!-- HÀNG 3: Mão (Trái), Tuất (Phải) -->
+            <div class="cung-cell cell-mao" data-cung="Tử Tức" data-chi="Mão" onclick="analyzeCung('Tử Tức', 'Mão', 'Con cái, đường sinh nở, thế hệ nối dõi, sự thành đạt và hiếu nghĩa của con cái')">
+              <div class="cung-top"><span class="cung-chi">MÃO</span><span class="cung-tag">Mộc</span></div>
+              <h3 class="cung-title">TỬ TỨC</h3>
+              <p class="cung-desc">Con cái · Hậu duệ · Duyên nợ</p>
+              <div class="cung-action-pill">🔮 Luận Cung</div>
+            </div>
+
+            <div class="cung-cell cell-tuat" data-cung="Phúc Đức" data-chi="Tuất" onclick="analyzeCung('Phúc Đức', 'Tuất', 'Phúc đức tổ tiên, âm phần mồ mả, tuổi thọ, đời sống tinh thần và may mắn cuộc đời')">
+              <div class="cung-top"><span class="cung-chi">TUẤT</span><span class="cung-tag">Thổ</span></div>
+              <h3 class="cung-title">PHÚC ĐỨC</h3>
+              <p class="cung-desc">Âm phúc · Dòng họ · May mắn</p>
+              <div class="cung-action-pill">🔮 Luận Cung</div>
+            </div>
+
+            <!-- HÀNG 4 (ĐÁY): Dần, Sửu, Tý, Hợi -->
+            <div class="cung-cell cell-dan" data-cung="Phu Thê" data-chi="Dần" onclick="analyzeCung('Phu Thê', 'Dần', 'Hôn nhân, vợ chồng, duyên nợ trăm năm, mức độ hòa hợp và thời vận kết duyên')">
+              <div class="cung-top"><span class="cung-chi">DẦN</span><span class="cung-tag">Mộc</span></div>
+              <h3 class="cung-title">PHU THÊ</h3>
+              <p class="cung-desc">Hôn nhân · Vợ chồng · Duyên nợ</p>
+              <div class="cung-action-pill">🔮 Luận Cung</div>
+            </div>
+
+            <div class="cung-cell cell-suu" data-cung="Huynh Đệ" data-chi="Sửu" onclick="analyzeCung('Huynh Đệ', 'Sửu', 'Anh chị em ruột thịt, sự hòa thuận, tương trợ gia tộc và bạn thâm giao')">
+              <div class="cung-top"><span class="cung-chi">SỬU</span><span class="cung-tag">Thổ</span></div>
+              <h3 class="cung-title">HUYNH ĐỆ</h3>
+              <p class="cung-desc">Anh em · Tương trợ · Tri kỷ</p>
+              <div class="cung-action-pill">🔮 Luận Cung</div>
+            </div>
+
+            <div class="cung-cell cell-ty2 active-cung" data-cung="Mệnh" data-chi="Tý" onclick="analyzeCung('Mệnh', 'Tý', 'Bản mệnh đương số, cốt cách tính tình, năng khiếu, thọ yểu và đại cục cuộc đời')">
+              <div class="cung-top"><span class="cung-chi">TÝ</span><span class="cung-tag">Thủy</span></div>
+              <h3 class="cung-title">MỆNH CUNG</h3>
+              <p class="cung-desc">Bản mệnh · Tính cách · Cốt cách</p>
+              <div class="cung-action-pill">🔮 Luận Cung</div>
+            </div>
+
+            <div class="cung-cell cell-hoi" data-cung="Phụ Mẫu" data-chi="Hợi" onclick="analyzeCung('Phụ Mẫu', 'Hợi', 'Cha mẹ, ơn đức sinh thành, sự bảo bọc nâng đỡ và phước ấm gia đình')">
+              <div class="cung-top"><span class="cung-chi">HỢI</span><span class="cung-tag">Thủy</span></div>
+              <h3 class="cung-title">PHỤ MẪU</h3>
+              <p class="cung-desc">Cha mẹ · Ân nghĩa · Nâng đỡ</p>
+              <div class="cung-action-pill">🔮 Luận Cung</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Khu Vực Hiển Thị Kết Quả Luận Giải Chuyên Sâu -->
+        <article id="tuviResultSection" class="result-panel tuvi-result-panel">
+          <div class="tuvi-result-head">
+            <h2 id="tuviResultHeading">🔮 Bản Luận Giải Tử Vi Chuyên Sâu</h2>
+            <div id="tuviActiveCungBadge" class="tuvi-active-pill">Cung Mệnh</div>
+          </div>
+          <div id="tuviResultContent" class="tuvi-result-body">
+            <p class="tuvi-placeholder">Bấm vào bất kỳ một Cung nào trên Bàn Lá Số hoặc chọn câu hỏi gợi ý nhanh để Đặng Năm AI bắt đầu luận giải chi tiết theo thời gian thực.</p>
+          </div>
+          <div id="tuviActionBar" class="result-action-bar" style="display:none;">
+            <button type="button" class="btn-sm ghost" onclick="copyCurrentResult(this)">📋 Sao chép</button>
+            <button type="button" class="btn-sm primary" onclick="exportResultToPrint('Bản Luận Giải Tử Vi Đặng Năm AI', document.getElementById('tuviResultContent').dataset.rawMarkdown || document.getElementById('tuviResultContent').innerText)">🖨️ In / Xuất PDF Lá Số & Luận Giải</button>
+            <button type="button" class="btn-sm ghost" onclick="speakText(document.getElementById('tuviResultContent').innerText)">🔊 Nghe đọc</button>
+          </div>
+        </article>
+
+        <!-- Form nhập liệu truyền thống (ẩn phụ trợ tương thích ngược) -->
+        <div style="display:none;">
+          <input id="name" />
+          <select id="gender"><option>Nam</option><option>Nữ</option></select>
+          <input id="birthDate" type="date" />
+          <input id="birthTime" type="time" />
+          <select id="calendarType"><option value="solar">Dương lịch</option><option value="lunar">Âm lịch</option></select>
+          <input id="birthPlace" />
+          <input id="lifeConcern" />
+          <article id="report"></article>
+        </div>
+      </div>
+    </section>
     <section id="page-love" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();generateLove()"><h2>💕 Tình duyên</h2><label>Tên người 1<input id="loveName1"></label><label>Ngày sinh người 1<input id="loveBirth1" type="date"></label><label>Tên người 2<input id="loveName2"></label><label>Ngày sinh người 2<input id="loveBirth2" type="date"></label><label>Muốn xem kỹ<select id="loveFocus"><option>Tổng quan tình duyên</option><option>Hôn nhân lâu dài</option><option>Điểm dễ xung đột</option><option>Cách hòa hợp</option></select></label><button class="primary">🤖 AI luận tình duyên</button></form><article id="loveResult" class="result-panel"><h2>Kết quả tình duyên</h2><p>Nhập thông tin 2 người để xem.</p></article></div></section>
 
     <section id="page-numerology" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();generateNumerology()"><h2>🔢 Thần số học AI</h2><label>Họ và tên đầy đủ<input id="numName" placeholder="Đặng Văn Năm"></label><label>Ngày sinh<input id="numBirth" type="date"></label><label>Muốn xem kỹ<select id="numFocus"><option>Tổng quan cuộc đời</option><option>Tình duyên</option><option>Công việc - tài chính</option><option>Điểm mạnh / điểm yếu</option><option>Năm cá nhân hiện tại</option></select></label><button class="primary">🤖 AI luận thần số học</button><button type="button" onclick="const t=localNumerologyReport(document.getElementById('numName').value,document.getElementById('numBirth').value);document.getElementById('numerologyResult').innerHTML=htmlResult('🔢 Kết quả thần số học local',t);saveHistory('Thần số học local',t)">🔎 Tính local</button></form><article id="numerologyResult" class="result-panel"><h2>Kết quả thần số học</h2><p>Nhập họ tên và ngày sinh để xem.</p></article></div></section>
@@ -513,5 +677,77 @@
     }
     </script>
     
+
+  <!-- Modal Hồ Sơ Bản Mệnh Đồng Bộ Kép (LocalStorage + Firebase Firestore) -->
+  <div id="destinyModal" class="modal-overlay destiny-modal-backdrop" style="display:none;" onclick="if(event.target===this) closeDestinyProfileModal()">
+    <div class="modal-content glass-panel destiny-modal-box">
+      <button class="close-modal" type="button" onclick="closeDestinyProfileModal()">×</button>
+      <div class="destiny-modal-head">
+        <h2>📜 Hồ Sơ Bản Mệnh</h2>
+        <span class="destiny-modal-tag">Đồng bộ Kép: Máy + Cloud</span>
+      </div>
+      <p class="destiny-modal-sub">Điền đầy đủ thông tin để Đặng Năm AI ghi nhớ bản mệnh, tự động cá nhân hóa và luận giải chuẩn xác mọi phương diện Tử Vi, phong thủy và vận hạn.</p>
+      
+      <form id="destinyProfileForm" onsubmit="event.preventDefault(); saveBirthProfileFromModal();">
+        <div class="destiny-form-group">
+          <label for="destinyModalFullName">Họ và tên đương số <span class="req">*</span></label>
+          <input id="destinyModalFullName" required placeholder="Ví dụ: Đặng Văn Năm" autocomplete="name" />
+        </div>
+        
+        <div class="destiny-form-row">
+          <div class="destiny-form-group">
+            <label for="destinyModalGender">Giới tính <span class="req">*</span></label>
+            <select id="destinyModalGender">
+              <option value="Nam">Nam</option>
+              <option value="Nữ">Nữ</option>
+            </select>
+          </div>
+          <div class="destiny-form-group">
+            <label for="destinyModalCalendarType">Loại lịch <span class="req">*</span></label>
+            <select id="destinyModalCalendarType">
+              <option value="solar">Dương lịch</option>
+              <option value="lunar">Âm lịch</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="destiny-form-row">
+          <div class="destiny-form-group">
+            <label for="destinyModalBirthDate">Ngày / Tháng / Năm sinh <span class="req">*</span></label>
+            <input id="destinyModalBirthDate" type="date" required />
+          </div>
+          <div class="destiny-form-group">
+            <label for="destinyModalBirthHour">Giờ sinh (12 Canh giờ) <span class="req">*</span></label>
+            <select id="destinyModalBirthHour">
+              <option value="Tý (23h00 - 00h59)">Giờ Tý (23h00 - 00h59)</option>
+              <option value="Sửu (01h00 - 02h59)">Giờ Sửu (01h00 - 02h59)</option>
+              <option value="Dần (03h00 - 04h59)">Giờ Dần (03h00 - 04h59)</option>
+              <option value="Mão (05h00 - 06h59)">Giờ Mão (05h00 - 06h59)</option>
+              <option value="Thìn (07h00 - 08h59)">Giờ Thìn (07h00 - 08h59)</option>
+              <option value="Tỵ (09h00 - 10h59)">Giờ Tỵ (09h00 - 10h59)</option>
+              <option value="Ngọ (11h00 - 12h59)" selected>Giờ Ngọ (11h00 - 12h59)</option>
+              <option value="Mùi (13h00 - 14h59)">Giờ Mùi (13h00 - 14h59)</option>
+              <option value="Thân (15h00 - 16h59)">Giờ Thân (15h00 - 16h59)</option>
+              <option value="Dậu (17h00 - 18h59)">Giờ Dậu (17h00 - 18h59)</option>
+              <option value="Tuất (19h00 - 20h59)">Giờ Tuất (19h00 - 20h59)</option>
+              <option value="Hợi (21h00 - 22h59)">Giờ Hợi (21h00 - 22h59)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="destiny-form-group">
+          <label for="destinyModalBirthPlace">Nơi sinh / Quê quán (Tùy chọn)</label>
+          <input id="destinyModalBirthPlace" placeholder="Ví dụ: Hà Nội, TP. Hồ Chí Minh, Đà Nẵng..." />
+        </div>
+
+        <div class="destiny-modal-actions">
+          <button type="submit" class="primary" style="flex:2;">💾 Lưu Hồ Sơ Bản Mệnh</button>
+          <button type="button" class="ghost" style="flex:1;" onclick="closeDestinyProfileModal()">Đóng</button>
+        </div>
+      </form>
+      <div id="destinyModalStatus" class="destiny-modal-status"></div>
+    </div>
+  </div>
+
 </body>
 </html>

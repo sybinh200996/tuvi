@@ -2433,3 +2433,547 @@ button:active, .tab-card:active, .feature-card:active, .quick-row button:active 
   color: #fff;
 }
 
+
+/* =========================================================================
+   PHASE 2: GIAO DIỆN HỒ SƠ BẢN MỆNH + BÀN LÁ SỐ 12 CUNG 4X4 + REAL-TIME SSE
+   ========================================================================= */
+
+/* Topbar Hồ Sơ Bản Mệnh Pill & Badge */
+.destiny-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.16), rgba(120, 80, 255, 0.28));
+  border: 1px solid rgba(255, 215, 0, 0.55);
+  color: #fff;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 16px rgba(255, 215, 0, 0.2);
+  white-space: nowrap;
+}
+.destiny-nav-pill:hover {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(120, 80, 255, 0.42));
+  border-color: #ffd700;
+  box-shadow: 0 0 24px rgba(255, 215, 0, 0.45);
+  transform: translateY(-1px);
+}
+.destiny-nav-icon { font-size: 15px; }
+.destiny-badge-status {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.destiny-badge-status.saved {
+  background: rgba(46, 213, 115, 0.25);
+  border: 1px solid #2ed573;
+  color: #7bed9f;
+  box-shadow: 0 0 8px rgba(46, 213, 115, 0.4);
+}
+.destiny-badge-status.not-saved {
+  background: rgba(255, 171, 0, 0.2);
+  border: 1px solid rgba(255, 171, 0, 0.6);
+  color: #ffd36a;
+}
+
+/* Modal Hồ Sơ Bản Mệnh */
+.destiny-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 20, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: fadeInDestinyModal 0.25s ease;
+}
+@keyframes fadeInDestinyModal {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+.destiny-modal-box {
+  width: 100%;
+  max-width: 540px;
+  background: linear-gradient(160deg, rgba(14, 28, 68, 0.96), rgba(6, 14, 38, 0.98)) !important;
+  border: 1px solid rgba(255, 215, 0, 0.45) !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), 0 0 35px rgba(255, 215, 0, 0.18) !important;
+  border-radius: 24px !important;
+  padding: 26px !important;
+  color: #fff;
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.destiny-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.destiny-modal-head h2 {
+  margin: 0;
+  font-size: 22px;
+  color: #ffe685;
+}
+.destiny-modal-tag {
+  font-size: 11px;
+  background: rgba(0, 240, 255, 0.15);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  color: #7df6ff;
+  border-radius: 999px;
+  padding: 3px 9px;
+}
+.destiny-modal-sub {
+  font-size: 13px;
+  color: #b9ccf0;
+  line-height: 1.5;
+  margin: 0 0 18px;
+}
+.destiny-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.destiny-form-group {
+  margin-bottom: 12px;
+}
+.destiny-form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #d8e5ff;
+  margin-bottom: 5px;
+}
+.destiny-form-group .req { color: #ff5e7e; }
+.destiny-form-group input,
+.destiny-form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(3, 10, 28, 0.75);
+  border: 1px solid rgba(110, 180, 255, 0.35);
+  border-radius: 12px;
+  color: #fff;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.destiny-form-group input:focus,
+.destiny-form-group select:focus {
+  border-color: #ffd700;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.25);
+}
+.destiny-modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+.destiny-modal-status {
+  margin-top: 10px;
+  font-size: 13px;
+  text-align: center;
+  color: #7bed9f;
+}
+
+/* Bàn Lá Số Tử Vi 12 Cung 4x4 Grid */
+.tuvi-page-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.tuvi-header-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px;
+  background: linear-gradient(135deg, rgba(14, 28, 68, 0.75), rgba(7, 16, 42, 0.85));
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  flex-wrap: wrap;
+}
+.tuvi-header-title-wrap h2 {
+  margin: 0 0 6px;
+  font-size: 22px;
+  color: #fff;
+}
+.tuvi-header-title-wrap p {
+  margin: 0;
+  font-size: 13.5px;
+  color: #bcd0f7;
+}
+.destiny-quick-edit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.45);
+  color: #ffe685;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.destiny-quick-edit-btn:hover {
+  background: rgba(255, 215, 0, 0.15);
+  border-color: #ffd700;
+  transform: translateY(-1px);
+}
+
+.tuvi-board-wrap {
+  width: 100%;
+  padding: 6px 0;
+}
+.tuvi-grid-4x4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, minmax(115px, auto));
+  gap: 12px;
+  max-width: 1060px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* 12 Cung Cells with Metallic Gold glow */
+.cung-cell {
+  position: relative;
+  background: linear-gradient(145deg, rgba(14, 26, 62, 0.9), rgba(6, 14, 38, 0.92));
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 16px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35), inset 0 0 12px rgba(255, 215, 0, 0.04);
+  user-select: none;
+}
+.cung-cell:hover {
+  border-color: rgba(255, 215, 0, 0.85);
+  background: linear-gradient(145deg, rgba(24, 44, 98, 0.95), rgba(12, 24, 60, 0.98));
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.38), inset 0 0 16px rgba(255, 215, 0, 0.15);
+  transform: translateY(-3px) scale(1.02);
+  z-index: 5;
+}
+.cung-cell.active-cung {
+  border-color: #ffd700;
+  background: linear-gradient(145deg, rgba(32, 58, 125, 0.98), rgba(16, 32, 78, 0.98));
+  box-shadow: 0 0 30px rgba(255, 215, 0, 0.55), inset 0 0 20px rgba(255, 215, 0, 0.25);
+  transform: translateY(-2px);
+}
+.cung-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+}
+.cung-chi {
+  font-weight: 900;
+  color: #ffd700;
+  background: rgba(255, 215, 0, 0.14);
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  border-radius: 6px;
+  padding: 1px 6px;
+  letter-spacing: 1px;
+}
+.cung-tag {
+  color: #8edeff;
+  opacity: 0.85;
+  font-size: 10px;
+}
+.cung-title {
+  margin: 6px 0 2px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+.cung-desc {
+  margin: 0;
+  font-size: 11px;
+  color: #b5c7e8;
+  line-height: 1.35;
+}
+.cung-action-pill {
+  margin-top: 6px;
+  align-self: flex-start;
+  font-size: 10.5px;
+  color: #ffe685;
+  background: rgba(255, 215, 0, 0.1);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+.cung-cell:hover .cung-action-pill {
+  background: #ffd700;
+  color: #1a1200;
+  border-color: #ffd700;
+}
+
+/* THIÊN BÀN TRUNG TÂM (Center 2x2) */
+.thien-ban {
+  grid-column: 2 / 4;
+  grid-row: 2 / 4;
+  background: radial-gradient(circle at center, rgba(22, 38, 88, 0.95), rgba(7, 15, 42, 0.98));
+  border: 2px solid rgba(255, 215, 0, 0.65);
+  box-shadow: 0 0 35px rgba(255, 215, 0, 0.2), inset 0 0 30px rgba(255, 215, 0, 0.1);
+  border-radius: 20px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  position: relative;
+  z-index: 3;
+}
+.thien-ban-badge {
+  font-size: 11.5px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+}
+.thien-ban-brand {
+  font-size: 12px;
+  color: #7df6ff;
+  letter-spacing: 1px;
+  margin-top: 2px;
+  font-weight: 700;
+}
+.thien-ban-info-card {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 215, 0, 0.25);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 10px 0;
+}
+.tb-name {
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+}
+.tb-grid-details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 10px;
+  font-size: 11.5px;
+  text-align: left;
+}
+.tb-item {
+  color: #b5c7e8;
+}
+.tb-item b {
+  color: #ffe685;
+}
+.thien-ban-controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+  width: 100%;
+}
+.tb-edit-btn, .tb-overall-btn {
+  flex: 1;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tb-edit-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+.tb-edit-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+.tb-overall-btn {
+  background: linear-gradient(135deg, #00f0ff, #7f35ff);
+  border: none;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.35);
+}
+.tb-overall-btn:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+}
+.thien-ban-quick-prompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  width: 100%;
+}
+.tb-chip {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: #ffe27a;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.tb-chip:hover {
+  background: rgba(255, 215, 0, 0.22);
+  border-color: #ffd700;
+  transform: translateY(-1px);
+}
+
+/* Result panel for Tu Vi */
+.tuvi-result-panel {
+  min-height: 280px;
+  margin-top: 10px;
+}
+.tuvi-result-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+}
+.tuvi-result-head h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #ffe685;
+}
+.tuvi-active-pill {
+  font-size: 12px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ffd700, #ff9500);
+  color: #1a1200;
+  padding: 4px 12px;
+  border-radius: 999px;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.3);
+}
+.tuvi-result-body {
+  font-size: 14.5px;
+  line-height: 1.75;
+  color: #e6edff;
+}
+.tuvi-placeholder {
+  color: #9ab4dd;
+  font-style: italic;
+}
+.result-action-bar {
+  display: flex;
+  gap: 8px;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  flex-wrap: wrap;
+}
+
+/* Responsive for 4x4 Grid */
+@media (max-width: 768px) {
+  .tuvi-grid-4x4 {
+    gap: 6px;
+  }
+  .cung-cell {
+    padding: 8px 6px;
+    min-height: 95px;
+  }
+  .cung-title {
+    font-size: 12.5px;
+  }
+  .cung-desc {
+    display: none;
+  }
+  .cung-action-pill {
+    font-size: 9.5px;
+    padding: 1px 6px;
+  }
+  .thien-ban {
+    padding: 10px;
+  }
+  .tb-name {
+    font-size: 14px;
+  }
+  .thien-ban-badge {
+    font-size: 9.5px;
+  }
+  .tb-grid-details {
+    font-size: 10px;
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+  .tb-chip {
+    font-size: 10px;
+    padding: 3px 8px;
+  }
+}
+
+/* @media print for A4 export */
+@media print {
+  .topbar, .bottom-nav, .side-menu, .menu-shade, .hero-section,
+  .search-shell, .feature-tabs-wrap, .chat-input, .chat-upload-bar,
+  .chat-quick-prompts, .chat-pro-sidebar, .chat-pro-head, .chat-mobile-settings,
+  .destiny-modal-backdrop, .modal-overlay, #appDownloadModal,
+  .vision-actions, .vision-camera-box, .vision-cam-ctrls,
+  .result-action-bar, .msg-action-bar, .tb-edit-btn, .thien-ban-quick-prompts,
+  button, select, input, textarea {
+    display: none !important;
+  }
+
+  body {
+    background: #fff !important;
+    color: #111 !important;
+    font-family: 'Times New Roman', serif !important;
+    font-size: 12pt !important;
+    line-height: 1.6 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  #stars { display: none !important; }
+
+  .app {
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .tuvi-grid-4x4, .thien-ban, .cung-cell, .result-panel, .msg {
+    background: #fff !important;
+    color: #111 !important;
+    border-color: #888 !important;
+    box-shadow: none !important;
+  }
+
+  body::before {
+    content: "dangnam.online";
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-35deg);
+    font-size: 60pt;
+    font-weight: 900;
+    color: rgba(0, 0, 0, 0.05) !important;
+    pointer-events: none;
+    z-index: 9999;
+    text-transform: uppercase;
+    letter-spacing: 10px;
+  }
+}

@@ -134,21 +134,32 @@ function markdownLite(text = '') {
   return safe.replace(/\n/g, '<br/>');
 }
 
+const BIRTH_PROFILE_STORAGE_KEY = 'dangnam_birth_profile';
 const DESTINY_STORAGE_KEY = 'dangnam_destiny_profile';
 
-function getDestinyProfile() {
+function getBirthProfile() {
   try {
-    const raw = localStorage.getItem(DESTINY_STORAGE_KEY);
+    const raw = localStorage.getItem(BIRTH_PROFILE_STORAGE_KEY);
     if (raw) return JSON.parse(raw);
+    const legacy = localStorage.getItem(DESTINY_STORAGE_KEY);
+    if (legacy) return JSON.parse(legacy);
+    const legacy2 = localStorage.getItem('synam_destiny_profile');
+    if (legacy2) return JSON.parse(legacy2);
   } catch(e) {}
   const u = readJSON('synam_user', null);
-  return u?.destinyProfile || null;
+  return u?.birthProfile || u?.destinyProfile || null;
+}
+
+function getDestinyProfile() {
+  return getBirthProfile();
 }
 
 async function saveDestinyProfile(profile) {
   if (!profile) return;
   try {
+    localStorage.setItem(BIRTH_PROFILE_STORAGE_KEY, JSON.stringify(profile));
     localStorage.setItem(DESTINY_STORAGE_KEY, JSON.stringify(profile));
+    localStorage.setItem('synam_destiny_profile', JSON.stringify(profile));
   } catch(e) {}
 
   try {
@@ -158,7 +169,7 @@ async function saveDestinyProfile(profile) {
         'Content-Type': 'application/json',
         ...authHeaders()
       },
-      body: JSON.stringify({ destinyProfile: profile })
+      body: JSON.stringify({ profile, birthProfile: profile, destinyProfile: profile })
     });
   } catch(e) {}
 
@@ -168,6 +179,12 @@ async function saveDestinyProfile(profile) {
       const currentUser = auth.currentUser;
       if (currentUser && window.firebase.firestore) {
         const db = window.firebase.firestore();
+        await db.collection('users').doc(currentUser.uid).set({
+          birthProfile: profile,
+          destinyProfile: profile,
+          updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
         await db.collection('destiny_profiles').doc(currentUser.uid).set({
           ...profile,
           email: currentUser.email || '',
@@ -178,6 +195,10 @@ async function saveDestinyProfile(profile) {
   } catch(e) {
     console.warn('Sync destiny profile to Firestore:', e);
   }
+}
+
+async function saveBirthProfile(profile) {
+  return saveDestinyProfile(profile);
 }
 
 async function loadDestinyProfileFromCloud() {
@@ -319,21 +340,30 @@ async function streamChatResponse({ url, payload, signal, onStart, onDelta, onDo
           continue;
         }
         if (trimmed.startsWith('data: ')) {
-          const rawData = trimmed.slice(6);
+          const rawData = trimmed.slice(6).trim();
+          if (rawData === '[DONE]') {
+            if (typeof onDone === 'function') onDone(fullText, { label: 'Đặng Năm AI' });
+            return fullText;
+          }
           try {
             const data = JSON.parse(rawData);
-            if (currentEvent === 'start') {
+            if (data.error) {
+              throw new Error(data.error || 'Lỗi streaming từ AI');
+            }
+            const chunk = data.content ?? data.chunk ?? (data.choices && data.choices[0]?.delta?.content) ?? '';
+            if (chunk) {
+              fullText += chunk;
+              if (typeof onDelta === 'function') onDelta(chunk, fullText);
+            } else if (currentEvent === 'start') {
               if (typeof onStart === 'function') onStart(data);
-            } else if (currentEvent === 'delta') {
-              fullText += data.chunk || '';
-              if (typeof onDelta === 'function') onDelta(data.chunk || '', fullText);
-            } else if (currentEvent === 'done') {
+            } else if (currentEvent === 'done' || data.done) {
               if (typeof onDone === 'function') onDone(data.fullText || fullText, data);
-            } else if (currentEvent === 'error') {
-              throw new Error(data.message || 'Lỗi streaming từ AI');
             }
           } catch(pe) {
-            if (pe.message && !pe.message.includes('JSON')) throw pe;
+            if (rawData && rawData !== '[DONE]') {
+              fullText += rawData;
+              if (typeof onDelta === 'function') onDelta(rawData, fullText);
+            }
           }
         }
       }
@@ -671,15 +701,11 @@ function Chat({ providers }) {
         });
       } else {
         await streamChatResponse({
-          url: '/api/multi-ai/stream',
+          url: '/api/chat-stream',
           payload: {
             message: requestText,
             history: next.slice(-20),
-            provider: selectedProvider,
-            model: selectedModel,
-            council,
-            answerStyle,
-            destinyProfile
+            birthProfile: destinyProfile
           },
           signal: controller?.signal,
           onStart: () => {},
@@ -1543,22 +1569,132 @@ function LoveTool() {
   async function run(){ setOut('Đang tính bằng code và AI luận giải...'); try{const d=await apiJSON('/api/love-ai',{ geminiModel: 'gemini-3.5-flash-lite', persons:[{name:'Người 1',birthDate:a},{name:'Người 2',birthDate:b}]}); setOut(d.text||d.reply||'Không có kết quả'); saveHistory('Tình duyên', d.text||d.reply||'Không có kết quả');}catch(e){setOut('⚠️ '+e.message)} }
   return <section className="tool-grid"><div className="premium-panel"><h2>💞 Tình duyên</h2><input value={a} onChange={e=>setA(e.target.value)} placeholder="Ngày sinh người 1: 01/01/2000"/><input value={b} onChange={e=>setB(e.target.value)} placeholder="Ngày sinh người 2: 02/02/2004"/><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>;
 }
+function DestinyModal({ isOpen, onClose, profile, onSave }) {
+  if (!isOpen) return null;
+  const [form, setForm] = useState(() => ({
+    fullName: profile.fullName || profile.name || '',
+    gender: profile.gender || 'Nam',
+    calendarType: profile.calendarType || 'solar',
+    birthDate: profile.birthDate || '',
+    birthHour: profile.birthHour || 'Ngọ (11h00 - 12h59)',
+    birthPlace: profile.birthPlace || ''
+  }));
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!form.fullName.trim() || !form.birthDate) {
+      alert('Vui lòng điền họ tên và ngày sinh');
+      return;
+    }
+    await onSave(form);
+    onClose();
+  }
+
+  return (
+    <div className="destiny-modal-backdrop" onClick={onClose}>
+      <div className="destiny-modal-box" onClick={e => e.stopPropagation()}>
+        <div className="destiny-modal-head">
+          <h2>📜 Hồ Sơ Bản Mệnh</h2>
+          <span className="destiny-modal-tag">Kép: Máy + Cloud</span>
+        </div>
+        <p className="destiny-modal-sub">
+          Lưu hồ sơ để Đặng Năm AI tự động cá nhân hóa và luận giải chuẩn xác theo thuật Tử Vi Đẩu Số.
+        </p>
+
+        <form onSubmit={handleSubmit}>
+          <div className="destiny-form-group">
+            <label>Họ và tên đương số <span className="req">*</span></label>
+            <input
+              required
+              placeholder="Ví dụ: Đặng Văn Năm"
+              value={form.fullName}
+              onChange={e => setForm({...form, fullName: e.target.value})}
+            />
+          </div>
+
+          <div className="destiny-form-row">
+            <div className="destiny-form-group">
+              <label>Giới tính <span className="req">*</span></label>
+              <select value={form.gender} onChange={e => setForm({...form, gender: e.target.value})}>
+                <option value="Nam">Nam</option>
+                <option value="Nữ">Nữ</option>
+              </select>
+            </div>
+            <div className="destiny-form-group">
+              <label>Loại lịch <span className="req">*</span></label>
+              <select value={form.calendarType} onChange={e => setForm({...form, calendarType: e.target.value})}>
+                <option value="solar">Dương lịch</option>
+                <option value="lunar">Âm lịch</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="destiny-form-row">
+            <div className="destiny-form-group">
+              <label>Ngày sinh <span className="req">*</span></label>
+              <input
+                type="date"
+                required
+                value={form.birthDate}
+                onChange={e => setForm({...form, birthDate: e.target.value})}
+              />
+            </div>
+            <div className="destiny-form-group">
+              <label>Giờ sinh (12 Canh giờ) <span className="req">*</span></label>
+              <select value={form.birthHour} onChange={e => setForm({...form, birthHour: e.target.value})}>
+                <option value="Tý (23h00 - 00h59)">Giờ Tý (23h00 - 00h59)</option>
+                <option value="Sửu (01h00 - 02h59)">Giờ Sửu (01h00 - 02h59)</option>
+                <option value="Dần (03h00 - 04h59)">Giờ Dần (03h00 - 04h59)</option>
+                <option value="Mão (05h00 - 06h59)">Giờ Mão (05h00 - 06h59)</option>
+                <option value="Thìn (07h00 - 08h59)">Giờ Thìn (07h00 - 08h59)</option>
+                <option value="Tỵ (09h00 - 10h59)">Giờ Tỵ (09h00 - 10h59)</option>
+                <option value="Ngọ (11h00 - 12h59)">Giờ Ngọ (11h00 - 12h59)</option>
+                <option value="Mùi (13h00 - 14h59)">Giờ Mùi (13h00 - 14h59)</option>
+                <option value="Thân (15h00 - 16h59)">Giờ Thân (15h00 - 16h59)</option>
+                <option value="Dậu (17h00 - 18h59)">Giờ Dậu (17h00 - 18h59)</option>
+                <option value="Tuất (19h00 - 20h59)">Giờ Tuất (19h00 - 20h59)</option>
+                <option value="Hợi (21h00 - 22h59)">Giờ Hợi (21h00 - 22h59)</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="destiny-form-group">
+            <label>Nơi sinh / Quê quán (Tùy chọn)</label>
+            <input
+              placeholder="Ví dụ: Hà Nội, TP. HCM..."
+              value={form.birthPlace}
+              onChange={e => setForm({...form, birthPlace: e.target.value})}
+            />
+          </div>
+
+          <div className="destiny-modal-actions">
+            <button type="submit" className="primary" style={{flex: 2}}>💾 Lưu Hồ Sơ</button>
+            <button type="button" className="ghost" style={{flex: 1}} onClick={onClose}>Đóng</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function TuviTool() {
   const [profile, setProfile] = useState(() => {
-    const saved = getDestinyProfile() || {};
+    const saved = getBirthProfile() || {};
     return {
       fullName: saved.fullName || saved.name || '',
       gender: saved.gender || 'Nam',
       birthDate: saved.birthDate || '',
-      birthTime: saved.birthTime || '',
+      birthHour: saved.birthHour || 'Ngọ (11h00 - 12h59)',
       calendarType: saved.calendarType || 'solar',
-      birthPlace: saved.birthPlace || '',
-      concern: saved.concern || ''
+      birthPlace: saved.birthPlace || ''
     };
   });
-  const [saveStatus, setSaveStatus] = useState('');
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [activeCung, setActiveCung] = useState('Mệnh');
   const [busy, setBusy] = useState(false);
-  const [out, setOut] = useState('Điền thông tin bản mệnh và bấm luận giải để khám phá vận mệnh.');
+  const [out, setOut] = useState('Bấm vào một Cung trên Bàn Lá Số hoặc chọn câu hỏi gợi ý nhanh để Đặng Năm AI bắt đầu luận giải theo thời gian thực.');
+  const [streaming, setStreaming] = useState(false);
 
   useEffect(() => {
     loadDestinyProfileFromCloud().then(cloudProfile => {
@@ -1567,131 +1703,214 @@ function TuviTool() {
           fullName: prev.fullName || cloudProfile.fullName || cloudProfile.name || '',
           gender: prev.gender || cloudProfile.gender || 'Nam',
           birthDate: prev.birthDate || cloudProfile.birthDate || '',
-          birthTime: prev.birthTime || cloudProfile.birthTime || '',
+          birthHour: prev.birthHour || cloudProfile.birthHour || 'Ngọ (11h00 - 12h59)',
           calendarType: prev.calendarType || cloudProfile.calendarType || 'solar',
-          birthPlace: prev.birthPlace || cloudProfile.birthPlace || '',
-          concern: prev.concern || cloudProfile.concern || ''
+          birthPlace: prev.birthPlace || cloudProfile.birthPlace || ''
         }));
       }
     });
   }, []);
 
-  async function handleSave() {
-    if (!profile.fullName.trim() || !profile.birthDate) {
-      setSaveStatus('⚠️ Vui lòng điền họ tên và ngày sinh trước khi lưu.');
-      setTimeout(() => setSaveStatus(''), 4000);
-      return;
-    }
-    await saveDestinyProfile(profile);
-    setSaveStatus('✅ Đã lưu Hồ Sơ Bản Mệnh lên mây!');
-    setTimeout(() => setSaveStatus(''), 4000);
+  async function handleSaveProfile(newProfile) {
+    setProfile(newProfile);
+    await saveBirthProfile(newProfile);
   }
 
-  async function run(customConcern) {
-    const activeConcern = customConcern || profile.concern || 'Luận giải tổng quan vận mệnh, sự nghiệp, tài lộc và tình cảm';
+  async function analyzeTuviStream(prompt, cungName) {
+    if (busy) return;
+    if (cungName) setActiveCung(cungName);
     setBusy(true);
-    setOut('✦ AI Đặng Năm đang an sao, đối chiếu thiên bàn - địa bàn và phân tích đa chiều...');
+    setStreaming(true);
+    setOut('✦ Đang kết nối trí tuệ nhân tạo Đặng Năm AI luận giải theo thời gian thực...');
+
+    const resultElem = document.getElementById('mobileTuviResult');
+    if (resultElem) {
+      resultElem.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    let accumulated = '';
     try {
-      await saveDestinyProfile(profile);
-      const d = await apiJSON('/api/mystic-ai', {
-        name: profile.fullName || 'Đương số',
-        birthDate: profile.birthDate,
-        birthTime: profile.birthTime,
-        gender: profile.gender,
-        calendarType: profile.calendarType,
-        birthPlace: profile.birthPlace,
-        question: activeConcern,
-        destinyProfile: profile,
-        geminiModel: 'gemini-3.5-flash-lite',
-        localReport: window.MysticEngine ? window.MysticEngine.Numerology.analyze(profile.fullName, profile.birthDate) : ''
+      await streamChatResponse({
+        url: '/api/chat-stream',
+        payload: {
+          message: prompt,
+          history: [],
+          birthProfile: profile
+        },
+        onDelta: (chunk, full) => {
+          accumulated = full;
+          setOut(full);
+        },
+        onDone: (finalFull) => {
+          const text = finalFull || accumulated || 'Đã hoàn thành luận giải.';
+          setOut(text);
+          setStreaming(false);
+          saveHistory(`Tử Vi: Cung ${cungName || 'Tổng quan'}`, text);
+        },
+        onError: (err) => {
+          setOut(`⚠️ Chưa thể kết nối AI: ${err.message || err}. Vui lòng thử lại sau ít giây.`);
+          setStreaming(false);
+        }
       });
-      const resText = d.text || d.reply || 'Không có kết quả.';
-      setOut(resText);
-      saveHistory('Tử Vi Bản Mệnh', `${profile.fullName || 'Đương số'}: ${resText.slice(0, 140)}...`);
     } catch(e) {
-      setOut('⚠️ Lỗi: ' + e.message);
+      setOut(`⚠️ Lỗi: ${e.message || e}`);
+      setStreaming(false);
     } finally {
       setBusy(false);
+      setStreaming(false);
     }
   }
 
+  const hasProfile = Boolean(profile.fullName && profile.birthDate);
+
+  const CUNGS = [
+    { id: 'ty', name: 'Tật Ách', chi: 'TỴ', tag: 'Hỏa', desc: 'Sức khỏe · Bệnh tật · Phòng ách', row: 1, col: 1 },
+    { id: 'ngo', name: 'Thiên Di', chi: 'NGỌ', tag: 'Hỏa', desc: 'Xuất ngoại · Đi xa · Quý nhân', row: 1, col: 2 },
+    { id: 'mui', name: 'Nô Bộc', chi: 'MÙI', tag: 'Thổ', desc: 'Bạn bè · Đồng nghiệp · Tri kỷ', row: 1, col: 3 },
+    { id: 'than', name: 'Quan Lộc', chi: 'THÂN', tag: 'Kim', desc: 'Công danh · Sự nghiệp · Thăng tiến', row: 1, col: 4 },
+    { id: 'thin', name: 'Tài Bạch', chi: 'THÌN', tag: 'Thổ', desc: 'Tiền tài · Làm ăn · Của cải', row: 2, col: 1 },
+    { id: 'dau', name: 'Điền Trạch', chi: 'DẬU', tag: 'Kim', desc: 'Nhà cửa · Đất đai · Cơ nghiệp', row: 2, col: 4 },
+    { id: 'mao', name: 'Tử Tức', chi: 'MÃO', tag: 'Mộc', desc: 'Con cái · Hậu duệ · Duyên nợ', row: 3, col: 1 },
+    { id: 'tuat', name: 'Phúc Đức', chi: 'TUẤT', tag: 'Thổ', desc: 'Âm phúc · Dòng họ · May mắn', row: 3, col: 4 },
+    { id: 'dan', name: 'Phu Thê', chi: 'DẦN', tag: 'Mộc', desc: 'Hôn nhân · Vợ chồng · Duyên nợ', row: 4, col: 1 },
+    { id: 'suu', name: 'Huynh Đệ', chi: 'SỬU', tag: 'Thổ', desc: 'Anh em · Tương trợ · Tri kỷ', row: 4, col: 2 },
+    { id: 'ty2', name: 'Mệnh', chi: 'TÝ', tag: 'Thủy', desc: 'Bản mệnh · Tính cách · Cốt cách', row: 4, col: 3 },
+    { id: 'hoi', name: 'Phụ Mẫu', chi: 'HỢI', tag: 'Thủy', desc: 'Cha mẹ · Ân nghĩa · Nâng đỡ', row: 4, col: 4 }
+  ];
+
   return (
-    <section className="tool-grid">
-      <div className="premium-panel">
-        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}>
-          <h2 style={{margin:0}}>📜 Hồ Sơ Bản Mệnh & Tử Vi</h2>
-          <span style={{fontSize:'11px', color:'#00f0ff', background:'rgba(0,240,255,0.1)', padding:'3px 8px', borderRadius:'12px'}}>Đồng bộ Cloud</span>
-        </div>
-        <p style={{fontSize:'12px', opacity:0.8, marginBottom:'14px'}}>
-          Lưu hồ sơ một lần để hệ thống Đặng Năm AI tự động nhận diện và luận giải cho tất cả các câu hỏi mà không cần nhập lại.
-        </p>
+    <section className="tuvi-page-shell">
+      <DestinyModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        profile={profile}
+        onSave={handleSaveProfile}
+      />
 
-        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'10px'}}>
-          <input
-            value={profile.fullName}
-            onChange={e => setProfile({...profile, fullName: e.target.value})}
-            placeholder="Họ và tên đương số *"
-            style={{gridColumn:'span 2'}}
-          />
-          <select value={profile.gender} onChange={e => setProfile({...profile, gender: e.target.value})}>
-            <option value="Nam">Giới tính: Nam</option>
-            <option value="Nữ">Giới tính: Nữ</option>
-          </select>
-          <select value={profile.calendarType} onChange={e => setProfile({...profile, calendarType: e.target.value})}>
-            <option value="solar">Dương lịch</option>
-            <option value="lunar">Âm lịch</option>
-          </select>
+      <div className="tuvi-header-banner">
+        <div className="tuvi-header-title-wrap">
+          <h2>📜 Bàn Lá Số Tử Vi 12 Cung Tương Tác</h2>
+          <p>Chạm vào cung bất kỳ để Đặng Năm AI luận giải chuyên sâu theo thời gian thực.</p>
         </div>
+        <button type="button" className="destiny-quick-edit-btn" onClick={() => setIsModalOpen(true)}>
+          <span>👤 Hồ Sơ Bản Mệnh</span>
+          <span className={`destiny-badge-status ${hasProfile ? 'saved' : 'not-saved'}`}>
+            {hasProfile ? 'Đã lưu' : 'Chưa lưu'}
+          </span>
+        </button>
+      </div>
 
-        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'10px'}}>
-          <div>
-            <label style={{fontSize:'11px', opacity:0.7, display:'block', marginBottom:'3px'}}>Ngày sinh *</label>
-            <input type="date" value={profile.birthDate} onChange={e => setProfile({...profile, birthDate: e.target.value})} />
+      {/* Bàn Lá Số 12 Cung 4x4 Grid */}
+      <div className="tuvi-board-wrap">
+        <div className="tuvi-grid-4x4">
+          {CUNGS.slice(0, 4).map(c => (
+            <div
+              key={c.id}
+              className={`cung-cell cell-${c.id} ${activeCung === c.name ? 'active-cung' : ''}`}
+              onClick={() => analyzeTuviStream(`Hãy đóng vai bậc thầy Tử Vi Đẩu Số Đặng Năm AI, luận giải chi tiết, thấu đáo và chuyên sâu về Cung ${c.name} (địa chi ${c.chi} - ${c.desc}) cho bản mệnh đương số.`, c.name)}
+            >
+              <div className="cung-top"><span className="cung-chi">{c.chi}</span><span className="cung-tag">{c.tag}</span></div>
+              <h3 className="cung-title">{c.name.toUpperCase()}</h3>
+              <p className="cung-desc">{c.desc}</p>
+              <div className="cung-action-pill">🔮 Luận Cung</div>
+            </div>
+          ))}
+
+          {/* Hàng 2: Thìn */}
+          <div
+            className={`cung-cell cell-thin ${activeCung === 'Tài Bạch' ? 'active-cung' : ''}`}
+            onClick={() => analyzeTuviStream('Hãy đóng vai bậc thầy Tử Vi Đẩu Số Đặng Năm AI, luận giải chi tiết về Cung Tài Bạch (địa chi Thìn - Tiền tài, của cải, kinh doanh) cho bản mệnh đương số.', 'Tài Bạch')}
+          >
+            <div className="cung-top"><span className="cung-chi">THÌN</span><span className="cung-tag">Thổ</span></div>
+            <h3 className="cung-title">TÀI BẠCH</h3>
+            <p className="cung-desc">Tiền tài · Làm ăn · Của cải</p>
+            <div className="cung-action-pill">🔮 Luận Cung</div>
           </div>
-          <div>
-            <label style={{fontSize:'11px', opacity:0.7, display:'block', marginBottom:'3px'}}>Giờ sinh</label>
-            <input type="time" value={profile.birthTime} onChange={e => setProfile({...profile, birthTime: e.target.value})} />
+
+          {/* THIÊN BÀN TRUNG TÂM (Center 2x2) */}
+          <div className="thien-ban">
+            <div className="thien-ban-badge">✦ THIÊN BÀN TỬ VI ✦</div>
+            <div className="thien-ban-brand">ĐẶNG NĂM AI · dangnam.online</div>
+
+            <div className="thien-ban-info-card">
+              <div className="tb-name">{profile.fullName || 'Chưa lưu hồ sơ'}</div>
+              <div className="tb-grid-details">
+                <div className="tb-item"><span>Giới tính:</span> <b>{profile.gender || 'Nam'}</b></div>
+                <div className="tb-item"><span>Lịch:</span> <b>{profile.calendarType === 'lunar' ? 'Âm lịch' : 'Dương lịch'}</b></div>
+                <div className="tb-item"><span>Ngày sinh:</span> <b>{profile.birthDate || 'Chưa đặt'}</b></div>
+                <div className="tb-item"><span>Canh giờ:</span> <b>{profile.birthHour || 'Giờ Ngọ'}</b></div>
+              </div>
+            </div>
+
+            <div className="thien-ban-controls">
+              <button type="button" className="tb-edit-btn" onClick={() => setIsModalOpen(true)}>✏️ Sửa hồ sơ</button>
+              <button type="button" className="tb-overall-btn" onClick={() => analyzeTuviStream('Luận giải tổng quan vận mệnh, cục diện lá số và đại vận then chốt cho đương số.', 'Toàn Cục')}>🔮 Luận Toàn Cục</button>
+            </div>
+
+            <div className="thien-ban-quick-prompts">
+              <button type="button" className="tb-chip" onClick={() => analyzeTuviStream('Luận giải tổng quan vận mệnh, bản mệnh âm dương ngũ hành và xu hướng cuộc đời', 'Tổng Quan')}>🌟 Vận mệnh</button>
+              <button type="button" className="tb-chip" onClick={() => analyzeTuviStream('Phân tích chi tiết Công danh & Tài lộc năm nay cho đương số', 'Tài Lộc')}>💼 Công danh</button>
+              <button type="button" className="tb-chip" onClick={() => analyzeTuviStream('Luận giải chuyên sâu Tình duyên, Hôn nhân & Gia đạo', 'Tình Duyên')}>❤️ Tình duyên</button>
+              <button type="button" className="tb-chip" onClick={() => analyzeTuviStream('Xem các hạn xấu cần phòng tránh và phương pháp hóa giải, cải vận tích đức', 'Hóa Giải')}>🛡️ Hóa giải hạn</button>
+            </div>
           </div>
-        </div>
 
-        <input
-          value={profile.birthPlace}
-          onChange={e => setProfile({...profile, birthPlace: e.target.value})}
-          placeholder="Nơi sinh (Tỉnh / Thành phố)"
-          style={{marginBottom:'10px'}}
-        />
-
-        <textarea
-          value={profile.concern}
-          onChange={e => setProfile({...profile, concern: e.target.value})}
-          placeholder="Mối quan tâm hoặc câu hỏi cụ thể (Vd: Năm nay công danh thăng tiến thế nào, hạn xuất ngoại, tình cảm...)"
-          rows="2"
-          style={{marginBottom:'10px'}}
-        />
-
-        <div style={{display:'flex', gap:'8px', marginBottom:'14px'}}>
-          <button type="button" className="secondary" onClick={handleSave} style={{flex:1}}>
-            💾 Lưu Hồ Sơ
-          </button>
-          <button type="button" className="primary" onClick={() => run()} disabled={busy} style={{flex:2}}>
-            {busy ? '✦ Đang Luận Giải...' : '🔮 Luận Giải Chuyên Sâu'}
-          </button>
-        </div>
-
-        {saveStatus && <div style={{fontSize:'12px', color:'#00f0ff', textAlign:'center', marginBottom:'10px'}}>{saveStatus}</div>}
-
-        <div style={{borderTop:'1px solid rgba(255,255,255,0.1)', paddingTop:'12px'}}>
-          <div style={{fontSize:'12px', color:'#ffd700', marginBottom:'8px', fontWeight:'bold'}}>⚡ Gợi ý chủ đề hỏi nhanh:</div>
-          <div className="chat-quick-chips" style={{padding:'0', margin:'0'}}>
-            <button type="button" className="quick-chip" onClick={() => run('Luận giải tổng quan đại vận & tiểu vận năm 2026')}>🔮 Vận hạn 2026</button>
-            <button type="button" className="quick-chip" onClick={() => run('Phân tích cung Quan Lộc & Tài Bạch: Sự nghiệp và tiền tài')}>💰 Tài Bạch & Sự nghiệp</button>
-            <button type="button" className="quick-chip" onClick={() => run('Phân tích cung Phu Thê: Tình duyên, hôn nhân và gia đạo')}>💞 Tình duyên & Phu Thê</button>
-            <button type="button" className="quick-chip" onClick={() => run('Phân tích cung Phúc Đức & Tật Ách: Bình an và sức khỏe')}>🩺 Sức khỏe & Phúc đức</button>
-            <button type="button" className="quick-chip" onClick={() => run('Xem ngày giờ tốt hoàng đạo và việc lành trong tuần này')}>📅 Ngày tốt tuần này</button>
+          {/* Hàng 2: Dậu */}
+          <div
+            className={`cung-cell cell-dau ${activeCung === 'Điền Trạch' ? 'active-cung' : ''}`}
+            onClick={() => analyzeTuviStream('Hãy đóng vai bậc thầy Tử Vi Đẩu Số Đặng Năm AI, luận giải chi tiết về Cung Điền Trạch (địa chi Dậu - Đất đai, nhà ở, cơ nghiệp tổ phụ) cho bản mệnh đương số.', 'Điền Trạch')}
+          >
+            <div className="cung-top"><span className="cung-chi">DẬU</span><span className="cung-tag">Kim</span></div>
+            <h3 className="cung-title">ĐIỀN TRẠCH</h3>
+            <p className="cung-desc">Nhà cửa · Đất đai · Cơ nghiệp</p>
+            <div className="cung-action-pill">🔮 Luận Cung</div>
           </div>
+
+          {/* Hàng 3: Mão */}
+          <div
+            className={`cung-cell cell-mao ${activeCung === 'Tử Tức' ? 'active-cung' : ''}`}
+            onClick={() => analyzeTuviStream('Hãy đóng vai bậc thầy Tử Vi Đẩu Số Đặng Năm AI, luận giải chi tiết về Cung Tử Tức (địa chi Mão - Con cái, thế hệ nối dõi) cho bản mệnh đương số.', 'Tử Tức')}
+          >
+            <div className="cung-top"><span className="cung-chi">MÃO</span><span className="cung-tag">Mộc</span></div>
+            <h3 className="cung-title">TỬ TỨC</h3>
+            <p className="cung-desc">Con cái · Hậu duệ · Duyên nợ</p>
+            <div className="cung-action-pill">🔮 Luận Cung</div>
+          </div>
+
+          {/* Hàng 3: Tuất */}
+          <div
+            className={`cung-cell cell-tuat ${activeCung === 'Phúc Đức' ? 'active-cung' : ''}`}
+            onClick={() => analyzeTuviStream('Hãy đóng vai bậc thầy Tử Vi Đẩu Số Đặng Năm AI, luận giải chi tiết về Cung Phúc Đức (địa chi Tuất - Âm phúc, phúc trạch dòng họ) cho bản mệnh đương số.', 'Phúc Đức')}
+          >
+            <div className="cung-top"><span className="cung-chi">TUẤT</span><span className="cung-tag">Thổ</span></div>
+            <h3 className="cung-title">PHÚC ĐỨC</h3>
+            <p className="cung-desc">Âm phúc · Dòng họ · May mắn</p>
+            <div className="cung-action-pill">🔮 Luận Cung</div>
+          </div>
+
+          {/* Hàng 4: Dần, Sửu, Tý, Hợi */}
+          {CUNGS.slice(8, 12).map(c => (
+            <div
+              key={c.id}
+              className={`cung-cell cell-${c.id} ${activeCung === c.name ? 'active-cung' : ''}`}
+              onClick={() => analyzeTuviStream(`Hãy đóng vai bậc thầy Tử Vi Đẩu Số Đặng Năm AI, luận giải chi tiết, thấu đáo và chuyên sâu về Cung ${c.name} (địa chi ${c.chi} - ${c.desc}) cho bản mệnh đương số.`, c.name)}
+            >
+              <div className="cung-top"><span className="cung-chi">{c.chi}</span><span className="cung-tag">{c.tag}</span></div>
+              <h3 className="cung-title">{c.name.toUpperCase()}</h3>
+              <p className="cung-desc">{c.desc}</p>
+              <div className="cung-action-pill">🔮 Luận Cung</div>
+            </div>
+          ))}
         </div>
       </div>
-      <Result text={out} title="Bản Luận Giải Tử Vi & Vận Số" />
+
+      <div id="mobileTuviResult">
+        <Result
+          text={out}
+          title={`Luận Giải Chuyên Sâu: Cung ${activeCung}`}
+        />
+        {streaming && <span className="streaming-cursor"></span>}
+      </div>
     </section>
   );
 }
