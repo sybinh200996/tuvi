@@ -1,1 +1,19 @@
-{"name":"Đặng Năm Mystic","short_name":"Đặng Năm","start_url":"./index.html","display":"standalone","background_color":"#040b1e","theme_color":"#07142f","icons":[{"src":"assets/icon.svg","sizes":"any","type":"image/svg+xml"}]}
+{
+  "name": "Đặng Năm AI - Trí Tuệ Nhân Tạo & Tử Vi",
+  "short_name": "Đặng Năm AI",
+  "description": "Trợ lý AI chuyên sâu, luận giải Tử vi, Phong thủy, Thần số học và Chiêm tinh học.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#040b1e",
+  "theme_color": "#07142f",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

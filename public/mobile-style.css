@@ -2012,3 +2012,75 @@ html, body {
   accent-color: #00f0ff;
   cursor: pointer;
 }
+
+/* ========================================================
+   STREAMING, QUICK CHIPS & PRINT WATERMARK ENHANCEMENTS
+   ======================================================== */
+
+.streaming-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 18px;
+  margin-left: 4px;
+  vertical-align: middle;
+  background: #00f0ff;
+  border-radius: 2px;
+  box-shadow: 0 0 8px #00f0ff;
+  animation: cursorBlink 0.9s infinite ease-in-out;
+}
+@keyframes cursorBlink {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 1; }
+}
+
+.chat-quick-chips {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 6px;
+  margin-bottom: 6px;
+  scrollbar-width: none;
+}
+.chat-quick-chips::-webkit-scrollbar {
+  display: none;
+}
+.quick-chip {
+  flex: 0 0 auto;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  color: #ffe27a;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.quick-chip:hover, .quick-chip:active {
+  background: rgba(255, 215, 0, 0.22);
+  border-color: #ffd700;
+  transform: translateY(-1px);
+}
+
+.small-action-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #e0e8ff;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.small-action-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+@supports (height: 100dvh) {
+  .app-shell, .chat-layout {
+    min-height: 100dvh;
+  }
+}
+

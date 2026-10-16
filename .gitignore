@@ -6,3 +6,9 @@ node_modules/
 /data/sessions.json
 /data/*.tmp
 *.zip
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db

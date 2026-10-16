@@ -1,7 +1,37 @@
 const routes=[['home','Trang Chủ','home'],['tuvi','Tử Vi','tuvi'],['palm','Xem Chỉ Tay','palm'],['face','Xem Tướng','face'],['astrology','Chiêm Tinh','astro'],['love','Tình Duyên','love'],['numerology','Thần Số Học','num'],['chat','AI Chat','chat'],['ai','Multi AI','deep'],['fengshui','Phong Thủy','feng'],['tarot','Bói Bài','tarot'],['history','Lịch Sử','history']];
 let lastResult='';
 const $=id=>document.getElementById(id);
-function init(){renderTabs();renderHistory();loadAccount();loadVoicePrefs();initVietnameseVoices();startClock();const firstRoute=location.hash?.replace('#/','')||(window.matchMedia&&window.matchMedia('(max-width: 760px)').matches?'chat':'home');routeTo(firstRoute,false);window.addEventListener('hashchange',()=>routeTo(location.hash.replace('#/','')||'home',false));checkGeminiStatus();loadAIProviders();setTimeout(()=>{if(window.matchMedia&&window.matchMedia('(max-width:760px)').matches&&$('chatText')){$('chatText').focus({preventScroll:true});}},600);}
+function init(){renderTabs();renderHistory();loadAccount();loadVoicePrefs();initVietnameseVoices();startClock();loadDestinyProfileToForm();loadDestinyProfileFromCloud().then(loadDestinyProfileToForm);const firstRoute=location.hash?.replace('#/','')||(window.matchMedia&&window.matchMedia('(max-width: 760px)').matches?'chat':'home');routeTo(firstRoute,false);window.addEventListener('hashchange',()=>routeTo(location.hash.replace('#/','')||'home',false));checkGeminiStatus();loadAIProviders();setTimeout(()=>{if(window.matchMedia&&window.matchMedia('(max-width:760px)').matches&&$('chatText')){$('chatText').focus({preventScroll:true});}},600);}
+
+function loadDestinyProfileToForm() {
+  const p = getDestinyProfile();
+  if (!p) return;
+  if ($('name') && !$('name').value) $('name').value = p.fullName || p.name || '';
+  if ($('gender') && p.gender) $('gender').value = p.gender;
+  if ($('birthDate') && !$('birthDate').value) $('birthDate').value = p.birthDate || '';
+  if ($('birthTime') && !$('birthTime').value) $('birthTime').value = p.birthTime || '';
+  if ($('calendarType') && p.calendarType) $('calendarType').value = p.calendarType;
+  if ($('birthPlace') && !$('birthPlace').value) $('birthPlace').value = p.birthPlace || '';
+  if ($('lifeConcern') && !$('lifeConcern').value) $('lifeConcern').value = p.concern || '';
+}
+
+async function handleSaveDestinyProfile() {
+  const profile = {
+    fullName: $('name')?.value?.trim() || '',
+    gender: $('gender')?.value || 'Nam',
+    birthDate: $('birthDate')?.value || '',
+    birthTime: $('birthTime')?.value || '',
+    calendarType: $('calendarType')?.value || 'solar',
+    birthPlace: $('birthPlace')?.value?.trim() || '',
+    concern: $('lifeConcern')?.value?.trim() || ''
+  };
+  if (!profile.fullName || !profile.birthDate) {
+    return toast('Vui lòng nhập họ tên và ngày sinh');
+  }
+  await saveDestinyProfile(profile);
+  toast('✅ Đã lưu Hồ Sơ Bản Mệnh thành công!');
+}
+
 function tabIcon(icon){return `<span class="holo-icon icon-${icon}"><i></i></span>`}
 function renderTabs(){const html=routes.map(([id,name,ico])=>`<button class="tab-card" data-route="${id}" onclick="routeTo('${id}')">${tabIcon(ico)}<span>${name}</span></button>`).join('');$('featureTabs').innerHTML=html;$('sideLinks').innerHTML=routes.concat([['deep','AI phân tích sâu','deep'],['ai','Cài đặt Multi-AI','deep'],['account','Tài khoản','account']]).map(([id,name,ico])=>`<button class="link" onclick="routeTo('${id}');toggleMenu(false)">${tabIcon(ico)} <span>${name}</span></button>`).join('')}
 function routeTo(route,push=true){
@@ -92,7 +122,370 @@ function toggleVoiceInputEnabled(){
 
 function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2400)}
 function setLoading(id,on=true){$(id)?.classList.toggle('loading',on)}
-function htmlResult(title,text){lastResult=text||'';return `<h2>${title}</h2>${markdownish(text)}`}
+const DESTINY_STORAGE_KEY = 'synam_destiny_profile';
+
+function getDestinyProfile() {
+  try {
+    const raw = localStorage.getItem(DESTINY_STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  const u = typeof getUserData === 'function' ? getUserData() : null;
+  return u?.destinyProfile || null;
+}
+
+async function saveDestinyProfile(profile) {
+  if (!profile) return;
+  try {
+    localStorage.setItem(DESTINY_STORAGE_KEY, JSON.stringify(profile));
+  } catch(e) {}
+
+  try {
+    await fetch('/api/user/destiny-profile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('synam_token') || ''}`
+      },
+      body: JSON.stringify({ profile })
+    });
+  } catch(e) {}
+
+  try {
+    if (window.firebase && window.firebase.apps && window.firebase.apps.length && window.firebase.firestore) {
+      const auth = window.firebase.auth();
+      const currentUser = auth.currentUser;
+      if (currentUser && currentUser.uid) {
+        const db = window.firebase.firestore();
+        await db.collection('destiny_profiles').doc(currentUser.uid).set({
+          ...profile,
+          uid: currentUser.uid,
+          updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      }
+    }
+  } catch(err) {
+    console.warn('Firestore sync note:', err.message);
+  }
+}
+
+async function loadDestinyProfileFromCloud() {
+  try {
+    if (window.firebase && window.firebase.apps && window.firebase.apps.length && window.firebase.firestore) {
+      const auth = window.firebase.auth();
+      const currentUser = auth.currentUser;
+      if (currentUser && currentUser.uid) {
+        const db = window.firebase.firestore();
+        const doc = await db.collection('destiny_profiles').doc(currentUser.uid).get();
+        if (doc.exists) {
+          const cloudData = doc.data();
+          if (cloudData && (cloudData.fullName || cloudData.name)) {
+            localStorage.setItem(DESTINY_STORAGE_KEY, JSON.stringify(cloudData));
+            return cloudData;
+          }
+        }
+      }
+    }
+  } catch(e) {}
+
+  try {
+    const res = await fetch('/api/user/destiny-profile', {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('synam_token') || ''}` }
+    });
+    const data = await res.json();
+    if (data.ok && data.profile) {
+      localStorage.setItem(DESTINY_STORAGE_KEY, JSON.stringify(data.profile));
+      return data.profile;
+    }
+  } catch(e) {}
+
+  return getDestinyProfile();
+}
+
+function copyCurrentResult(target) {
+  let text = '';
+  if (typeof target === 'string') {
+    text = decodeURIComponent(target);
+  } else if (target && target.closest) {
+    const bar = target.closest('.msg-action-bar, .result-action-bar');
+    text = bar?.dataset?.rawText || lastResult || '';
+  } else {
+    text = lastResult || '';
+  }
+  if (!text) return toast('Không có nội dung để sao chép');
+  navigator.clipboard.writeText(text).then(() => {
+    toast('✅ Đã sao chép nội dung vào khay nhớ tạm');
+  }).catch(() => {
+    toast('Không thể sao chép tự động');
+  });
+}
+
+function exportResultToPrint(title = 'Bản Luận Giải Đặng Năm AI', content = '') {
+  const text = typeof content === 'string' ? content : (lastResult || '');
+  if (!text) return toast('Chưa có nội dung để xuất bản');
+  const printWindow = window.open('', '_blank', 'width=840,height=900');
+  if (!printWindow) {
+    alert('Trình duyệt đã chặn popup. Vui lòng cấp quyền mở pop-up để xem và in/lưu PDF.');
+    return;
+  }
+
+  const cleanTitle = title || 'Bản Luận Giải Mệnh Số';
+  const now = new Date().toLocaleString('vi-VN');
+  const profile = getDestinyProfile();
+
+  const html = `<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>${cleanTitle} - dangnam.online</title>
+  <style>
+    @page { size: A4; margin: 18mm; }
+    body {
+      font-family: 'Times New Roman', serif, system-ui;
+      background: #fff;
+      color: #1a1a1a;
+      line-height: 1.65;
+      padding: 30px;
+      margin: 0;
+      position: relative;
+    }
+    .print-watermark {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-35deg);
+      font-size: 54pt;
+      font-weight: 900;
+      color: rgba(180, 140, 50, 0.08);
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 0;
+      text-transform: uppercase;
+      letter-spacing: 8px;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 2px solid #b8860b;
+      padding-bottom: 14px;
+      margin-bottom: 22px;
+      position: relative;
+      z-index: 1;
+    }
+    .brand {
+      font-size: 20pt;
+      font-weight: bold;
+      color: #8b6508;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .subbrand {
+      font-size: 11pt;
+      color: #555;
+      margin-top: 4px;
+    }
+    .doc-title {
+      font-size: 16pt;
+      color: #111;
+      margin-top: 10px;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+    .meta-box {
+      background: #faf8f2;
+      border: 1px solid #e0d5be;
+      border-radius: 8px;
+      padding: 12px 18px;
+      margin-bottom: 20px;
+      font-size: 11pt;
+      position: relative;
+      z-index: 1;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin: 4px 0;
+    }
+    .content {
+      font-size: 12pt;
+      line-height: 1.7;
+      position: relative;
+      z-index: 1;
+    }
+    .content h1, .content h2, .content h3 {
+      color: #8b6508;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 4px;
+      margin-top: 18px;
+    }
+    .content ul, .content ol {
+      padding-left: 24px;
+    }
+    .footer {
+      margin-top: 36px;
+      border-top: 1px solid #ccc;
+      padding-top: 12px;
+      font-size: 9.5pt;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      z-index: 1;
+    }
+    .print-actions {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      z-index: 999;
+      display: flex;
+      gap: 8px;
+    }
+    .print-btn {
+      background: #8b6508;
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    @media print {
+      .print-actions { display: none !important; }
+      body { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="print-actions">
+    <button class="print-btn" onclick="window.print()">🖨️ In ngay / Lưu PDF</button>
+    <button class="print-btn" style="background:#555;" onclick="window.close()">Đóng</button>
+  </div>
+  <div class="print-watermark">dangnam.online</div>
+  <div class="header">
+    <div class="brand">✦ ĐẶNG NĂM AI ✦</div>
+    <div class="subbrand">HỆ THỐNG TRÍ TUỆ NHÂN TẠO LUẬN GIẢI MỆNH LÝ & PHONG THỦY HỌC</div>
+    <div class="doc-title">${cleanTitle}</div>
+  </div>
+  ${profile && (profile.fullName || profile.name) ? `
+  <div class="meta-box">
+    <div class="meta-row">
+      <span><b>Đương số:</b> ${profile.fullName || profile.name}</span>
+      <span><b>Giới tính:</b> ${profile.gender || 'Nam'}</span>
+      <span><b>Ngày sinh:</b> ${profile.birthDate || 'Chưa rõ'} (${profile.calendarType === 'lunar' ? 'Âm lịch' : 'Dương lịch'})</span>
+      ${profile.birthTime ? `<span><b>Giờ sinh:</b> ${profile.birthTime}</span>` : ''}
+    </div>
+    ${profile.concern ? `<div class="meta-row"><span><b>Mối quan tâm:</b> ${profile.concern}</span></div>` : ''}
+  </div>` : ''}
+  <div class="content">
+    ${typeof markdownish === 'function' ? markdownish(text) : text.replace(/\\n/g, '<br>')}
+  </div>
+  <div class="footer">
+    <span>Nguồn xuất bản: <b>dangnam.online</b> (Đặng Năm AI)</span>
+    <span>Thời gian: ${now}</span>
+    <span>Lưu ý: Luận giải mang tính tham khảo văn hóa & chiêm nghiệm</span>
+  </div>
+  <script>
+    setTimeout(() => { window.print(); }, 400);
+  </script>
+</body>
+</html>`;
+
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+}
+
+async function streamChatResponse({ url, payload, onStart, onDelta, onDone, onError }) {
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.error || errJson.message || `HTTP ${res.status}`);
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+    let currentEvent = 'message';
+    let fullText = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) {
+          currentEvent = 'message';
+          continue;
+        }
+        if (trimmed.startsWith('event: ')) {
+          currentEvent = trimmed.slice(7).trim();
+          continue;
+        }
+        if (trimmed.startsWith('data: ')) {
+          const rawData = trimmed.slice(6);
+          try {
+            const data = JSON.parse(rawData);
+            if (currentEvent === 'start') {
+              if (typeof onStart === 'function') onStart(data);
+            } else if (currentEvent === 'delta') {
+              fullText += data.chunk || '';
+              if (typeof onDelta === 'function') onDelta(data.chunk || '', fullText);
+            } else if (currentEvent === 'done') {
+              if (typeof onDone === 'function') onDone(data.fullText || fullText, data);
+            } else if (currentEvent === 'error') {
+              throw new Error(data.message || 'Lỗi streaming từ AI');
+            }
+          } catch(jsonErr) {
+            if (currentEvent === 'delta') {
+              fullText += rawData;
+              if (typeof onDelta === 'function') onDelta(rawData, fullText);
+            }
+          }
+        }
+      }
+    }
+
+    if (typeof onDone === 'function') onDone(fullText);
+  } catch(err) {
+    if (typeof onError === 'function') onError(err);
+    else throw err;
+  }
+}
+
+function appendChatActions(container, text) {
+  if (!container || !text) return;
+  const existing = container.querySelector('.msg-action-bar');
+  if (existing) existing.remove();
+  const bar = document.createElement('div');
+  bar.className = 'msg-action-bar';
+  bar.style.cssText = 'display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;border-top:1px solid rgba(255,255,255,0.08);padding-top:8px;';
+  bar.dataset.rawText = text;
+  bar.innerHTML = `
+    <button type="button" class="btn-sm ghost" onclick="copyCurrentResult(this)">📋 Sao chép</button>
+    <button type="button" class="btn-sm primary" onclick="exportResultToPrint('Luận Giải Đặng Năm AI', decodeURIComponent('${encodeURIComponent(text)}'))">🖨️ Xuất bản (PDF / In)</button>
+    <button type="button" class="btn-sm ghost" onclick="speakText(decodeURIComponent('${encodeURIComponent(text)}'))">🔊 Nghe đọc</button>
+  `;
+  container.appendChild(bar);
+}
+
+function htmlResult(title,text){
+  lastResult=text||'';
+  const escaped = encodeURIComponent(text||'');
+  return `<h2>${title}</h2><div class="result-body">${markdownish(text)}</div>${text ? `<div class="result-action-bar" style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;"><button type="button" class="btn-sm ghost" onclick="copyCurrentResult('${escaped}')">📋 Sao chép</button><button type="button" class="btn-sm primary" onclick="exportResultToPrint('${escapeHtml(title)}', decodeURIComponent('${escaped}'))">🖨️ Xuất bản (PDF / In)</button><button type="button" class="btn-sm ghost" onclick="speakText(decodeURIComponent('${escaped}'))">🔊 Nghe đọc</button></div>` : ''}`;
+}
 
 function hideModelLeak(text=''){
   return String(text||'')
@@ -546,55 +939,147 @@ async function askWeatherDirectClient(message){
 }
 // ===== END NAM34 WEATHER FRONTEND GUARD =====
 
-async function sendChat(){
+async function sendChat(customPrompt){
   if(chatMode!=='chat') return sendImageAI();
   const input=$('chatText');
-  const q=input.value.trim();
+  const q = typeof customPrompt === 'string' ? customPrompt.trim() : (input?.value || '').trim();
   const attachments=[...chatAttachments];
   if(!q && !attachments.length){toast('Nhập câu hỏi hoặc tải ảnh/file lên đã nhé');return}
   const history=getChatHistoryForAI(30);
   rememberChatTurn('user', q||'Phân tích file/ảnh đã tải lên');
-  input.value='';
-  autoResizeChatText();
+  if (input && typeof customPrompt !== 'string') {
+    input.value='';
+    autoResizeChatText();
+  }
   const attachLabel=attachments.length?`<div class="msg-files">${attachments.map(f=>`${f.type.startsWith('image/')?'🖼':'📄'} ${escapeHtml(f.name)}`).join('<br>')}</div>`:'';
   $('chatLog').insertAdjacentHTML('beforeend',`<div class="msg me">${getChatUserRoleHtml()}${escapeHtml(q||'Phân tích file/ảnh đã tải lên')}${attachLabel}</div>`);
-  $('chatLog').insertAdjacentHTML('beforeend',`<div class="msg typing" id="typing"><span class="typing-dots"><i></i><i></i><i></i></span> AI đang phân tích${attachments.length?' ảnh/file':''}...</div>`);scrollChatBottom();
+
+  const msgId = 'ai-msg-' + Date.now();
+  $('chatLog').insertAdjacentHTML('beforeend',`<div class="msg ai-msg" id="${msgId}"><span class="msg-role">🤖 Đặng Năm AI</span><span class="content-body"><span class="typing-dots"><i></i><i></i><i></i></span> Đang kết nối trí tuệ nhân tạo...</span><span class="streaming-cursor"></span></div>`);
+  scrollChatBottom();
+
   chatAttachments=[];renderChatAttachments();
+
+  const msgElem = $(msgId);
+  const bodyElem = msgElem?.querySelector('.content-body');
+  const cursorElem = msgElem?.querySelector('.streaming-cursor');
+
   try{
-    let data;
+    if(!attachments.length && isWeatherQuestionClient(q)){
+      try{
+        const weatherText=await askWeatherDirectClient(q);
+        if(weatherText){
+          const cleanText = hideModelLeak(weatherText);
+          if (bodyElem) bodyElem.innerHTML = markdownish(cleanText);
+          if (cursorElem) cursorElem.remove();
+          appendChatActions(msgElem, cleanText);
+          lastResult=cleanText;rememberChatTurn('assistant',cleanText);saveHistory('Đặng Năm Weather Core',cleanText);scrollChatBottom();speakText(cleanText);
+          return;
+        }
+      }catch(_weatherErr){}
+    }
+
     const provider=$('chatProvider')?.value||'auto';
     const model=$('chatModel')?.value||'';
     const council=Boolean($('chatCouncil')?.checked);
     const answerStyle=$('chatAnswerStyle')?.value||'detailed';
     const context={clientTime:new Date().toLocaleString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh'}),source:'Đặng Năm AI Chat',today:new Date().toLocaleDateString('vi-VN',{timeZone:'Asia/Ho_Chi_Minh',weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})};
-    if(!attachments.length && isWeatherQuestionClient(q)){
-      try{
-        const weatherText=await askWeatherDirectClient(q);
-        if(weatherText){
-          data={ok:true,provider:'local',label:'Đặng Năm Weather Core',model:'hidden',text:weatherText};
+    const destinyProfile = getDestinyProfile();
+
+    const streamUrl = attachments.length ? '/api/chat-ai/stream' : '/api/multi-ai/stream';
+    const payload = {
+      message: q,
+      question: q,
+      attachments,
+      history,
+      context,
+      answerStyle,
+      provider,
+      model,
+      council,
+      destinyProfile
+    };
+
+    let accumulatedText = '';
+    await streamChatResponse({
+      url: streamUrl,
+      payload,
+      onStart: (meta) => {
+        if (bodyElem && !accumulatedText) {
+          bodyElem.innerHTML = '';
         }
-      }catch(_weatherErr){
-        // Nếu route thời tiết riêng lỗi, vẫn fallback sang multi-ai/chat bên dưới.
+      },
+      onDelta: (chunk, full) => {
+        accumulatedText = hideModelLeak(full);
+        if (bodyElem) {
+          bodyElem.innerHTML = markdownish(accumulatedText);
+        }
+        scrollChatBottom();
+      },
+      onDone: (finalFull, meta) => {
+        const text = hideModelLeak(finalFull || accumulatedText || 'Đã hoàn thành phản hồi.');
+        if (bodyElem) bodyElem.innerHTML = markdownish(text);
+        if (cursorElem) cursorElem.remove();
+        appendChatActions(msgElem, text);
+        lastResult = text;
+        rememberChatTurn('assistant', text);
+        saveHistory(meta?.label || 'Đặng Năm AI Chat', text);
+        checkGeminiStatus();
+        scrollChatBottom();
+        speakText(text);
+      },
+      onError: (err) => {
+        throw err;
       }
-    }
-    if(!data){
-      if(attachments.length){
-        data=await postJSON('/api/chat-ai',{message:q,question:q,attachments,history,context,answerStyle});
-      }else{
-        data=await postJSON('/api/multi-ai/chat',{message:q,provider,model,council,history,context,answerStyle});
-      }
-    }
-    const text=hideModelLeak(data.text||data.answer||data.result||'AI đã phản hồi nhưng server không trả text.');
-    $('typing').outerHTML=`<div class="msg ai-msg"><span class="msg-role">🤖 Đặng Năm AI</span>${markdownish(text)}</div>`;
-    lastResult=text;rememberChatTurn('assistant',text);saveHistory(data.label||'Đặng Năm AI Chat',text);checkGeminiStatus();scrollChatBottom();speakText(text); 
+    });
   }catch(e){
     const err=parseError(e);
-    $('typing').outerHTML=`<div class="msg error"><b>AI chưa phản hồi được.</b><br>${escapeHtml(err)}<br><small>Kiểm tra API key / mạng / quota hoặc đổi provider khác rồi thử lại.</small></div>`;scrollChatBottom();
+    if (cursorElem) cursorElem.remove();
+    if (bodyElem) {
+      bodyElem.innerHTML = `<span style="color:#ff8595;"><b>⚠️ AI chưa phản hồi được.</b><br>${escapeHtml(err)}<br><small>Kiểm tra API key / quota hoặc thử lại sau ít giây.</small></span>`;
+    }
+    scrollChatBottom();
     lastResult='';
   }
 }
-function localMystic(){const name=$('name').value||'Bạn';const text=`### Luận giải local cho ${name}\n- Tổng quan: năng lượng hiện tại thiên về thay đổi và hoàn thiện bản thân.\n- Công việc: nên tập trung một mục tiêu chính, tránh ôm quá nhiều việc cùng lúc.\n- Tình cảm: cần giao tiếp rõ ràng, chân thành và bớt suy diễn.\n- Lời khuyên: kết quả chỉ mang tính tham khảo văn hóa, quyết định vẫn nên dựa trên thực tế.`;$('report').innerHTML=htmlResult('📜 Kết quả tử vi',text);saveHistory('Tử vi local',text)}
-async function generateMystic(){setLoading('report',true);try{const payload={name:$('name').value,birthDate:$('birthDate').value,birthTime:$('birthTime').value,gender:$('gender').value};const data=await postJSON('/api/mystic-ai',payload);const text=data.text||data.result||data.answer||'Không có nội dung trả về.';$('report').innerHTML=htmlResult('📜 Kết quả tử vi AI',text);saveHistory('Tử vi AI',text)}catch(e){localMystic();toast('AI lỗi, đã dùng local')}finally{setLoading('report',false)}}
+
+function sendQuickPrompt(promptText) {
+  routeTo('chat');
+  const chatInput = $('chatText');
+  if (chatInput) chatInput.value = promptText;
+  sendChat(promptText);
+}
+
+function localMystic(){
+  const profile = getDestinyProfile() || {};
+  const name = $('name')?.value || profile.fullName || profile.name || 'Bạn';
+  const text=`### Luận giải tử vi cho ${name}\n- **Tổng quan mệnh cục**: Năng lượng bản mệnh đang trong chu kỳ hoàn thiện và tích lũy nội lực.\n- **Sự nghiệp & Tài lộc**: Nên tập trung phát triển thế mạnh cốt lõi, tránh mở rộng phân tán nguồn lực.\n- **Tình duyên & Gia đạo**: Giao tiếp chân thành, lắng nghe và tôn trọng sự khác biệt sẽ giữ hòa khí lâu bền.\n- **Lời khuyên Đặng Năm AI**: Vận mệnh nằm ở tâm tính và hành động thực tế. Hãy giữ tâm sáng và hành thiện tích đức.`;
+  $('report').innerHTML=htmlResult('📜 Kết quả tử vi',text);
+  saveHistory('Tử vi local',text);
+}
+
+async function generateMystic(){
+  setLoading('report',true);
+  try{
+    const profile = getDestinyProfile() || {};
+    const payload={
+      name: $('name')?.value || profile.fullName || profile.name || 'Đương số',
+      birthDate: $('birthDate')?.value || profile.birthDate || '',
+      birthTime: $('birthTime')?.value || profile.birthTime || '',
+      gender: $('gender')?.value || profile.gender || 'Nam',
+      destinyProfile: profile
+    };
+    const data=await postJSON('/api/mystic-ai',payload);
+    const text=data.text||data.result||data.answer||'Không có nội dung trả về.';
+    $('report').innerHTML=htmlResult('📜 Kết quả tử vi AI',text);
+    saveHistory('Tử vi AI',text);
+  }catch(e){
+    localMystic();
+    toast('AI bận, đã chuyển sang luận giải local');
+  }finally{
+    setLoading('report',false);
+  }
+}
 
 function reduceNumber(n, keepMaster=true){
   n = Math.abs(parseInt(n||0,10)||0);
@@ -815,34 +1300,44 @@ async function analyzeVision(kind){
 async function simpleTool(kind){const map={astrology:['astrologyResult','🪐 Kết quả chiêm tinh',`Cung: ${$('zodiac')?.value||''}\nCâu hỏi: ${$('astroQuestion')?.value||''}`],fengshui:['fengshuiResult','☯ Kết quả phong thủy',`Năm sinh: ${$('fengYear')?.value||''}\nCâu hỏi: ${$('fengAsk')?.value||''}`],tarot:['tarotResult','🃏 Kết quả bói bài',$('tarotAsk')?.value||'']};const [id,title,prompt]=map[kind];setLoading(id,true);try{const data=await postJSON('/api/chat-ai',{message:`${title}. ${prompt}`});const text=data.text||data.answer||data.result;$(id).innerHTML=htmlResult(title,text);saveHistory(title,text)}catch(e){const text=`### ${title}\n- Hiện chưa kết nối được AI server.\n- Nội dung bạn hỏi: ${prompt}\n- Lời khuyên: xem đây là gợi ý tham khảo, nên đối chiếu với tình hình thực tế.`;$(id).innerHTML=htmlResult(title,text);saveHistory(title+' local',text)}finally{setLoading(id,false)}}
 async function deepAnalyze(){const q=$('deepAsk').value.trim();if(!q)return toast('Nhập chủ đề đã nhé');setLoading('deepResult',true);try{const data=await postJSON('/api/chat-ai',{message:`Phân tích sâu theo nhiều lớp, rõ ràng, có lời khuyên thực tế: ${q}`});const text=data.text||data.answer||data.result;$('deepResult').innerHTML=htmlResult('🤯 AI phân tích sâu',text);saveHistory('AI phân tích sâu',text)}catch(e){const text=`### Phân tích sâu local\n- Vấn đề: ${q}\n- Lớp 1: xác định mục tiêu thật sự.\n- Lớp 2: xem rủi ro, nguồn lực, thời gian.\n- Lớp 3: chọn bước nhỏ làm ngay hôm nay.\n- Lời khuyên: đừng ôm quá nhiều hướng cùng lúc.`;$('deepResult').innerHTML=htmlResult('🤯 AI phân tích sâu',text);saveHistory('AI phân tích sâu local',text)}finally{setLoading('deepResult',false)}}
 
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyD7S-MSbrQLzvfgh0PPgyNtZzDpYntIF0k",
-  authDomain: "dangnam-tuvi.firebaseapp.com",
-  projectId: "dangnam-tuvi",
-  storageBucket: "dangnam-tuvi.firebasestorage.app",
-  messagingSenderId: "183878060405",
-  appId: "1:183878060405:web:c40387b975b1bf077d2b3c",
-  measurementId: "G-RJ2LBTXYSJ"
-};
+let cachedFirebaseConfig = null;
+async function fetchFirebaseConfig() {
+  if (cachedFirebaseConfig) return cachedFirebaseConfig;
+  try {
+    const res = await fetch('/api/auth/firebase-config');
+    const data = await res.json();
+    if (data.ok && data.enabled && data.config) {
+      cachedFirebaseConfig = data.config;
+      return cachedFirebaseConfig;
+    }
+  } catch(e) {
+    console.warn('Fetch Firebase config error:', e);
+  }
+  return null;
+}
 
-function getFirebase(){
+async function getFirebase(){
   if (typeof window === 'undefined' || !window.firebase) {
     throw new Error('Firebase SDK chưa được tải trên trình duyệt.');
   }
   if (!window.firebase.apps || !window.firebase.apps.length) {
-    window.firebase.initializeApp(FIREBASE_CONFIG);
+    const cfg = await fetchFirebaseConfig();
+    if (!cfg || !cfg.apiKey) {
+      throw new Error('Chưa cấu hình Firebase trên máy chủ.');
+    }
+    window.firebase.initializeApp(cfg);
   }
   return window.firebase;
 }
 
 async function initFirebaseAuth(){
   try {
-    const fb = getFirebase();
+    const fb = await getFirebase();
     const hint = $('socialLoginHint');
     if (hint) hint.textContent = 'Đăng nhập nhanh đã sẵn sàng.';
     return { enabled: true, fb };
   } catch (e) {
-    console.error('Firebase init error:', e);
+    console.warn('Firebase init:', e.message);
     const hint = $('socialLoginHint');
     if (hint) hint.textContent = 'Đăng nhập nhanh chưa khả dụng.';
     return { enabled: false };
@@ -852,8 +1347,9 @@ async function initFirebaseAuth(){
 async function socialLogin(provider){
   try{
     toast(`Đang mở cửa sổ đăng nhập ${provider === 'google' ? 'Google' : 'Facebook'}...`);
-    const fb = getFirebase();
+    const fb = await getFirebase();
     const auth = fb.auth();
+
     auth.useDeviceLanguage();
     const authProvider = provider === 'facebook'
       ? new fb.auth.FacebookAuthProvider()

@@ -134,6 +134,218 @@ function markdownLite(text = '') {
   return safe.replace(/\n/g, '<br/>');
 }
 
+const DESTINY_STORAGE_KEY = 'dangnam_destiny_profile';
+
+function getDestinyProfile() {
+  try {
+    const raw = localStorage.getItem(DESTINY_STORAGE_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  const u = readJSON('synam_user', null);
+  return u?.destinyProfile || null;
+}
+
+async function saveDestinyProfile(profile) {
+  if (!profile) return;
+  try {
+    localStorage.setItem(DESTINY_STORAGE_KEY, JSON.stringify(profile));
+  } catch(e) {}
+
+  try {
+    await fetch('/api/user/destiny-profile', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeaders()
+      },
+      body: JSON.stringify({ destinyProfile: profile })
+    });
+  } catch(e) {}
+
+  try {
+    if (typeof window !== 'undefined' && window.firebase && window.firebase.apps && window.firebase.apps.length) {
+      const auth = window.firebase.auth();
+      const currentUser = auth.currentUser;
+      if (currentUser && window.firebase.firestore) {
+        const db = window.firebase.firestore();
+        await db.collection('destiny_profiles').doc(currentUser.uid).set({
+          ...profile,
+          email: currentUser.email || '',
+          updatedAt: window.firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      }
+    }
+  } catch(e) {
+    console.warn('Sync destiny profile to Firestore:', e);
+  }
+}
+
+async function loadDestinyProfileFromCloud() {
+  try {
+    const res = await fetch('/api/user/destiny-profile', { headers: authHeaders() });
+    const data = await res.json();
+    if (data.ok && data.destinyProfile) {
+      localStorage.setItem(DESTINY_STORAGE_KEY, JSON.stringify(data.destinyProfile));
+      return data.destinyProfile;
+    }
+  } catch(e) {}
+  return getDestinyProfile();
+}
+
+function exportResultToPrint(title, text) {
+  if (!text) return alert('Chưa có nội dung để in hoặc xuất PDF.');
+  const profile = getDestinyProfile();
+  const cleanTitle = (title || 'BẢN LUẬN GIẢI MỆNH LÝ & VẬN TRÌNH').toUpperCase();
+  const now = new Date().toLocaleString('vi-VN');
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    return alert('Trình duyệt đã chặn cửa sổ in. Vui lòng cho phép popup để xuất bản luận giải.');
+  }
+
+  const html = `<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <title>${cleanTitle} - Đặng Năm AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    @page { size: A4 portrait; margin: 16mm 14mm; }
+    body { font-family: 'Times New Roman', 'Segoe UI', serif; font-size: 14pt; line-height: 1.6; color: #111; margin: 0; padding: 20px; position: relative; background: #fff; }
+    .print-watermark { position: fixed; top: 45%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 52pt; font-weight: 900; color: rgba(0, 0, 0, 0.05); pointer-events: none; z-index: 0; white-space: nowrap; font-family: sans-serif; }
+    .header { text-align: center; border-bottom: 2px solid #8b0000; padding-bottom: 12px; margin-bottom: 18px; }
+    .brand { font-size: 18pt; font-weight: bold; color: #8b0000; letter-spacing: 2px; }
+    .subbrand { font-size: 11pt; color: #555; text-transform: uppercase; margin-top: 4px; }
+    .doc-title { font-size: 15pt; font-weight: bold; margin-top: 14px; color: #222; }
+    .meta-box { background: #fbf8f2; border: 1px solid #e2d7c5; border-radius: 6px; padding: 10px 14px; margin-bottom: 20px; font-size: 11pt; }
+    .meta-row { display: flex; flex-wrap: wrap; gap: 16px; margin: 3px 0; }
+    .content { font-size: 13pt; text-align: justify; z-index: 1; position: relative; }
+    .content h1, .content h2, .content h3 { color: #8b0000; margin-top: 16px; margin-bottom: 8px; }
+    .content p { margin: 8px 0; }
+    .footer { margin-top: 30px; border-top: 1px solid #ccc; padding-top: 10px; font-size: 10pt; color: #666; display: flex; justify-content: space-between; flex-wrap: wrap; }
+    .actions-bar { position: sticky; top: 0; background: #333; color: #fff; padding: 10px; text-align: center; margin: -20px -20px 20px -20px; z-index: 100; }
+    .print-btn { background: #8b0000; color: #fff; border: none; padding: 8px 18px; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; margin: 0 6px; }
+    @media print {
+      .actions-bar { display: none !important; }
+      body { padding: 0 !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="actions-bar">
+    <button class="print-btn" onclick="window.print()">🖨️ In ngay / Lưu PDF</button>
+    <button class="print-btn" style="background:#555;" onclick="window.close()">Đóng</button>
+  </div>
+  <div class="print-watermark">dangnam.online</div>
+  <div class="header">
+    <div class="brand">✦ ĐẶNG NĂM AI ✦</div>
+    <div class="subbrand">HỆ THỐNG TRÍ TUỆ NHÂN TẠO LUẬN GIẢI MỆNH LÝ & PHONG THỦY HỌC</div>
+    <div class="doc-title">${cleanTitle}</div>
+  </div>
+  ${profile && (profile.fullName || profile.name) ? `
+  <div class="meta-box">
+    <div class="meta-row">
+      <span><b>Đương số:</b> ${profile.fullName || profile.name}</span>
+      <span><b>Giới tính:</b> ${profile.gender || 'Nam'}</span>
+      <span><b>Ngày sinh:</b> ${profile.birthDate || 'Chưa rõ'} (${profile.calendarType === 'lunar' ? 'Âm lịch' : 'Dương lịch'})</span>
+      ${profile.birthTime ? `<span><b>Giờ sinh:</b> ${profile.birthTime}</span>` : ''}
+    </div>
+    ${profile.concern ? `<div class="meta-row"><span><b>Mối quan tâm:</b> ${profile.concern}</span></div>` : ''}
+  </div>` : ''}
+  <div class="content">
+    ${typeof markdownLite === 'function' ? markdownLite(text) : text.replace(/\n/g, '<br>')}
+  </div>
+  <div class="footer">
+    <span>Nguồn xuất bản: <b>dangnam.online</b> (Đặng Năm AI)</span>
+    <span>Thời gian: ${now}</span>
+    <span>Lưu ý: Luận giải mang tính tham khảo văn hóa & chiêm nghiệm</span>
+  </div>
+  <script>
+    setTimeout(() => { window.print(); }, 400);
+  </script>
+</body>
+</html>`;
+
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+}
+
+async function streamChatResponse({ url, payload, signal, onStart, onDelta, onDone, onError }) {
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'text/event-stream',
+        ...authHeaders()
+      },
+      body: JSON.stringify(payload),
+      ...(signal ? { signal } : {})
+    });
+
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.error || errJson.message || `HTTP ${res.status}`);
+    }
+
+    const reader = res.body?.getReader ? res.body.getReader() : null;
+    if (!reader) {
+      const data = await res.json();
+      const txt = data.reply || data.text || '';
+      if (typeof onDone === 'function') onDone(txt, data);
+      return txt;
+    }
+
+    const decoder = new TextDecoder('utf-8');
+    let buffer = '';
+    let currentEvent = 'message';
+    let fullText = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed) {
+          currentEvent = 'message';
+          continue;
+        }
+        if (trimmed.startsWith('event: ')) {
+          currentEvent = trimmed.slice(7).trim();
+          continue;
+        }
+        if (trimmed.startsWith('data: ')) {
+          const rawData = trimmed.slice(6);
+          try {
+            const data = JSON.parse(rawData);
+            if (currentEvent === 'start') {
+              if (typeof onStart === 'function') onStart(data);
+            } else if (currentEvent === 'delta') {
+              fullText += data.chunk || '';
+              if (typeof onDelta === 'function') onDelta(data.chunk || '', fullText);
+            } else if (currentEvent === 'done') {
+              if (typeof onDone === 'function') onDone(data.fullText || fullText, data);
+            } else if (currentEvent === 'error') {
+              throw new Error(data.message || 'Lỗi streaming từ AI');
+            }
+          } catch(pe) {
+            if (pe.message && !pe.message.includes('JSON')) throw pe;
+          }
+        }
+      }
+    }
+    return fullText;
+  } catch (err) {
+    if (typeof onError === 'function') onError(err);
+    throw err;
+  }
+}
+
+
 
 function HistoryTool() {
   const [list, setList] = useState([]);
@@ -422,40 +634,76 @@ function Chat({ providers }) {
     const fileMeta = attachments.map(item => ({ name: item.file.name, type: item.file.type || 'file', size: item.file.size }));
     const userText = content || 'Đã gửi tệp đính kèm.';
     const next = [...messages, { role: 'user', text: userText, attachments: fileMeta }];
-    setMessages([...next, { role: 'assistant', text: 'Đang suy nghĩ kỹ và kiểm tra ngữ cảnh…', loading: true }]);
+    setMessages([...next, { role: 'assistant', text: '', streaming: true, loading: false }]);
     const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
     requestAbortRef.current = controller;
+    const destinyProfile = getDestinyProfile();
+    let accumulatedText = '';
+
     try {
       const [selectedProvider, selectedModel] = modelChoice === 'auto' ? ['auto', ''] : modelChoice.split('::');
-      let data;
       if (attachments.length) {
         const files = await Promise.all(attachments.map(item => prepareChatAttachment(item.file)));
-        data = await apiJSON('/api/chat-ai', {
-          message: content,
-          attachments: files,
-          history: next.slice(-20),
-          answerStyle,
-          geminiModel: selectedProvider === 'gemini' ? (selectedModel || 'gemini-3.5-flash-lite') : 'gemini-3.5-flash-lite'
-        }, 'POST', controller?.signal);
         setAttachments([]);
         setFileNotice('');
+        await streamChatResponse({
+          url: '/api/chat-ai/stream',
+          payload: {
+            message: content,
+            attachments: files,
+            history: next.slice(-20),
+            answerStyle,
+            geminiModel: selectedProvider === 'gemini' ? (selectedModel || 'gemini-3.5-flash-lite') : 'gemini-3.5-flash-lite',
+            destinyProfile
+          },
+          signal: controller?.signal,
+          onStart: () => {},
+          onDelta: (chunk, fullText) => {
+            accumulatedText = fullText;
+            setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? { ...m, text: fullText, streaming: true, loading: false } : m));
+          },
+          onDone: (fullText, meta) => {
+            accumulatedText = fullText;
+            const finalMeta = meta?.label || meta?.model || 'Đặng Năm AI';
+            setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? { ...m, text: fullText, streaming: false, loading: false, meta: finalMeta } : m));
+            saveHistory('AI Chat', `${userText}: ${fullText.slice(0, 140)}...`);
+          }
+        });
       } else {
-        data = await apiJSON('/api/multi-ai/chat', {
-          message: requestText, history: next.slice(-20), provider: selectedProvider,
-          model: selectedModel, council, answerStyle
-        }, 'POST', controller?.signal);
+        await streamChatResponse({
+          url: '/api/multi-ai/stream',
+          payload: {
+            message: requestText,
+            history: next.slice(-20),
+            provider: selectedProvider,
+            model: selectedModel,
+            council,
+            answerStyle,
+            destinyProfile
+          },
+          signal: controller?.signal,
+          onStart: () => {},
+          onDelta: (chunk, fullText) => {
+            accumulatedText = fullText;
+            setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? { ...m, text: fullText, streaming: true, loading: false } : m));
+          },
+          onDone: (fullText, meta) => {
+            accumulatedText = fullText;
+            const finalMeta = meta?.label || meta?.model || 'Đặng Năm AI';
+            setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? { ...m, text: fullText, streaming: false, loading: false, meta: finalMeta } : m));
+            saveHistory('AI Chat', `${userText}: ${fullText.slice(0, 140)}...`);
+          }
+        });
       }
-      const answer = data.reply || data.text || 'AI chưa trả về nội dung.';
-      setMessages([...next, { role: 'assistant', text: answer, meta: data.label || 'Đặng Năm AI' }]);
-      saveHistory('AI Chat', `${userText}: ${answer.slice(0, 140)}...`);
     } catch (e) {
       if (e.name === 'AbortError') {
-        setMessages([...next, { role: 'assistant', text: 'Đã dừng phản hồi.' }]);
+        setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? { ...m, text: accumulatedText || 'Đã dừng phản hồi.', streaming: false, loading: false } : m));
       } else {
         if (content) { draftRef.current = content; setText(current => current || content); }
         const freeModeError = /chế độ chỉ dùng model API miễn phí|tránh phát sinh phí/i.test(e.message || '');
         const extra = freeModeError ? '' : '\n\nNếu gửi ảnh/file, server cần có Gemini API key; bạn cũng có thể kiểm tra cấu hình ở AI Keys.';
-        setMessages([...next, { role: 'assistant', text: `⚠️ ${e.message}${extra}` }]);
+        const errText = accumulatedText ? `${accumulatedText}\n\n⚠️ ${e.message}${extra}` : `⚠️ ${e.message}${extra}`;
+        setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? { ...m, text: errText, streaming: false, loading: false } : m));
       }
     } finally {
       if (requestAbortRef.current === controller) requestAbortRef.current = null;
@@ -466,6 +714,7 @@ function Chat({ providers }) {
   function copy(t) {
     if (navigator.clipboard?.writeText) {
       navigator.clipboard.writeText(t);
+      alert('Đã sao chép nội dung vào khay nhớ tạm!');
     }
   }
 
@@ -626,13 +875,16 @@ function Chat({ providers }) {
                 </div>
               )}
               <div dangerouslySetInnerHTML={{__html: markdownLite(m.text)}} />
-              {m.role==='assistant' && !m.loading && (
+              {m.streaming && <span className="streaming-cursor"></span>}
+              {m.meta && !m.streaming && <div className="msg-meta-tag" style={{fontSize:'10px', opacity:0.65, marginTop:'4px'}}>✦ {m.meta}</div>}
+              {m.role==='assistant' && !m.loading && !m.streaming && (
                 <div className="msg-actions">
-                  <button type="button" onClick={()=>copy(m.text)}>Sao chép</button>
+                  <button type="button" onClick={()=>copy(m.text)}>📋 Sao chép</button>
+                  <button type="button" onClick={()=>exportResultToPrint('Luận giải Đặng Năm AI', m.text)}>🖨️ In / PDF</button>
                   <button type="button" onClick={()=>toggleSpeak(m.text, `msg-${i}`)}>
-                    {speakingId === `msg-${i}` ? 'Dừng đọc' : 'Đọc'}
+                    {speakingId === `msg-${i}` ? '⏹️ Dừng đọc' : '🔊 Đọc'}
                   </button>
-                  <button type="button" onClick={()=>send(lastPrompt)}>Thử lại</button>
+                  <button type="button" onClick={()=>send(lastPrompt)}>🔄 Thử lại</button>
                 </div>
               )}
             </div>
@@ -660,6 +912,14 @@ function Chat({ providers }) {
           <div className="chat-attachment-note">Ảnh/file được xử lý tối ưu qua Gemini đa phương thức.</div>
         )}
         {voiceStatus && <div className="chat-voice-status" role="status">{voiceStatus}</div>}
+
+        <div className="chat-quick-chips">
+          <button type="button" className="quick-chip" onClick={() => send('Luận giải tổng quan vận hạn năm 2026 cho bản mệnh')}>🔮 Vận hạn 2026</button>
+          <button type="button" className="quick-chip" onClick={() => send('Phân tích cung Tài Bạch & Quan Lộc chi tiết')}>💰 Tài Lộc & Sự Nghiệp</button>
+          <button type="button" className="quick-chip" onClick={() => send('Xem ngày giờ tốt và việc nên làm trong tuần này')}>📅 Ngày tốt tuần này</button>
+          <button type="button" className="quick-chip" onClick={() => send('Luận giải tình duyên, gia đạo và các mối quan hệ')}>💞 Tình duyên gia đạo</button>
+          <button type="button" className="quick-chip" onClick={() => send('Gợi ý màu sắc, vật phẩm phong thủy kích tài lộc')}>☯️ Phong thủy bản mệnh</button>
+        </div>
 
         <div className="composer chat-pill-composer">
           <div className="chat-plus-menu-container">
@@ -756,22 +1016,32 @@ function Chat({ providers }) {
   </section>;
 }
 
-const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyD7S-MSbrQLzvfgh0PPgyNtZzDpYntIF0k",
-  authDomain: "dangnam-tuvi.firebaseapp.com",
-  projectId: "dangnam-tuvi",
-  storageBucket: "dangnam-tuvi.firebasestorage.app",
-  messagingSenderId: "183878060405",
-  appId: "1:183878060405:web:c40387b975b1bf077d2b3c",
-  measurementId: "G-RJ2LBTXYSJ"
-};
+let cachedMobileFirebaseConfig = null;
+async function fetchMobileFirebaseConfig() {
+  if (cachedMobileFirebaseConfig) return cachedMobileFirebaseConfig;
+  try {
+    const res = await fetch('/api/auth/firebase-config');
+    const data = await res.json();
+    if (data.ok && data.enabled && data.config) {
+      cachedMobileFirebaseConfig = data.config;
+      return cachedMobileFirebaseConfig;
+    }
+  } catch(e) {
+    console.warn('Fetch Mobile Firebase config error:', e);
+  }
+  return null;
+}
 
-function getMobileFirebase() {
+async function getMobileFirebase() {
   if (typeof window === 'undefined' || !window.firebase) {
     throw new Error('Firebase SDK chưa được tải trên trình duyệt.');
   }
   if (!window.firebase.apps || !window.firebase.apps.length) {
-    window.firebase.initializeApp(FIREBASE_CONFIG);
+    const cfg = await fetchMobileFirebaseConfig();
+    if (!cfg || !cfg.apiKey) {
+      throw new Error('Chưa cấu hình Firebase trên máy chủ.');
+    }
+    window.firebase.initializeApp(cfg);
   }
   return window.firebase;
 }
@@ -786,7 +1056,7 @@ function Settings({ providers, reload }) {
     if (socialLoading) return;
     setSocialLoading(true);
     try {
-      const fb = getMobileFirebase();
+      const fb = await getMobileFirebase();
       const auth = fb.auth();
       auth.useDeviceLanguage();
       const authProvider = provider === 'facebook'
@@ -1273,7 +1543,158 @@ function LoveTool() {
   async function run(){ setOut('Đang tính bằng code và AI luận giải...'); try{const d=await apiJSON('/api/love-ai',{ geminiModel: 'gemini-3.5-flash-lite', persons:[{name:'Người 1',birthDate:a},{name:'Người 2',birthDate:b}]}); setOut(d.text||d.reply||'Không có kết quả'); saveHistory('Tình duyên', d.text||d.reply||'Không có kết quả');}catch(e){setOut('⚠️ '+e.message)} }
   return <section className="tool-grid"><div className="premium-panel"><h2>💞 Tình duyên</h2><input value={a} onChange={e=>setA(e.target.value)} placeholder="Ngày sinh người 1: 01/01/2000"/><input value={b} onChange={e=>setB(e.target.value)} placeholder="Ngày sinh người 2: 02/02/2004"/><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>;
 }
-function TuviTool() { const [name,setName]=useState(''); const [dob,setDob]=useState(''); const [time,setTime]=useState(''); const [gender,setGender]=useState('Nam'); const [out,setOut]=useState('Nhập thông tin để luận giải.'); async function run(){ setOut('Đang tải...'); try{const d=await apiJSON('/api/mystic-ai',{name,birthDate:dob,birthTime:time,gender, geminiModel: 'gemini-3.5-flash-lite', localReport: window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : '' }); setOut(d.text||d.reply||'Không có kết quả'); saveHistory('Tình duyên', d.text||d.reply||'Không có kết quả');}catch(e){setOut(window.MysticEngine ? window.MysticEngine.Numerology.analyze(name, dob) : '⚠️ Lỗi: '+e.message)} } return <section className="tool-grid"><div className="premium-panel"><h2>📜 Tử vi / Thần số</h2><input value={name} onChange={e=>setName(e.target.value)} placeholder="Họ và tên"/><input value={dob} onChange={e=>setDob(e.target.value)} type="date"/><input value={time} onChange={e=>setTime(e.target.value)} type="time"/><select value={gender} onChange={e=>setGender(e.target.value)}><option>Nam</option><option>Nữ</option></select><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>; }
+function TuviTool() {
+  const [profile, setProfile] = useState(() => {
+    const saved = getDestinyProfile() || {};
+    return {
+      fullName: saved.fullName || saved.name || '',
+      gender: saved.gender || 'Nam',
+      birthDate: saved.birthDate || '',
+      birthTime: saved.birthTime || '',
+      calendarType: saved.calendarType || 'solar',
+      birthPlace: saved.birthPlace || '',
+      concern: saved.concern || ''
+    };
+  });
+  const [saveStatus, setSaveStatus] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [out, setOut] = useState('Điền thông tin bản mệnh và bấm luận giải để khám phá vận mệnh.');
+
+  useEffect(() => {
+    loadDestinyProfileFromCloud().then(cloudProfile => {
+      if (cloudProfile && (cloudProfile.fullName || cloudProfile.name)) {
+        setProfile(prev => ({
+          fullName: prev.fullName || cloudProfile.fullName || cloudProfile.name || '',
+          gender: prev.gender || cloudProfile.gender || 'Nam',
+          birthDate: prev.birthDate || cloudProfile.birthDate || '',
+          birthTime: prev.birthTime || cloudProfile.birthTime || '',
+          calendarType: prev.calendarType || cloudProfile.calendarType || 'solar',
+          birthPlace: prev.birthPlace || cloudProfile.birthPlace || '',
+          concern: prev.concern || cloudProfile.concern || ''
+        }));
+      }
+    });
+  }, []);
+
+  async function handleSave() {
+    if (!profile.fullName.trim() || !profile.birthDate) {
+      setSaveStatus('⚠️ Vui lòng điền họ tên và ngày sinh trước khi lưu.');
+      setTimeout(() => setSaveStatus(''), 4000);
+      return;
+    }
+    await saveDestinyProfile(profile);
+    setSaveStatus('✅ Đã lưu Hồ Sơ Bản Mệnh lên mây!');
+    setTimeout(() => setSaveStatus(''), 4000);
+  }
+
+  async function run(customConcern) {
+    const activeConcern = customConcern || profile.concern || 'Luận giải tổng quan vận mệnh, sự nghiệp, tài lộc và tình cảm';
+    setBusy(true);
+    setOut('✦ AI Đặng Năm đang an sao, đối chiếu thiên bàn - địa bàn và phân tích đa chiều...');
+    try {
+      await saveDestinyProfile(profile);
+      const d = await apiJSON('/api/mystic-ai', {
+        name: profile.fullName || 'Đương số',
+        birthDate: profile.birthDate,
+        birthTime: profile.birthTime,
+        gender: profile.gender,
+        calendarType: profile.calendarType,
+        birthPlace: profile.birthPlace,
+        question: activeConcern,
+        destinyProfile: profile,
+        geminiModel: 'gemini-3.5-flash-lite',
+        localReport: window.MysticEngine ? window.MysticEngine.Numerology.analyze(profile.fullName, profile.birthDate) : ''
+      });
+      const resText = d.text || d.reply || 'Không có kết quả.';
+      setOut(resText);
+      saveHistory('Tử Vi Bản Mệnh', `${profile.fullName || 'Đương số'}: ${resText.slice(0, 140)}...`);
+    } catch(e) {
+      setOut('⚠️ Lỗi: ' + e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="tool-grid">
+      <div className="premium-panel">
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}>
+          <h2 style={{margin:0}}>📜 Hồ Sơ Bản Mệnh & Tử Vi</h2>
+          <span style={{fontSize:'11px', color:'#00f0ff', background:'rgba(0,240,255,0.1)', padding:'3px 8px', borderRadius:'12px'}}>Đồng bộ Cloud</span>
+        </div>
+        <p style={{fontSize:'12px', opacity:0.8, marginBottom:'14px'}}>
+          Lưu hồ sơ một lần để hệ thống Đặng Năm AI tự động nhận diện và luận giải cho tất cả các câu hỏi mà không cần nhập lại.
+        </p>
+
+        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'10px'}}>
+          <input
+            value={profile.fullName}
+            onChange={e => setProfile({...profile, fullName: e.target.value})}
+            placeholder="Họ và tên đương số *"
+            style={{gridColumn:'span 2'}}
+          />
+          <select value={profile.gender} onChange={e => setProfile({...profile, gender: e.target.value})}>
+            <option value="Nam">Giới tính: Nam</option>
+            <option value="Nữ">Giới tính: Nữ</option>
+          </select>
+          <select value={profile.calendarType} onChange={e => setProfile({...profile, calendarType: e.target.value})}>
+            <option value="solar">Dương lịch</option>
+            <option value="lunar">Âm lịch</option>
+          </select>
+        </div>
+
+        <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'10px', marginBottom:'10px'}}>
+          <div>
+            <label style={{fontSize:'11px', opacity:0.7, display:'block', marginBottom:'3px'}}>Ngày sinh *</label>
+            <input type="date" value={profile.birthDate} onChange={e => setProfile({...profile, birthDate: e.target.value})} />
+          </div>
+          <div>
+            <label style={{fontSize:'11px', opacity:0.7, display:'block', marginBottom:'3px'}}>Giờ sinh</label>
+            <input type="time" value={profile.birthTime} onChange={e => setProfile({...profile, birthTime: e.target.value})} />
+          </div>
+        </div>
+
+        <input
+          value={profile.birthPlace}
+          onChange={e => setProfile({...profile, birthPlace: e.target.value})}
+          placeholder="Nơi sinh (Tỉnh / Thành phố)"
+          style={{marginBottom:'10px'}}
+        />
+
+        <textarea
+          value={profile.concern}
+          onChange={e => setProfile({...profile, concern: e.target.value})}
+          placeholder="Mối quan tâm hoặc câu hỏi cụ thể (Vd: Năm nay công danh thăng tiến thế nào, hạn xuất ngoại, tình cảm...)"
+          rows="2"
+          style={{marginBottom:'10px'}}
+        />
+
+        <div style={{display:'flex', gap:'8px', marginBottom:'14px'}}>
+          <button type="button" className="secondary" onClick={handleSave} style={{flex:1}}>
+            💾 Lưu Hồ Sơ
+          </button>
+          <button type="button" className="primary" onClick={() => run()} disabled={busy} style={{flex:2}}>
+            {busy ? '✦ Đang Luận Giải...' : '🔮 Luận Giải Chuyên Sâu'}
+          </button>
+        </div>
+
+        {saveStatus && <div style={{fontSize:'12px', color:'#00f0ff', textAlign:'center', marginBottom:'10px'}}>{saveStatus}</div>}
+
+        <div style={{borderTop:'1px solid rgba(255,255,255,0.1)', paddingTop:'12px'}}>
+          <div style={{fontSize:'12px', color:'#ffd700', marginBottom:'8px', fontWeight:'bold'}}>⚡ Gợi ý chủ đề hỏi nhanh:</div>
+          <div className="chat-quick-chips" style={{padding:'0', margin:'0'}}>
+            <button type="button" className="quick-chip" onClick={() => run('Luận giải tổng quan đại vận & tiểu vận năm 2026')}>🔮 Vận hạn 2026</button>
+            <button type="button" className="quick-chip" onClick={() => run('Phân tích cung Quan Lộc & Tài Bạch: Sự nghiệp và tiền tài')}>💰 Tài Bạch & Sự nghiệp</button>
+            <button type="button" className="quick-chip" onClick={() => run('Phân tích cung Phu Thê: Tình duyên, hôn nhân và gia đạo')}>💞 Tình duyên & Phu Thê</button>
+            <button type="button" className="quick-chip" onClick={() => run('Phân tích cung Phúc Đức & Tật Ách: Bình an và sức khỏe')}>🩺 Sức khỏe & Phúc đức</button>
+            <button type="button" className="quick-chip" onClick={() => run('Xem ngày giờ tốt hoàng đạo và việc lành trong tuần này')}>📅 Ngày tốt tuần này</button>
+          </div>
+        </div>
+      </div>
+      <Result text={out} title="Bản Luận Giải Tử Vi & Vận Số" />
+    </section>
+  );
+}
   function SimpleTool({kind,title,icon,preset='',placeholder='Bạn muốn hỏi điều gì?'}){const [q,setQ]=useState('');const [out,setOut]=useState('Nhập nội dung rồi bấm luận giải.');async function run(){setOut('AI đang luận giải...');try{const d=await apiJSON('/api/multi-ai/chat',{message:`${preset||title} ${q}`, provider:'auto', model:'gemini-3.5-flash-lite'});setOut(d.text||d.reply||'Không có kết quả'); saveHistory(title, d.text||d.reply||'Không có kết quả');}catch(e){setOut('⚠️ '+e.message)}}return <section className="tool-grid"><div className="premium-panel"><h2>{icon} {title}</h2><textarea value={q} onChange={e=>setQ(e.target.value)} placeholder={placeholder}/><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>}
 
 function AstrologyTool(){
@@ -1361,7 +1782,23 @@ Kết quả chỉ mang tính tham khảo.`)}}
   return <section className="tool-grid"><div className="premium-panel"><h2>🔢 Thần số học AI</h2><input value={name} onChange={e=>setName(e.target.value)} placeholder="Họ và tên"/><input value={birth} onChange={e=>setBirth(e.target.value)} placeholder="Ngày sinh: 01/01/2000"/><button className="primary" onClick={run}>🤖 Luận thần số học</button></div><Result text={out}/></section>
 }
 
-function Result({text}){return <article className="premium-panel result"><h2>📌 Kết quả</h2><div dangerouslySetInnerHTML={{__html: markdownLite(text)}} /></article>}
+function Result({ text, title = 'Kết quả luận giải' }) {
+  if (!text) return null;
+  return (
+    <article className="premium-panel result">
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px', flexWrap:'wrap', gap:'8px'}}>
+        <h2 style={{margin:0}}>📌 {title}</h2>
+        <div style={{display:'flex', gap:'6px'}}>
+          <button type="button" className="small-action-btn" onClick={() => {
+            if (navigator.clipboard?.writeText) { navigator.clipboard.writeText(text); alert('Đã sao chép kết quả!'); }
+          }}>📋 Sao chép</button>
+          <button type="button" className="small-action-btn" onClick={() => exportResultToPrint(title, text)}>🖨️ In / PDF</button>
+        </div>
+      </div>
+      <div dangerouslySetInnerHTML={{__html: markdownLite(text)}} />
+    </article>
+  );
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(<App />);
 if ('serviceWorker' in navigator) {
