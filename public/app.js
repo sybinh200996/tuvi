@@ -57,11 +57,20 @@ function openDestinyProfileModal() {
   if ($('destinyModalBirthHour')) $('destinyModalBirthHour').value = p.birthHour || (p.birthTime ? `Giờ Ngọ (11h00 - 12h59)` : 'Ngọ (11h00 - 12h59)');
   if ($('destinyModalBirthPlace')) $('destinyModalBirthPlace').value = p.birthPlace || '';
   modal.style.display = 'flex';
+  void modal.offsetWidth;
+  modal.classList.add('show');
 }
 
 function closeDestinyProfileModal() {
   const modal = $('destinyModal');
-  if (modal) modal.style.display = 'none';
+  if (modal) {
+    modal.classList.remove('show');
+    setTimeout(() => {
+      if (!modal.classList.contains('show')) {
+        modal.style.display = 'none';
+      }
+    }, 250);
+  }
 }
 
 async function saveBirthProfile(profile) {
