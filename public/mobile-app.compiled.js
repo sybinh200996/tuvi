@@ -3002,6 +3002,10 @@ function NumerologyTool() {
     return n || 0;
   }
   async function run() {
+    if (!String(birth).replace(/\D/g, '')) {
+      setOut('Vui lòng nhập ngày sinh hợp lệ để tính thần số học.');
+      return;
+    }
     const life = sumDigits(birth);
     setOut('Đang tính local và AI luận giải...');
     try {

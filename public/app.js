@@ -1487,6 +1487,7 @@ function localNumerologyReport(name,birth){
 }
 async function generateNumerology(){
   const name=$('numName')?.value||''; const birth=$('numBirth')?.value||''; const focus=$('numFocus')?.value||'Tổng quan';
+  if(!String(birth||'').replace(/\D/g,'')){ toast('Vui lòng nhập ngày sinh để tính thần số học'); if($('numerologyResult'))$('numerologyResult').innerHTML=htmlResult('🔢 Kết quả thần số học','Vui lòng nhập ngày sinh hợp lệ trước khi phân tích.'); return; }
   const local=localNumerologyReport(name,birth); setLoading('numerologyResult',true);
   try{
     const prompt=`Luận thần số học tiếng Việt thật chi tiết cho: Họ tên ${name}, ngày sinh ${birth}, trọng tâm ${focus}. Dựa trên bản tính local sau, mở rộng thành báo cáo đẹp, rõ mục, có điểm mạnh/yếu, công việc, tình duyên và lời khuyên thực tế. Không mê tín cực đoan.\n\n${local}`;

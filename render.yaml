@@ -16,3 +16,5 @@ services:
         sync: false
       - key: OPENROUTER_MODEL
         value: "openrouter/free"
+      - key: USER_KEYS_ENCRYPTION_KEY
+        sync: false

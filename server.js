@@ -46,8 +46,6 @@ app.use(helmet({
         "'self'",
         "http://localhost:*",
         "http://127.0.0.1:*",
-        "http://104.64.211.29:*",
-        "https://104.64.211.29:*",
         "https://dangnam.online",
         "https://*.dangnam.online",
         "https://*.firebaseapp.com",
@@ -81,9 +79,6 @@ const defaultAllowedOrigins = [
   "https://dangnam.online",
   "http://dangnam.online",
   "https://www.dangnam.online",
-  "http://104.64.211.29:3000",
-  "http://104.64.211.29",
-  "https://104.64.211.29",
   "http://localhost:3000",
   "http://127.0.0.1:3000"
 ];
@@ -91,12 +86,17 @@ const allAllowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...confi
 
 app.use(cors({
   origin(origin, callback) {
+    // UPGRADE v2: truoc day moi origin deu duoc chap nhan (return true o ca 2 nhanh).
+    // Gio chi cho phep allowlist chinh xac hoac subdomain cua dangnam.online / localhost.
     if (!origin) return callback(null, true);
-    const isAllowed = allAllowedOrigins.some(allowed => origin === allowed || origin.endsWith(".dangnam.online") || origin.includes("104.64.211.29") || origin.includes("localhost") || origin.includes("127.0.0.1"));
-    if (isAllowed) {
-      return callback(null, true);
+    let allowed = allAllowedOrigins.includes(origin);
+    if (!allowed) {
+      try {
+        const hostname = new URL(origin).hostname;
+        allowed = hostname === "dangnam.online" || hostname.endsWith(".dangnam.online") || hostname === "localhost" || hostname === "127.0.0.1";
+      } catch { allowed = false; }
     }
-    return callback(null, true);
+    return callback(null, allowed);
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -157,7 +157,12 @@ app.use('/api', (req, res, next) => {
   res.setHeader('X-Content-Type-Options', 'nosniff');
   next();
 });
-app.use(express.json({ limit: process.env.JSON_LIMIT || '22mb' }));
+// UPGRADE v2: gioi han body 2mb cho API thuong; chi route nhan anh base64 moi dung limit lon.
+const IMAGE_API_PATHS = new Set(['/api/vision-ai', '/api/image-ai', '/api/chat-ai', '/api/chat-ai/stream', '/api/chat-stream', '/api/multi-ai/chat', '/api/multi-ai/stream', '/api/deep-ai']);
+app.use((req, res, next) => {
+  const limit = IMAGE_API_PATHS.has(req.path) ? (process.env.JSON_LIMIT || '22mb') : '2mb';
+  return express.json({ limit })(req, res, next);
+});
 
 app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders: (res, filePath) => {
@@ -227,8 +232,17 @@ async function writeSessions(sessions) {
   await writeJsonAtomic(SESSIONS_FILE, sessions);
 }
 
-async function createSession(userId, provider = "password") {
-  const sessions = await readSessions();
+// --- UPGRADE v2 (H2): khoa tuan tu hoa moi thao tac doc-sua-ghi store ---
+// File JSON khong co transaction; khong khoa thi 2 request dong thoi se ghi de nhau.
+// Khoa nay bao ve dung mo hinh deploy 1 instance hien tai (Render/VPS don le).
+let storeChain = Promise.resolve();
+function withStoreLock(task) {
+  const run = storeChain.then(task, task);
+  storeChain = run.then(() => undefined, () => undefined);
+  return run;
+}
+
+function createSessionRecord(sessions, userId, provider = "password") {
   const token = crypto.randomBytes(32).toString("hex");
   const now = Date.now();
   sessions[token] = {
@@ -238,8 +252,16 @@ async function createSession(userId, provider = "password") {
     lastSeenAt: new Date(now).toISOString(),
     expiresAt: new Date(now + SESSION_TTL_MS).toISOString()
   };
-  await writeSessions(sessions);
   return token;
+}
+
+async function createSession(userId, provider = "password") {
+  return withStoreLock(async () => {
+    const sessions = await readSessions();
+    const token = createSessionRecord(sessions, userId, provider);
+    await writeSessions(sessions);
+    return token;
+  });
 }
 
 function getBearerToken(req) {
@@ -273,9 +295,11 @@ async function currentUserFromRequest(req) {
 async function destroySession(req) {
   const token = getBearerToken(req);
   if (!token) return;
-  const sessions = await readSessions();
-  delete sessions[token];
-  await writeSessions(sessions);
+  await withStoreLock(async () => {
+    const sessions = await readSessions();
+    delete sessions[token];
+    await writeSessions(sessions);
+  });
 }
 
 function firebaseConfigFromEnv() {
@@ -295,6 +319,37 @@ function isFirebaseConfigured() {
   return Boolean(cfg.apiKey && cfg.authDomain && cfg.projectId && cfg.appId);
 }
 
+// --- UPGRADE v2 (C2): verify Firebase ID token o server bang khoa cong khai cua Google ---
+let firebaseCertCache = { at: 0, certs: {} };
+async function getFirebaseCerts() {
+  if (Date.now() - firebaseCertCache.at < 60 * 60 * 1000 && Object.keys(firebaseCertCache.certs).length) return firebaseCertCache.certs;
+  const response = await fetch("https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com");
+  if (!response.ok) throw new Error("Không tải được khóa xác thực Firebase.");
+  const certs = await response.json();
+  firebaseCertCache = { at: Date.now(), certs };
+  return certs;
+}
+function base64UrlJson(segment) { return JSON.parse(Buffer.from(segment, "base64url").toString("utf8")); }
+async function verifyFirebaseIdToken(idToken) {
+  const parts = String(idToken || "").split(".");
+  if (parts.length !== 3) throw new Error("Malformed JWT");
+  const header = base64UrlJson(parts[0]);
+  const payload = base64UrlJson(parts[1]);
+  if (header.alg !== "RS256" || !header.kid) throw new Error("Bad JWT header");
+  const certs = await getFirebaseCerts();
+  const cert = certs[header.kid];
+  if (!cert) throw new Error("Unknown kid");
+  const verifier = crypto.createVerify("RSA-SHA256");
+  verifier.update(`${parts[0]}.${parts[1]}`);
+  if (!verifier.verify(cert, Buffer.from(parts[2], "base64url"))) throw new Error("Bad signature");
+  const projectId = process.env.FIREBASE_PROJECT_ID || "";
+  const now = Math.floor(Date.now() / 1000);
+  if (!projectId || payload.aud !== projectId) throw new Error("Bad aud");
+  if (payload.iss !== `https://securetoken.google.com/${projectId}`) throw new Error("Bad iss");
+  if (!payload.sub || payload.exp <= now || payload.iat > now + 300) throw new Error("Expired token");
+  return payload;
+}
+
 function hashPassword(password, salt = crypto.randomBytes(16).toString("hex")) {
   const hash = crypto.scryptSync(String(password), salt, 64).toString("hex");
   return `${salt}:${hash}`;
@@ -307,13 +362,42 @@ function verifyPassword(password, stored = "") {
   return crypto.timingSafeEqual(Buffer.from(hash, "hex"), check);
 }
 
+// --- UPGRADE v2 (H1): ma hoa API key ca nhan cua user bang AES-256-GCM ---
+const KEY_ENC_PREFIX = "enc:v1:";
+function keyEncryptionKey() {
+  const secret = process.env.USER_KEYS_ENCRYPTION_KEY || "";
+  if (!secret) return null;
+  return crypto.createHash("sha256").update(String(secret)).digest();
+}
+function encryptSecretValue(value) {
+  const key = keyEncryptionKey();
+  if (!key) return String(value || "");
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
+  const enc = Buffer.concat([cipher.update(String(value), "utf8"), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  return KEY_ENC_PREFIX + [iv, tag, enc].map(b => b.toString("base64")).join(":");
+}
+function decryptSecretValue(stored) {
+  if (!stored || !String(stored).startsWith(KEY_ENC_PREFIX)) return stored || "";
+  const key = keyEncryptionKey();
+  if (!key) return "";
+  try {
+    const [ivB, tagB, encB] = String(stored).slice(KEY_ENC_PREFIX.length).split(":");
+    const decipher = crypto.createDecipheriv("aes-256-gcm", key, Buffer.from(ivB, "base64"));
+    decipher.setAuthTag(Buffer.from(tagB, "base64"));
+    return Buffer.concat([decipher.update(Buffer.from(encB, "base64")), decipher.final()]).toString("utf8");
+  } catch { return ""; }
+}
+
 function publicUser(user) {
   if (!user) return null;
   return { id: user.id, name: user.name, email: user.email, plan: user.plan || "Free", avatar: user.avatar || "", providers: user.providers || [], destinyProfile: user.destinyProfile || null, createdAt: user.createdAt };
 }
 
 
-const FREE_MODELS_ONLY = String(process.env.FREE_MODELS_ONLY || "false").toLowerCase() === "true";
+// UPGRADE v2: mac dinh an toan la true - quen dat bien moi truong cung khong phat sinh phi AI.
+const FREE_MODELS_ONLY = String(process.env.FREE_MODELS_ONLY || "true").toLowerCase() === "true";
 // Strict no-cost route: OpenRouter documents this router as free-priced; Gemini's
 // free tier depends on the Google project billing tier and cannot be enforced by API request.
 const FREE_MODELS_BY_PROVIDER = Object.freeze({ openrouter: ["openrouter/free"] });
@@ -405,9 +489,9 @@ function pickProviderKey(provider, user = null) {
   if (!info) return "";
   if (FREE_MODELS_ONLY && !FREE_MODELS_BY_PROVIDER[provider]) return "";
   if (provider === "claude") {
-    return user?.aiKeys?.[provider] || process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY || "";
+    return decryptSecretValue(user?.aiKeys?.[provider] || "") || process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_API_KEY || "";
   }
-  return user?.aiKeys?.[provider] || process.env[info.keyEnv] || "";
+  return decryptSecretValue(user?.aiKeys?.[provider] || "") || process.env[info.keyEnv] || "";
 }
 
 function pickProviderModel(provider, requestedModel = "", user = null) {
@@ -422,7 +506,9 @@ function pickProviderModel(provider, requestedModel = "", user = null) {
     const candidates = [requestedModel, user?.aiModels?.[provider], process.env[info.modelEnv]];
     return candidates.find(candidate => candidate && allowed.includes(candidate)) || allowed[0];
   }
-  const rawEnv = process.env[info.modelEnv] || (provider === "claude" ? process.env.CLAUDE_MODEL : "");
+  // UPGRADE v2: them || "" - truoc day rawEnv co the la undefined khi chua dat bien
+  // moi truong model, khien moi request Claude bi crash "includes of undefined".
+  const rawEnv = process.env[info.modelEnv] || (provider === "claude" ? process.env.CLAUDE_MODEL : "") || "";
   const envModel = rawEnv.includes(",") ? rawEnv.split(",")[0].trim() : rawEnv;
   let finalModel = requestedModel || user?.aiModels?.[provider] || envModel || info.defaultModel;
   if (provider === "gemini" && (finalModel.includes("2.5") || finalModel.includes("2.0") || finalModel.includes("1.5"))) {
@@ -1375,20 +1461,27 @@ app.post("/api/auth/register", authLimiter, async (req, res) => {
     const cleanPassword = String(password || "");
     if (!cleanEmail || !cleanEmail.includes("@")) return res.status(400).json({ error: "Email không hợp lệ." });
     if (cleanPassword.length < 6) return res.status(400).json({ error: "Mật khẩu cần ít nhất 6 ký tự." });
-    const users = await readUsers();
-    if (users.some(u => u.email === cleanEmail)) return res.status(409).json({ error: "Email này đã đăng ký." });
-    const user = {
-      id: crypto.randomUUID(),
-      name: cleanName,
-      email: cleanEmail,
-      passwordHash: hashPassword(cleanPassword),
-      plan: "Free",
-      createdAt: new Date().toISOString()
-    };
-    users.push(user);
-    await writeUsers(users);
-    const token = await createSession(user.id, "password");
-    res.json({ ok: true, token, user: publicUser(user) });
+    // UPGRADE v2: plan luon la Free khi dang ky; nang goi chi qua kenh thanh toan o server.
+    const outcome = await withStoreLock(async () => {
+      const users = await readUsers();
+      if (users.some(u => u.email === cleanEmail)) return { conflict: true };
+      const user = {
+        id: crypto.randomUUID(),
+        name: cleanName,
+        email: cleanEmail,
+        passwordHash: hashPassword(cleanPassword),
+        plan: "Free",
+        createdAt: new Date().toISOString()
+      };
+      users.push(user);
+      await writeUsers(users);
+      const sessions = await readSessions();
+      const token = createSessionRecord(sessions, user.id, "password");
+      await writeSessions(sessions);
+      return { user, token };
+    });
+    if (outcome.conflict) return res.status(409).json({ error: "Email này đã đăng ký." });
+    res.json({ ok: true, token: outcome.token, user: publicUser(outcome.user) });
   } catch (error) {
     res.status(500).json({ error: cleanError(error) });
   }
@@ -1436,51 +1529,60 @@ app.post("/api/auth/logout", async (req, res) => {
 });
 
 app.post("/api/auth/social", authLimiter, async (req, res) => {
-
   try {
-    const { provider, uid, email, name, avatar, idToken } = req.body || {};
-    const cleanProvider = String(provider || "").trim().toLowerCase();
-    const cleanEmail = String(email || "").trim().toLowerCase();
-    const cleanUid = String(uid || "").trim();
-    const cleanName = String(name || "").trim() || (cleanProvider === "facebook" ? "Facebook User" : "Google User");
-
+    const { provider, name, avatar, idToken } = req.body || {};
+    // UPGRADE v2 (C2): KHONG tin uid/email client gui len. Danh tinh chi lay tu
+    // Firebase idToken da verify chu ky o server.
+    if (!isFirebaseConfigured()) {
+      return res.status(503).json({ error: "Đăng nhập mạng xã hội chưa được cấu hình an toàn ở server (thiếu Firebase config)." });
+    }
+    if (!idToken) return res.status(401).json({ error: "Thiếu idToken từ Firebase." });
+    let claims;
+    try { claims = await verifyFirebaseIdToken(String(idToken)); }
+    catch { return res.status(401).json({ error: "idToken không hợp lệ hoặc đã hết hạn." }); }
+    const providerMap = { "google.com": "google", "facebook.com": "facebook" };
+    const cleanProvider = providerMap[claims.firebase?.sign_in_provider] || String(provider || "").trim().toLowerCase();
     if (!["google", "facebook"].includes(cleanProvider)) {
       return res.status(400).json({ error: "Provider không hợp lệ. Chỉ hỗ trợ google hoặc facebook." });
     }
-    if (!cleanEmail && !cleanUid) {
-      return res.status(400).json({ error: "Thiếu email hoặc uid từ tài khoản mạng xã hội." });
+    if (req.body?.uid && String(req.body.uid) !== claims.sub) {
+      return res.status(401).json({ error: "UID không khớp với idToken." });
     }
-
-    // Bản này dùng Firebase Auth ở frontend để đăng nhập Google/Facebook.
-    // Server lưu hồ sơ thành viên local để chạy được trên Render/Namecheap.
-    // Với sản phẩm thương mại, nên bật firebase-admin để xác minh idToken ở server.
-    const users = await readUsers();
-    let user = users.find(u => (cleanEmail && u.email === cleanEmail) || (u.socialIds && u.socialIds[cleanProvider] === cleanUid));
-    if (!user) {
-      user = {
-        id: crypto.randomUUID(),
-        name: cleanName,
-        email: cleanEmail || `${cleanProvider}_${cleanUid}@synam.local`,
-        passwordHash: "",
-        plan: "Free",
-        avatar: avatar || "",
-        providers: [cleanProvider],
-        socialIds: { [cleanProvider]: cleanUid },
-        lastLoginAt: new Date().toISOString(),
-        createdAt: new Date().toISOString()
-      };
-      users.push(user);
-    } else {
-      user.name = user.name || cleanName;
-      user.email = user.email || cleanEmail;
-      user.avatar = avatar || user.avatar || "";
-      user.providers = uniqueModels([...(user.providers || []), cleanProvider]);
-      user.socialIds = { ...(user.socialIds || {}), [cleanProvider]: cleanUid };
-      user.lastLoginAt = new Date().toISOString();
-    }
-    await writeUsers(users);
-    const token = await createSession(user.id, cleanProvider);
-    res.json({ ok: true, token, user: publicUser(user), provider: cleanProvider, firebaseConfigured: isFirebaseConfigured(), tokenReceived: Boolean(idToken) });
+    const cleanUid = claims.sub;
+    const cleanEmail = String(claims.email || "").trim().toLowerCase();
+    const cleanName = String(name || claims.name || "").trim() || (cleanProvider === "facebook" ? "Facebook User" : "Google User");
+    const outcome = await withStoreLock(async () => {
+      const users = await readUsers();
+      let user = users.find(u => (cleanEmail && u.email === cleanEmail) || (u.socialIds && u.socialIds[cleanProvider] === cleanUid));
+      if (!user) {
+        user = {
+          id: crypto.randomUUID(),
+          name: cleanName,
+          email: cleanEmail || `${cleanProvider}_${cleanUid}@synam.local`,
+          passwordHash: "",
+          plan: "Free",
+          avatar: avatar || claims.picture || "",
+          providers: [cleanProvider],
+          socialIds: { [cleanProvider]: cleanUid },
+          lastLoginAt: new Date().toISOString(),
+          createdAt: new Date().toISOString()
+        };
+        users.push(user);
+      } else {
+        user.name = user.name || cleanName;
+        user.email = user.email || cleanEmail;
+        user.avatar = avatar || user.avatar || "";
+        user.providers = uniqueModels([...(user.providers || []), cleanProvider]);
+        user.socialIds = { ...(user.socialIds || {}), [cleanProvider]: cleanUid };
+        user.lastLoginAt = new Date().toISOString();
+      }
+      await writeUsers(users);
+      const sessions = await readSessions();
+      const token = createSessionRecord(sessions, user.id, cleanProvider);
+      await writeSessions(sessions);
+      return { user, token };
+    });
+    res.json({ ok: true, token: outcome.token, user: publicUser(outcome.user), provider: cleanProvider, firebaseConfigured: true, tokenReceived: true });
   } catch (error) {
     res.status(500).json({ error: cleanError(error) });
   }
@@ -1488,15 +1590,22 @@ app.post("/api/auth/social", authLimiter, async (req, res) => {
 
 app.post("/api/auth/update-profile", async (req, res) => {
   try {
-    const { email, name, plan } = req.body || {};
-    const cleanEmail = String(email || "").trim().toLowerCase();
-    const users = await readUsers();
-    const user = users.find(u => u.email === cleanEmail);
-    if (!user) return res.status(404).json({ error: "Chưa tìm thấy tài khoản." });
-    if (name) user.name = String(name).trim();
-    if (plan) user.plan = String(plan).trim();
-    await writeUsers(users);
-    res.json({ ok: true, user: publicUser(user) });
+    // UPGRADE v2 (C3): bat buoc dang nhap; chi sua ho so cua chinh minh;
+    // KHONG cho client tu doi plan/email.
+    const authUser = await currentUserFromRequest(req);
+    if (!authUser) return res.status(401).json({ error: "Cần đăng nhập để cập nhật hồ sơ." });
+    const { name, avatar } = req.body || {};
+    const updated = await withStoreLock(async () => {
+      const users = await readUsers();
+      const user = users.find(u => u.id === authUser.id);
+      if (!user) return null;
+      if (name) user.name = String(name).trim().slice(0, 120);
+      if (typeof avatar === "string") user.avatar = avatar.slice(0, 500);
+      await writeUsers(users);
+      return user;
+    });
+    if (!updated) return res.status(404).json({ error: "Không tìm thấy tài khoản." });
+    res.json({ ok: true, user: publicUser(updated) });
   } catch (error) {
     res.status(500).json({ error: cleanError(error) });
   }
@@ -1533,12 +1642,14 @@ app.post("/api/user/destiny-profile", async (req, res) => {
     };
 
     if (user) {
-      const users = await readUsers();
-      const saved = users.find(u => u.id === user.id);
-      if (saved) {
-        saved.destinyProfile = cleanProfile;
-        await writeUsers(users);
-      }
+      await withStoreLock(async () => {
+        const users = await readUsers();
+        const saved = users.find(u => u.id === user.id);
+        if (saved) {
+          saved.destinyProfile = cleanProfile;
+          await writeUsers(users);
+        }
+      });
     }
     res.json({ ok: true, profile: cleanProfile, savedToServer: Boolean(user) });
   } catch (error) {
@@ -1570,28 +1681,38 @@ app.post("/api/ai/user-keys", async (req, res) => {
   try {
     const user = await currentUserFromRequest(req);
     if (!user) return res.status(401).json({ error: "Cần đăng nhập để lưu API key cá nhân." });
-    const { keys = {}, models = {} } = req.body || {};
-    const users = await readUsers();
-    const saved = users.find(u => u.id === user.id);
-    if (!saved) return res.status(404).json({ error: "Không tìm thấy tài khoản." });
-    saved.aiKeys = saved.aiKeys || {};
-    saved.aiModels = saved.aiModels || {};
-    for (const id of Object.keys(AI_PROVIDERS)) {
-      if (Object.prototype.hasOwnProperty.call(keys, id)) {
-        const value = String(keys[id] || "").trim();
-        if (value) saved.aiKeys[id] = value;
-      }
-      if (Object.prototype.hasOwnProperty.call(models, id)) {
-        const value = String(models[id] || "").trim();
-        if (value) saved.aiModels[id] = value;
-      }
+    // UPGRADE v2 (H1): chi luu key khi server da co khoa ma hoa.
+    if (!keyEncryptionKey()) {
+      return res.status(503).json({ error: "Server chưa cấu hình USER_KEYS_ENCRYPTION_KEY nên tạm thời không lưu API key cá nhân. Hãy đặt biến này trong .env rồi khởi động lại server." });
     }
-    await writeUsers(users);
-    res.json({ ok: true, providers: enabledProvidersForUser(saved), note: "Đã lưu API key cá nhân vào data/users.json. Bản demo chưa mã hóa key, chỉ dùng test cá nhân." });
+    const { keys = {}, models = {} } = req.body || {};
+    const saved = await withStoreLock(async () => {
+      const users = await readUsers();
+      const found = users.find(u => u.id === user.id);
+      if (!found) return null;
+      found.aiKeys = found.aiKeys || {};
+      found.aiModels = found.aiModels || {};
+      for (const id of Object.keys(AI_PROVIDERS)) {
+        if (Object.prototype.hasOwnProperty.call(keys, id)) {
+          const value = String(keys[id] || "").trim();
+          if (value) found.aiKeys[id] = encryptSecretValue(value);
+        }
+        if (Object.prototype.hasOwnProperty.call(models, id)) {
+          const value = String(models[id] || "").trim();
+          if (value) found.aiModels[id] = value;
+        }
+      }
+      await writeUsers(users);
+      return found;
+    });
+    if (!saved) return res.status(404).json({ error: "Không tìm thấy tài khoản." });
+    res.json({ ok: true, providers: enabledProvidersForUser(saved), note: "Đã lưu API key cá nhân ở dạng mã hóa AES-256-GCM trên server." });
   } catch (error) {
     res.status(500).json({ error: cleanError(error) });
   }
 });
+
+
 
 
 // NAM34: route thời tiết riêng để AI Chat lấy trực tiếp trước khi gọi model.

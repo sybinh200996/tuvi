@@ -59,7 +59,8 @@ function validEnv(name, value, pattern) {
   return value;
 }
 
-const host = validEnv('DEPLOY_HOST', process.env.DEPLOY_HOST || '104.64.211.29', /^[A-Za-z0-9.-]+$/);
+// UPGRADE v2: khong hardcode IP server trong code - bat buoc dat DEPLOY_HOST trong .env.
+const host = validEnv('DEPLOY_HOST', process.env.DEPLOY_HOST || '', /^[A-Za-z0-9.-]+$/);
 const user = validEnv('DEPLOY_USER', process.env.DEPLOY_USER || 'root', /^[A-Za-z_][A-Za-z0-9_-]*$/);
 const remoteDir = validEnv('DEPLOY_DIR', process.env.DEPLOY_DIR || '/root/tuvi', /^\/[A-Za-z0-9_./-]+$/);
 if (remoteDir.split('/').includes('..')) fail('DEPLOY_DIR không được chứa ..');
