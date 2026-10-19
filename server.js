@@ -396,8 +396,8 @@ function publicUser(user) {
 }
 
 
-// UPGRADE v2: mac dinh an toan la true - quen dat bien moi truong cung khong phat sinh phi AI.
-const FREE_MODELS_ONLY = String(process.env.FREE_MODELS_ONLY || "true").toLowerCase() === "true";
+// Mặc định cho phép dùng các key đã cấu hình (Gemini, Groq, etc.)
+const FREE_MODELS_ONLY = String(process.env.FREE_MODELS_ONLY || "false").toLowerCase() === "true";
 // Strict no-cost route: OpenRouter documents this router as free-priced; Gemini's
 // free tier depends on the Google project billing tier and cannot be enforced by API request.
 const FREE_MODELS_BY_PROVIDER = Object.freeze({ openrouter: ["openrouter/free"] });
@@ -407,8 +407,8 @@ const AI_PROVIDERS = {
     label: "Google Gemini",
     keyEnv: "GEMINI_API_KEY",
     modelEnv: "GEMINI_MODEL",
-    defaultModel: "gemini-3.5-flash-lite",
-    models: ["gemini-3.5-flash-lite", "gemini-3.8-flash"],
+    defaultModel: "gemini-3.1-flash-lite",
+    models: ["gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-3.8-flash"],
     freeHint: "Model Google Gemini chính thức."
   },
   groq: {
@@ -633,12 +633,12 @@ async function callClaude({ apiKey, model, prompt, systemPrompt = '', history = 
 async function callGeminiText({ apiKey, model, parts, systemPrompt = '', history = [] }) {
   if (FREE_MODELS_ONLY && !FREE_MODELS_BY_PROVIDER.gemini) throw new Error("Google Gemini bị tắt trong chế độ chỉ dùng model API miễn phí để tránh phát sinh phí.");
   const client = apiKey === process.env.GEMINI_API_KEY && ai ? ai : new GoogleGenAI({ apiKey });
-  let actualModel = model || "gemini-3.5-flash-lite";
+  let actualModel = model || "gemini-3.1-flash-lite";
   if (actualModel.includes("2.5") || actualModel.includes("2.0") || actualModel.includes("1.5")) {
-    actualModel = "gemini-3.5-flash-lite";
+    actualModel = "gemini-3.1-flash-lite";
   }
 
-  const modelsToTry = [actualModel, "gemini-3.5-flash-lite", "gemini-3.8-flash"].filter((m, i, arr) => arr.indexOf(m) === i);
+  const modelsToTry = [actualModel, "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-3.8-flash"].filter((m, i, arr) => arr.indexOf(m) === i);
   let lastErr;
 
   for (const m of modelsToTry) {
@@ -905,12 +905,12 @@ async function streamClaude({ apiKey, model, prompt, systemPrompt = "", history 
 async function streamGeminiText({ apiKey, model, parts, systemPrompt = "", history = [], onChunk, signal }) {
   if (FREE_MODELS_ONLY && !FREE_MODELS_BY_PROVIDER.gemini) throw new Error("Google Gemini bị tắt trong chế độ chỉ dùng model API miễn phí để tránh phát sinh phí.");
   const client = apiKey === process.env.GEMINI_API_KEY && ai ? ai : new GoogleGenAI({ apiKey });
-  let actualModel = model || "gemini-3.5-flash-lite";
+  let actualModel = model || "gemini-3.1-flash-lite";
   if (actualModel.includes("2.5") || actualModel.includes("2.0") || actualModel.includes("1.5")) {
-    actualModel = "gemini-3.5-flash-lite";
+    actualModel = "gemini-3.1-flash-lite";
   }
 
-  const modelsToTry = [actualModel, "gemini-3.5-flash-lite", "gemini-3.8-flash"].filter((m, i, arr) => arr.indexOf(m) === i);
+  const modelsToTry = [actualModel, "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-3.8-flash"].filter((m, i, arr) => arr.indexOf(m) === i);
   let lastErr;
 
   for (const m of modelsToTry) {
@@ -1068,6 +1068,7 @@ const ai = process.env.GEMINI_API_KEY
   : null;
 
 const DEFAULT_MODELS = [
+  "gemini-3.1-flash-lite",
   "gemini-3.5-flash-lite",
   "gemini-3.8-flash"
 ];
@@ -1114,7 +1115,7 @@ function resolveImageModelOrder(preferredModel) {
 function resolveModelOrder(preferredModel) {
   let pref = preferredModel;
   if (pref && (pref.includes("2.5") || pref.includes("2.0") || pref.includes("1.5"))) {
-    pref = "gemini-3.5-flash-lite";
+    pref = "gemini-3.1-flash-lite";
   }
   if (!pref || pref === "auto") return MODELS;
   return uniqueModels([pref, ...MODELS]);
@@ -1953,10 +1954,10 @@ ${pBirthTime ? `- Giờ sinh: ${pBirthTime}\n` : ""}${pPlace ? `- Nơi sinh: ${p
 LƯU Ý QUAN TRỌNG: Bạn ĐÃ CÓ ĐẦY ĐỦ THÔNG TIN BẢN MỆNH của đương số ở trên. Tuyệt đối KHÔNG hỏi lại ngày tháng năm sinh hoặc giới tính. Hãy trực tiếp sử dụng thông tin này để luận giải chi tiết, chính xác và chuyên sâu bằng tiếng Việt trang trọng.`;
     }
 
-    // Thứ tự ưu tiên 3 tầng tự phục hồi: Groq <-> Gemini <-> OpenRouter (kèm OpenAI/Claude fallback)
+    // Thứ tự ưu tiên 3 tầng tự phục hồi: Gemini (chính thức) <-> Groq <-> OpenRouter (kèm OpenAI/Claude fallback)
     const priorityList = [
+      { id: "gemini", model: process.env.GEMINI_MODEL || "gemini-3.1-flash-lite" },
       { id: "groq", model: process.env.GROQ_MODEL || "llama-3.3-70b-versatile" },
-      { id: "gemini", model: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite" },
       { id: "openrouter", model: process.env.OPENROUTER_MODEL || "deepseek/deepseek-r1:free" },
       { id: "openai", model: process.env.OPENAI_MODEL || "gpt-4o-mini" },
       { id: "claude", model: process.env.CLAUDE_MODEL || "claude-3-5-haiku-latest" }
