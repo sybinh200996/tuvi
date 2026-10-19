@@ -1,4 +1,4 @@
-const CACHE = "v52-upgrade-v2-security-20261019";
+const CACHE = "v53-realtime-voice-typing-20261019";
 const APP_SHELL = [
   "./",
   "./index.html",

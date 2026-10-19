@@ -577,8 +577,19 @@ function Chat({ providers }) {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('nam44_messages', JSON.stringify(messages.slice(-50)));
-    boxRef.current?.scrollTo({ top: boxRef.current.scrollHeight, behavior: 'smooth' });
+    const isStreaming = messages.some(m => m.streaming);
+    if (!isStreaming) {
+      try {
+        localStorage.setItem('nam44_messages', JSON.stringify(messages.slice(-50)));
+      } catch(e) {}
+    }
+    if (boxRef.current) {
+      if (isStreaming) {
+        boxRef.current.scrollTop = boxRef.current.scrollHeight;
+      } else {
+        boxRef.current.scrollTo({ top: boxRef.current.scrollHeight, behavior: 'smooth' });
+      }
+    }
   }, [messages]);
 
   function addFiles(fileList) {
@@ -611,39 +622,68 @@ function Chat({ providers }) {
       return;
     }
     try {
+      try { recognitionRef.current?.abort?.(); } catch {}
       const recognition = new SpeechRecognition();
       recognition.lang = 'vi-VN';
-      recognition.continuous = false;
+      recognition.continuous = true;
       recognition.interimResults = true;
-      voiceTranscriptRef.current = '';
-      recognition.onstart = () => { setListening(true); setVoiceStatus('Đang lắng nghe tiếng Việt…'); };
-      recognition.onresult = event => {
-        const finalText = Array.from(event.results || []).slice(event.resultIndex || 0)
-          .filter(result => result.isFinal).map(result => result[0]?.transcript || '').join(' ').trim();
-        if (!finalText) return;
-        voiceTranscriptRef.current = [voiceTranscriptRef.current, finalText].filter(Boolean).join(' ').trim();
-        const nextDraft = [draftRef.current, finalText].filter(Boolean).join(' ').trim();
-        draftRef.current = nextDraft;
-        setText(nextDraft);
+      recognition.maxAlternatives = 1;
+
+      const prefixDraft = draftRef.current ? draftRef.current.trim() + ' ' : '';
+      voiceTranscriptRef.current = prefixDraft;
+
+      recognition.onstart = () => {
+        setListening(true);
+        setVoiceStatus('🎙️ Đang nghe tiếng Việt... Đọc đến đâu chữ hiện đến đó');
       };
-      recognition.onerror = event => {
-        setListening(false);
-        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-          setVoiceStatus('Chưa có quyền dùng micro. Hãy bật quyền micro cho trang web.');
-        } else if (!voiceTranscriptRef.current) {
-          setVoiceStatus('Chưa nhận được giọng nói. Hãy thử lại.');
+
+      recognition.onresult = event => {
+        let finalStr = '';
+        let interimStr = '';
+        for (let i = 0; i < event.results.length; i++) {
+          const res = event.results[i];
+          const transcript = res[0]?.transcript || '';
+          if (res.isFinal) {
+            finalStr += transcript + ' ';
+          } else {
+            interimStr += transcript;
+          }
+        }
+
+        const combinedText = (prefixDraft + finalStr + interimStr).replace(/\s+/g, ' ').trim();
+        draftRef.current = combinedText;
+        setText(combinedText);
+
+        if (interimStr.trim()) {
+          setVoiceStatus(`🎙️ Đang nhận: "${interimStr.trim()}"`);
+        } else {
+          setVoiceStatus('🎙️ Đang lắng nghe... Hãy tiếp tục nói');
         }
       };
+
+      recognition.onerror = event => {
+        if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+          setListening(false);
+          setVoiceStatus('⚠️ Chưa có quyền dùng micro. Hãy bật quyền micro cho trang web.');
+        } else if (event.error === 'no-speech') {
+          // Người dùng tạm ngừng nói, tiếp tục giữ micro
+        } else {
+          setListening(false);
+          setVoiceStatus(`⚠️ Lỗi micro: ${event.error}`);
+        }
+      };
+
       recognition.onend = () => {
         setListening(false);
         recognitionRef.current = null;
-        if (!voiceTranscriptRef.current.trim()) {
-          setVoiceStatus(current => current === 'Đang lắng nghe tiếng Việt…' ? 'Chưa nhận được giọng nói. Hãy thử lại.' : current);
-          return;
+        if (draftRef.current.trim()) {
+          setVoiceStatus('✅ Đã nhận diện xong! Bạn có thể xem lại, sửa chữ nếu cần rồi bấm ➤ để gửi.');
+          setTimeout(() => setVoiceStatus(''), 5000);
+        } else {
+          setVoiceStatus('');
         }
-        setVoiceStatus('Đã nhận diện giọng nói. Bạn có thể bấm ➤ để gửi.');
-        setTimeout(() => setVoiceStatus(''), 4500);
       };
+
       recognitionRef.current = recognition;
       recognition.start();
     } catch (error) {
@@ -653,8 +693,10 @@ function Chat({ providers }) {
   }
 
   function stopDictation() {
-    setVoiceStatus('Đã dừng micro.');
+    setVoiceStatus('✅ Đã dừng micro. Bạn có thể sửa nội dung trước khi gửi.');
     try { recognitionRef.current?.stop(); } catch {}
+    setListening(false);
+    setTimeout(() => setVoiceStatus(''), 4000);
   }
 
   function stopResponse() {

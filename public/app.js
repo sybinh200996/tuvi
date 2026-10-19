@@ -980,13 +980,6 @@ function handleChatTextKey(event){
     sendChat();
   }
 }
-function scheduleVoiceAutoSend(){
-  clearTimeout(window.synamVoiceSendTimer);
-  window.synamVoiceSendTimer=setTimeout(()=>{
-    const latest=$('chatText')?.value?.trim();
-    if(latest && !voiceListening) sendChat();
-  },3000);
-}
 function getSpeechRecognition(){return window.SpeechRecognition||window.webkitSpeechRecognition||null}
 function setVoiceStatus(text,active=false){const el=$('voiceStatus');if(el){el.textContent=text;el.classList.toggle('listening',active)} const btn=$('voiceBtn');if(btn){btn.classList.toggle('recording',active);btn.textContent=active?'🔴':'🎤'}}
 function startVoiceInput(){
@@ -999,28 +992,35 @@ function startVoiceInput(){
     voiceRecognizer=new SR();
     voiceRecognizer.lang='vi-VN';
     voiceRecognizer.interimResults=true;
-    voiceRecognizer.continuous=false;
-    let finalText='';
+    voiceRecognizer.continuous=true;
     voiceListening=true;
-    setVoiceStatus('🎙️ Đang nghe... nói câu hỏi của Năm đi',true);
+    const baseText=$('chatText')?.value ? $('chatText').value.trim()+' ' : '';
+    setVoiceStatus('🎙️ Đang nghe tiếng Việt... Đọc đến đâu chữ hiện đến đó',true);
     voiceRecognizer.onresult=(event)=>{
-      let interim='';
-      for(let i=event.resultIndex;i<event.results.length;i++){
-        const txt=event.results[i][0].transcript;
-        if(event.results[i].isFinal) finalText+=txt;
-        else interim+=txt;
+      let finalStr='';
+      let interimStr='';
+      for(let i=0;i<event.results.length;i++){
+        const res=event.results[i];
+        const txt=res[0]?.transcript||'';
+        if(res.isFinal) finalStr+=txt+' ';
+        else interimStr+=txt;
       }
-      setChatTextValue((finalText||interim).trim());
-      setVoiceStatus(finalText||interim ? '🎙️ Đang nhận: '+(finalText||interim).trim() : '🎙️ Đang nghe...', true);
+      const fullText=(baseText+finalStr+interimStr).replace(/\s+/g,' ').trim();
+      setChatTextValue(fullText);
+      setVoiceStatus(interimStr ? '🎙️ Đang nhận: "'+interimStr.trim()+'"' : '🎙️ Đang lắng nghe...', true);
     };
-    voiceRecognizer.onerror=(e)=>{setVoiceStatus('🎙️ Lỗi nghe giọng nói: '+(e.error||'không rõ'),false);voiceListening=false};
+    voiceRecognizer.onerror=(e)=>{
+      if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+        setVoiceStatus('🎙️ Chưa cấp quyền micro trong trình duyệt',false);
+      } else if(e.error!=='no-speech'){
+        setVoiceStatus('🎙️ Lỗi mic: '+(e.error||'không rõ'),false);
+      }
+      voiceListening=false;
+    };
     voiceRecognizer.onend=()=>{
       voiceListening=false;
-      setVoiceStatus('🎙️ Đã dừng nghe - sẽ gửi sau 3 giây nếu bạn không nói tiếp',false);
-      const q=$('chatText')?.value?.trim();
-      if(q){
-        scheduleVoiceAutoSend();
-      }
+      setVoiceStatus('✅ Đã nhận diện xong! Bạn có thể xem lại, sửa câu hỏi rồi bấm Gửi.',false);
+      setTimeout(()=>setVoiceStatus('',false),5000);
     };
     voiceRecognizer.start();
   }catch(e){voiceListening=false;setVoiceStatus('🎙️ Không khởi động được micro',false);toast('Không mở được micro: '+(e.message||e))}
