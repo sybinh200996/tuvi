@@ -28,7 +28,7 @@ let currentChatPersona = localStorage.getItem('synam_chat_persona') || 'assistan
 let isChatStreaming = false;
 let userChatScrolledUp = false;
 
-const routes=[['home','Trang Chủ','home'],['tuvi','Tử Vi','tuvi'],['palm','Xem Chỉ Tay','palm'],['face','Xem Tướng','face'],['astrology','Chiêm Tinh','astro'],['love','Tình Duyên','love'],['numerology','Thần Số Học','num'],['chat','AI Chat','chat'],['ai','Multi AI','deep'],['fengshui','Phong Thủy','feng'],['tarot','Bói Bài','tarot'],['history','Lịch Sử','history']];
+const routes=[['home','Trang Chủ','home'],['tuvi','Tử Vi','tuvi'],['palm','Xem Chỉ Tay','palm'],['face','Xem Tướng','face'],['astrology','Chiêm Tinh','astro'],['love','Tình Duyên','love'],['numerology','Thần Số Học','num'],['sim','Sim Phong Thủy','sim'],['chat','AI Chat','chat'],['ai','Multi AI','deep'],['fengshui','Phong Thủy','feng'],['tarot','Bói Bài','tarot'],['history','Lịch Sử','history']];
 let lastResult='';
 const $=id=>document.getElementById(id);
 function init(){renderTabs();renderHistory();loadAccount();loadVoicePrefs();initVietnameseVoices();startClock();loadDestinyProfileToForm();loadDestinyProfileFromCloud().then(loadDestinyProfileToForm);const firstRoute=location.hash?.replace('#/','')||(window.matchMedia&&window.matchMedia('(max-width: 760px)').matches?'chat':'home');routeTo(firstRoute,false);window.addEventListener('hashchange',()=>routeTo(location.hash.replace('#/','')||'home',false));checkGeminiStatus();loadAIProviders();setTimeout(()=>{if(window.matchMedia&&window.matchMedia('(max-width:760px)').matches&&$('chatText')){$('chatText').focus({preventScroll:true});}},600);}
@@ -2484,3 +2484,78 @@ function setChatSendBtnState(streaming) {
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => { try { updateChatDestinyContextBar(); } catch(e) {} }, 800);
 });
+
+
+async function analyzeSimPhongThuy(){
+  const phone = ($('simPhone')?.value || '').trim();
+  const birthYear = ($('simBirth')?.value || '').trim();
+  const cleanPhone = phone.replace(/\D/g, '');
+  if(!cleanPhone || cleanPhone.length < 10){
+    toast('Vui lòng nhập số điện thoại hợp lệ (tối thiểu 10 số)');
+    return;
+  }
+  const btn = $('btnSim');
+  const resPanel = $('simResult');
+  if(btn) { btn.disabled = true; btn.textContent = '⏳ Đang tính toán & luận giải...'; }
+  if(resPanel) { resPanel.innerHTML = '<h2>Kết quả định giá & phong thủy sim</h2><p class="loading-shimmer">Đang tính toán số học & kết nối chuyên gia AI...</p>'; }
+
+  try {
+    const data = await postJSON('/api/sim/evaluate', { phoneNumber: cleanPhone, birthYear });
+    const p = data.price;
+    const pt = data.phongThuy;
+
+    let tagsHtml = '';
+    if(p.tags && p.tags.length){
+      tagsHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;">' + p.tags.map(t=>'<span class="badge" style="background:rgba(255,215,0,0.15);color:#ffd700;border:1px solid rgba(255,215,0,0.3);padding:3px 8px;border-radius:12px;font-size:11px;">⭐ ' + escapeHtml(t) + '</span>').join('') + '</div>';
+    }
+
+    const previewCard = '<div class="sim-preview-box" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,215,0,0.3);border-radius:12px;padding:16px;margin-bottom:15px;">' +
+      '<div style="text-align:center;margin-bottom:12px;">' +
+        '<span style="font-size:12px;color:#ffd700;text-transform:uppercase;letter-spacing:1px;">Định Giá Thị Trường Ước Tính</span>' +
+        '<div style="font-size:28px;font-weight:900;color:#ffd700;margin:4px 0;">' + p.formattedPrice + '</div>' +
+        '<div style="font-size:12px;opacity:0.75;">Biên độ giá: ' + p.priceRange + '</div>' +
+      '</div>' +
+      tagsHtml +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;font-size:13px;margin-top:10px;">' +
+        '<div style="background:rgba(0,0,0,0.25);padding:10px;border-radius:8px;">' +
+          '<b>Điểm nút số:</b> <span style="color:#ffd700;font-weight:bold;font-size:16px;">' + pt.nutSo.score + '</span> / 10 điểm' +
+          '<div style="font-size:12px;opacity:0.8;margin-top:2px;">' + escapeHtml(pt.nutSo.meaning) + ' (Tổng ' + pt.nutSo.totalSum + ')</div>' +
+        '</div>' +
+        '<div style="background:rgba(0,0,0,0.25);padding:10px;border-radius:8px;">' +
+          '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">' +
+            '<span><b>Âm Dương:</b> ' + pt.yinYang.evenPercent + '% Âm</span>' +
+            '<span>' + pt.yinYang.oddPercent + '% Dương</span>' +
+          '</div>' +
+          '<div style="width:100%;height:8px;border-radius:4px;overflow:hidden;display:flex;">' +
+            '<div style="width:' + pt.yinYang.evenPercent + '%;background:#6366f1;"></div>' +
+            '<div style="width:' + pt.yinYang.oddPercent + '%;background:#eab308;"></div>' +
+          '</div>' +
+          '<div style="font-size:12px;opacity:0.8;margin-top:4px;">' + escapeHtml(pt.yinYang.evaluation) + '</div>' +
+        '</div>' +
+        '<div style="background:rgba(0,0,0,0.25);padding:10px;border-radius:8px;">' +
+          '<b>Quẻ Kinh Dịch:</b> <span style="color:#f87171;font-weight:bold;">' + escapeHtml(pt.queDich.tenQue) + '</span> (' + escapeHtml(pt.queDich.tinhChat) + ')' +
+          '<div style="font-size:12px;opacity:0.8;margin-top:2px;">Thượng: ' + escapeHtml(pt.queDich.thuongQuai) + ' - Hạ: ' + escapeHtml(pt.queDich.haQuai) + '</div>' +
+          '<div style="font-size:12px;color:#cbd5e1;font-style:italic;margin-top:2px;">\"' + escapeHtml(pt.queDich.yNghia) + '\"</div>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div id="simAiContainer" style="margin-top:15px;border-top:1px solid rgba(255,255,255,0.1);padding-top:15px;">' +
+      '<h3 style="color:#ffd700;display:flex;align-items:center;gap:6px;"><span>🤖</span> Lời Luận Giải Của Chuyên Gia AI</h3>' +
+      '<div id="simAiContent" style="line-height:1.6;font-size:14px;color:#e2e8f0;"><p class="loading-shimmer">Đang sinh lời luận giải...</p></div>' +
+    '</div>';
+
+    if(resPanel) resPanel.innerHTML = previewCard;
+
+    const prompt = 'Đóng vai Chuyên gia Phong thủy Số học & Định giá Sim cao cấp. Dựa trên các thông số kỹ thuật đã tính toán chính xác sau đây:\n\n' + data.aiPromptData + '\n\nHãy phân tích và luận giải chuyên sâu bằng tiếng Việt:\n1. Đánh giá thế số và độ đẹp của số điện thoại này theo phong thủy và thẩm mỹ sim.\n2. Bình giải Quẻ Kinh Dịch (' + pt.queDich.tenQue + ') tác động như thế nào đến công việc làm ăn, tài lộc và gia đạo.\n3. Số điện thoại này tương sinh hay tương khắc với người sinh năm ' + data.birthYear + '?\n4. Đánh giá mức giá định giá (' + p.formattedPrice + ') có hợp lý không và lời khuyên sở hữu/sử dụng sim.';
+
+    const aiRes = await postJSON('/api/multi-ai/chat', { provider: 'auto', model: 'gemini-3.5-flash-lite', message: prompt });
+    const aiText = aiRes.text || aiRes.reply || 'Đã phân tích xong.';
+    const simAiContent = $('simAiContent');
+    if(simAiContent) simAiContent.innerHTML = markdownish(aiText);
+    saveHistory('Sim Phong Thủy: ' + cleanPhone, aiText);
+  } catch(err) {
+    if(resPanel) resPanel.innerHTML = '<h2>Kết quả định giá & phong thủy sim</h2><p style="color:#f87171;">⚠️ Lỗi: ' + escapeHtml(err.message||err) + '</p>';
+  } finally {
+    if(btn) { btn.disabled = false; btn.textContent = '🔮 Phân tích bằng AI & Định giá'; }
+  }
+}

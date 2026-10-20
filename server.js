@@ -9,6 +9,7 @@ import { GoogleGenAI } from "@google/genai";
 import compression from "compression";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import { evaluateSim } from "./controllers/simPhongThuy.controller.js";
 
 dotenv.config();
 
@@ -2983,6 +2984,8 @@ ${cleanMessage}
     res.status(500).json({ error: cleanError(error), attempts: error.attempts || [] });
   }
 });
+
+app.post("/api/sim/evaluate", evaluateSim);
 
 app.post("/api/love-ai", aiLimiter, async (req, res) => {
   try {

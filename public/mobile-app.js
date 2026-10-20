@@ -17,6 +17,7 @@ const TABS = [
   { id: 'astrology', icon: '🌌', label: 'Chiêm tinh' },
   { id: 'love', icon: '💖', label: 'Tình duyên' },
   { id: 'numerology', icon: '🔢', label: 'Thần số học' },
+  { id: 'sim', icon: '📱', label: 'Sim Số' },
   { id: 'chat', icon: '⚡', label: 'AI Chat' },
   { id: 'multi', icon: '🌌', label: 'Multi AI' },
   { id: 'fengshui', icon: '☯️', label: 'Phong thủy' },
@@ -447,6 +448,7 @@ function App() {
       {tab === 'horoscope' && <TuviTool />}
       {tab === 'astrology' && <AstrologyTool />}
       {tab === 'numerology' && <NumerologyTool />}
+      {tab === 'sim' && <SimTool />}
       {tab === 'multi' && <Chat providers={providers} />}
       {tab === 'fengshui' && <FengShuiTool />}
       {tab === 'tarot' && <TarotTool />}
@@ -522,6 +524,7 @@ function Home({ setTab, providers }) {
     ['🪐','Chiêm tinh','Cung hoàng đạo, vận trình tháng, tình cảm.', 'astrology'],
     ['💞','Tình duyên','Tính tuổi, ngũ hành, thần số học bằng code trước khi AI luận.', 'love'],
     ['🔢','Thần số học','Tính số chủ đạo, linh hồn, biểu đạt và luận AI.', 'numerology'],
+    ['📱','Sim Phong Thủy','Định giá thị trường, quẻ kinh dịch và âm dương.', 'sim'],
     ['💬','AI Chat Pro','Trả lời có nhớ ngữ cảnh, copy, đọc giọng nói.', 'chat'],
     ['🤖','Multi AI','Tự chọn Claude, Gemini, Groq, OpenRouter, ChatGPT, Grok.', 'multi'],
     ['☯️','Phong thủy','Màu hợp, hướng hợp, bố trí phòng/bàn làm việc.', 'fengshui'],
@@ -2268,6 +2271,139 @@ function NumerologyTool(){
 
 Kết quả chỉ mang tính tham khảo.`)}}
   return <section className="tool-grid"><div className="premium-panel"><h2>🔢 Thần số học AI</h2><input value={name} onChange={e=>setName(e.target.value)} placeholder="Họ và tên"/><input value={birth} onChange={e=>setBirth(e.target.value)} placeholder="Ngày sinh: 01/01/2000"/><button className="primary" onClick={run}>🤖 Luận thần số học</button></div><Result text={out}/></section>
+}
+
+function SimTool() {
+  const [phone, setPhone] = useState('');
+  const [birthYear, setBirthYear] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [simData, setSimData] = useState(null);
+  const [aiOut, setAiOut] = useState('');
+  const [error, setError] = useState('');
+
+  async function analyze() {
+    const clean = String(phone || '').replace(/\D/g, '');
+    if (!clean || clean.length < 10) {
+      setError('Vui lòng nhập số điện thoại hợp lệ (tối thiểu 10 chữ số).');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    setSimData(null);
+    setAiOut('');
+
+    try {
+      const res = await apiJSON('/api/sim/evaluate', {
+        phoneNumber: clean,
+        birthYear: birthYear || new Date().getFullYear()
+      });
+      setSimData(res);
+
+      setAiOut('✦ Chuyên gia AI đang phân tích sâu thế số, quẻ Dịch và định giá sim...');
+      const prompt = `Đóng vai Chuyên gia Phong thủy Số học & Định giá Sim cao cấp. Dựa trên các thông số kỹ thuật đã tính toán chính xác sau đây:\n\n${res.aiPromptData}\n\nHãy phân tích và luận giải chuyên sâu bằng tiếng Việt:
+1. Đánh giá thế số và độ đẹp của số điện thoại này theo phong thủy và thẩm mỹ sim.
+2. Bình giải Quẻ Kinh Dịch (${res.phongThuy.queDich.tenQue}) tác động như thế nào đến công việc làm ăn, tài lộc và gia đạo.
+3. Số điện thoại này tương sinh hay tương khắc với người sinh năm ${res.birthYear}?
+4. Đánh giá mức giá định giá (${res.price.formattedPrice}) có hợp lý không và lời khuyên sử dụng sim.`;
+
+      const aiRes = await apiJSON('/api/multi-ai/chat', {
+        provider: 'auto',
+        model: 'gemini-3.5-flash-lite',
+        message: prompt
+      });
+      setAiOut(aiRes.text || aiRes.reply || 'Đã phân tích xong.');
+    } catch (err) {
+      setError(err.message || 'Lỗi khi phân tích sim.');
+      setAiOut('');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <section className="tool-grid">
+      <div className="premium-panel">
+        <h2>📱 Định Giá Sim & Phong Thủy Số</h2>
+        <p style={{ fontSize: '13px', opacity: 0.8, marginBottom: '12px' }}>
+          Định giá thị trường, tra cứu Quẻ Kinh Dịch, Nút số và tỷ lệ Âm Dương kết hợp AI luận giải.
+        </p>
+        <label>
+          Số điện thoại cần xem:
+          <input
+            type="tel"
+            value={phone}
+            onChange={e => setPhone(e.target.value)}
+            placeholder="Ví dụ: 0988686868"
+            style={{ fontSize: '16px', fontWeight: 'bold', letterSpacing: '1px' }}
+          />
+        </label>
+        <label>
+          Năm sinh của bạn (để xét hợp mệnh):
+          <input
+            type="number"
+            value={birthYear}
+            onChange={e => setBirthYear(e.target.value)}
+            placeholder="Ví dụ: 1990"
+          />
+        </label>
+
+        {error && <div style={{ color: '#f87171', fontSize: '13px', marginBottom: '10px' }}>⚠️ {error}</div>}
+
+        <button className="primary" onClick={analyze} disabled={loading}>
+          {loading ? '⏳ Đang tính toán & Luận giải...' : '🔮 Phân Tích Bằng AI & Định Giá'}
+        </button>
+
+        {simData && (
+          <div style={{ marginTop: '20px', padding: '15px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,215,0,0.3)' }}>
+            <div style={{ textAlign: 'center', marginBottom: '15px' }}>
+              <span style={{ fontSize: '12px', color: '#ffd700', textTransform: 'uppercase', letterSpacing: '1px' }}>Định Giá Thị Trường Ước Tính</span>
+              <div style={{ fontSize: '28px', fontWeight: '900', color: '#ffd700', margin: '4px 0' }}>
+                {simData.price.formattedPrice}
+              </div>
+              <div style={{ fontSize: '12px', opacity: 0.7 }}>Dao động: {simData.price.priceRange}</div>
+            </div>
+
+            {simData.price.tags?.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'center', marginBottom: '15px' }}>
+                {simData.price.tags.map((t, idx) => (
+                  <span key={idx} style={{ padding: '3px 8px', borderRadius: '20px', background: 'rgba(255,215,0,0.15)', color: '#ffe066', fontSize: '11px', border: '1px solid rgba(255,215,0,0.3)' }}>
+                    ⭐ {t}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px', fontSize: '13px' }}>
+              <div style={{ padding: '10px', borderRadius: '8px', background: 'rgba(0,0,0,0.2)' }}>
+                <b>Điểm nút số:</b> <span style={{ color: '#ffd700', fontWeight: 'bold', fontSize: '16px' }}>{simData.phongThuy.nutSo.score}</span> / 10 điểm
+                <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '2px' }}>{simData.phongThuy.nutSo.meaning} (Tổng {simData.phongThuy.nutSo.totalSum})</div>
+              </div>
+
+              <div style={{ padding: '10px', borderRadius: '8px', background: 'rgba(0,0,0,0.2)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <span><b>Âm Dương:</b> {simData.phongThuy.yinYang.evenPercent}% Âm</span>
+                  <span>{simData.phongThuy.yinYang.oddPercent}% Dương</span>
+                </div>
+                <div style={{ width: '100%', height: '8px', borderRadius: '4px', overflow: 'hidden', display: 'flex', background: '#3b82f6' }}>
+                  <div style={{ width: `${simData.phongThuy.yinYang.evenPercent}%`, background: '#6366f1' }} />
+                  <div style={{ width: `${simData.phongThuy.yinYang.oddPercent}%`, background: '#eab308' }} />
+                </div>
+                <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '4px' }}>{simData.phongThuy.yinYang.evaluation}</div>
+              </div>
+
+              <div style={{ padding: '10px', borderRadius: '8px', background: 'rgba(0,0,0,0.2)' }}>
+                <b>Quẻ Chủ Kinh Dịch:</b> <span style={{ color: '#f87171', fontWeight: 'bold' }}>{simData.phongThuy.queDich.tenQue}</span> ({simData.phongThuy.queDich.tinhChat})
+                <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '2px' }}>Thượng: {simData.phongThuy.queDich.thuongQuai} - Hạ: {simData.phongThuy.queDich.haQuai}</div>
+                <div style={{ fontSize: '12px', color: '#cbd5e1', fontStyle: 'italic', marginTop: '2px' }}>"{simData.phongThuy.queDich.yNghia}"</div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <Result text={aiOut} title="Lời Luận Giải Chi Tiết Của AI" />
+    </section>
+  );
 }
 
 function Result({ text, title = 'Kết quả luận giải' }) {

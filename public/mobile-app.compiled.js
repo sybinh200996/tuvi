@@ -44,6 +44,10 @@ const TABS = [{
   icon: '🔢',
   label: 'Thần số học'
 }, {
+  id: 'sim',
+  icon: '📱',
+  label: 'Sim Số'
+}, {
   id: 'chat',
   icon: '⚡',
   label: 'AI Chat'
@@ -587,7 +591,7 @@ function App() {
     mode: "face",
     title: "Xem tướng AI",
     icon: "🙂"
-  }), tab === 'love' && /*#__PURE__*/React.createElement(LoveTool, null), tab === 'horoscope' && /*#__PURE__*/React.createElement(TuviTool, null), tab === 'astrology' && /*#__PURE__*/React.createElement(AstrologyTool, null), tab === 'numerology' && /*#__PURE__*/React.createElement(NumerologyTool, null), tab === 'multi' && /*#__PURE__*/React.createElement(Chat, {
+  }), tab === 'love' && /*#__PURE__*/React.createElement(LoveTool, null), tab === 'horoscope' && /*#__PURE__*/React.createElement(TuviTool, null), tab === 'astrology' && /*#__PURE__*/React.createElement(AstrologyTool, null), tab === 'numerology' && /*#__PURE__*/React.createElement(NumerologyTool, null), tab === 'sim' && /*#__PURE__*/React.createElement(SimTool, null), tab === 'multi' && /*#__PURE__*/React.createElement(Chat, {
     providers: providers
   }), tab === 'fengshui' && /*#__PURE__*/React.createElement(FengShuiTool, null), tab === 'tarot' && /*#__PURE__*/React.createElement(TarotTool, null), tab === 'history' && /*#__PURE__*/React.createElement(HistoryTool, null), tab === 'settings' && /*#__PURE__*/React.createElement(Settings, {
     providers: providers,
@@ -725,7 +729,7 @@ function Home({
   setTab,
   providers
 }) {
-  const cards = [['🧠', 'Phân Tích Chuyên Sâu PRO', 'AI tổng hợp đa lớp, luận giải chuyên sâu.', 'deep'], ['🔮', 'Tử vi', 'Luận giải hôm nay, công việc, tình cảm, tài chính.', 'horoscope'], ['✋', 'Xem chỉ tay', 'Upload ảnh bàn tay để AI phân tích rõ hơn.', 'palm'], ['🙂', 'Xem tướng', 'Upload ảnh khuôn mặt, nhận luận giải nhẹ nhàng.', 'face'], ['🪐', 'Chiêm tinh', 'Cung hoàng đạo, vận trình tháng, tình cảm.', 'astrology'], ['💞', 'Tình duyên', 'Tính tuổi, ngũ hành, thần số học bằng code trước khi AI luận.', 'love'], ['🔢', 'Thần số học', 'Tính số chủ đạo, linh hồn, biểu đạt và luận AI.', 'numerology'], ['💬', 'AI Chat Pro', 'Trả lời có nhớ ngữ cảnh, copy, đọc giọng nói.', 'chat'], ['🤖', 'Multi AI', 'Tự chọn Claude, Gemini, Groq, OpenRouter, ChatGPT, Grok.', 'multi'], ['☯️', 'Phong thủy', 'Màu hợp, hướng hợp, bố trí phòng/bàn làm việc.', 'fengshui'], ['🃏', 'Xem bài Tarot', 'Bốc bài tham khảo và đổi bài nhanh.', 'tarot'], ['⚙️', 'Cài đặt', 'Quản lý tài khoản và thiết lập AI.', 'settings']];
+  const cards = [['🧠', 'Phân Tích Chuyên Sâu PRO', 'AI tổng hợp đa lớp, luận giải chuyên sâu.', 'deep'], ['🔮', 'Tử vi', 'Luận giải hôm nay, công việc, tình cảm, tài chính.', 'horoscope'], ['✋', 'Xem chỉ tay', 'Upload ảnh bàn tay để AI phân tích rõ hơn.', 'palm'], ['🙂', 'Xem tướng', 'Upload ảnh khuôn mặt, nhận luận giải nhẹ nhàng.', 'face'], ['🪐', 'Chiêm tinh', 'Cung hoàng đạo, vận trình tháng, tình cảm.', 'astrology'], ['💞', 'Tình duyên', 'Tính tuổi, ngũ hành, thần số học bằng code trước khi AI luận.', 'love'], ['🔢', 'Thần số học', 'Tính số chủ đạo, linh hồn, biểu đạt và luận AI.', 'numerology'], ['📱', 'Sim Phong Thủy', 'Định giá thị trường, quẻ kinh dịch và âm dương.', 'sim'], ['💬', 'AI Chat Pro', 'Trả lời có nhớ ngữ cảnh, copy, đọc giọng nói.', 'chat'], ['🤖', 'Multi AI', 'Tự chọn Claude, Gemini, Groq, OpenRouter, ChatGPT, Grok.', 'multi'], ['☯️', 'Phong thủy', 'Màu hợp, hướng hợp, bố trí phòng/bàn làm việc.', 'fengshui'], ['🃏', 'Xem bài Tarot', 'Bốc bài tham khảo và đổi bài nhanh.', 'tarot'], ['⚙️', 'Cài đặt', 'Quản lý tài khoản và thiết lập AI.', 'settings']];
   return /*#__PURE__*/React.createElement("div", {
     className: "home-grid"
   }, cards.map(c => /*#__PURE__*/React.createElement("button", {
@@ -3231,6 +3235,224 @@ Kết quả chỉ mang tính tham khảo.`);
     onClick: run
   }, "🤖 Luận thần số học")), /*#__PURE__*/React.createElement(Result, {
     text: out
+  }));
+}
+function SimTool() {
+  const [phone, setPhone] = useState('');
+  const [birthYear, setBirthYear] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [simData, setSimData] = useState(null);
+  const [aiOut, setAiOut] = useState('');
+  const [error, setError] = useState('');
+  async function analyze() {
+    const clean = String(phone || '').replace(/\D/g, '');
+    if (!clean || clean.length < 10) {
+      setError('Vui lòng nhập số điện thoại hợp lệ (tối thiểu 10 chữ số).');
+      return;
+    }
+    setError('');
+    setLoading(true);
+    setSimData(null);
+    setAiOut('');
+    try {
+      const res = await apiJSON('/api/sim/evaluate', {
+        phoneNumber: clean,
+        birthYear: birthYear || new Date().getFullYear()
+      });
+      setSimData(res);
+      setAiOut('✦ Chuyên gia AI đang phân tích sâu thế số, quẻ Dịch và định giá sim...');
+      const prompt = `Đóng vai Chuyên gia Phong thủy Số học & Định giá Sim cao cấp. Dựa trên các thông số kỹ thuật đã tính toán chính xác sau đây:\n\n${res.aiPromptData}\n\nHãy phân tích và luận giải chuyên sâu bằng tiếng Việt:
+1. Đánh giá thế số và độ đẹp của số điện thoại này theo phong thủy và thẩm mỹ sim.
+2. Bình giải Quẻ Kinh Dịch (${res.phongThuy.queDich.tenQue}) tác động như thế nào đến công việc làm ăn, tài lộc và gia đạo.
+3. Số điện thoại này tương sinh hay tương khắc với người sinh năm ${res.birthYear}?
+4. Đánh giá mức giá định giá (${res.price.formattedPrice}) có hợp lý không và lời khuyên sử dụng sim.`;
+      const aiRes = await apiJSON('/api/multi-ai/chat', {
+        provider: 'auto',
+        model: 'gemini-3.5-flash-lite',
+        message: prompt
+      });
+      setAiOut(aiRes.text || aiRes.reply || 'Đã phân tích xong.');
+    } catch (err) {
+      setError(err.message || 'Lỗi khi phân tích sim.');
+      setAiOut('');
+    } finally {
+      setLoading(false);
+    }
+  }
+  return /*#__PURE__*/React.createElement("section", {
+    className: "tool-grid"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "premium-panel"
+  }, /*#__PURE__*/React.createElement("h2", null, "📱 Định Giá Sim & Phong Thủy Số"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: '13px',
+      opacity: 0.8,
+      marginBottom: '12px'
+    }
+  }, "Định giá thị trường, tra cứu Quẻ Kinh Dịch, Nút số và tỷ lệ Âm Dương kết hợp AI luận giải."), /*#__PURE__*/React.createElement("label", null, "Số điện thoại cần xem:", /*#__PURE__*/React.createElement("input", {
+    type: "tel",
+    value: phone,
+    onChange: e => setPhone(e.target.value),
+    placeholder: "Ví dụ: 0988686868",
+    style: {
+      fontSize: '16px',
+      fontWeight: 'bold',
+      letterSpacing: '1px'
+    }
+  })), /*#__PURE__*/React.createElement("label", null, "Năm sinh của bạn (để xét hợp mệnh):", /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: birthYear,
+    onChange: e => setBirthYear(e.target.value),
+    placeholder: "Ví dụ: 1990"
+  })), error && /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#f87171',
+      fontSize: '13px',
+      marginBottom: '10px'
+    }
+  }, "⚠️ ", error), /*#__PURE__*/React.createElement("button", {
+    className: "primary",
+    onClick: analyze,
+    disabled: loading
+  }, loading ? '⏳ Đang tính toán & Luận giải...' : '🔮 Phân Tích Bằng AI & Định Giá'), simData && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: '20px',
+      padding: '15px',
+      borderRadius: '12px',
+      background: 'rgba(255,255,255,0.05)',
+      border: '1px solid rgba(255,215,0,0.3)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      marginBottom: '15px'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: '12px',
+      color: '#ffd700',
+      textTransform: 'uppercase',
+      letterSpacing: '1px'
+    }
+  }, "Định Giá Thị Trường Ước Tính"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: '28px',
+      fontWeight: '900',
+      color: '#ffd700',
+      margin: '4px 0'
+    }
+  }, simData.price.formattedPrice), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: '12px',
+      opacity: 0.7
+    }
+  }, "Dao động: ", simData.price.priceRange)), simData.price.tags?.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '6px',
+      justifyContent: 'center',
+      marginBottom: '15px'
+    }
+  }, simData.price.tags.map((t, idx) => /*#__PURE__*/React.createElement("span", {
+    key: idx,
+    style: {
+      padding: '3px 8px',
+      borderRadius: '20px',
+      background: 'rgba(255,215,0,0.15)',
+      color: '#ffe066',
+      fontSize: '11px',
+      border: '1px solid rgba(255,215,0,0.3)'
+    }
+  }, "⭐ ", t))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr',
+      gap: '10px',
+      fontSize: '13px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '10px',
+      borderRadius: '8px',
+      background: 'rgba(0,0,0,0.2)'
+    }
+  }, /*#__PURE__*/React.createElement("b", null, "Điểm nút số:"), " ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: '#ffd700',
+      fontWeight: 'bold',
+      fontSize: '16px'
+    }
+  }, simData.phongThuy.nutSo.score), " / 10 điểm", /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: '12px',
+      opacity: 0.8,
+      marginTop: '2px'
+    }
+  }, simData.phongThuy.nutSo.meaning, " (Tổng ", simData.phongThuy.nutSo.totalSum, ")")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '10px',
+      borderRadius: '8px',
+      background: 'rgba(0,0,0,0.2)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      marginBottom: '4px'
+    }
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("b", null, "Âm Dương:"), " ", simData.phongThuy.yinYang.evenPercent, "% Âm"), /*#__PURE__*/React.createElement("span", null, simData.phongThuy.yinYang.oddPercent, "% Dương")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: '100%',
+      height: '8px',
+      borderRadius: '4px',
+      overflow: 'hidden',
+      display: 'flex',
+      background: '#3b82f6'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: `${simData.phongThuy.yinYang.evenPercent}%`,
+      background: '#6366f1'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: `${simData.phongThuy.yinYang.oddPercent}%`,
+      background: '#eab308'
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: '12px',
+      opacity: 0.8,
+      marginTop: '4px'
+    }
+  }, simData.phongThuy.yinYang.evaluation)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '10px',
+      borderRadius: '8px',
+      background: 'rgba(0,0,0,0.2)'
+    }
+  }, /*#__PURE__*/React.createElement("b", null, "Quẻ Chủ Kinh Dịch:"), " ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: '#f87171',
+      fontWeight: 'bold'
+    }
+  }, simData.phongThuy.queDich.tenQue), " (", simData.phongThuy.queDich.tinhChat, ")", /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: '12px',
+      opacity: 0.8,
+      marginTop: '2px'
+    }
+  }, "Thượng: ", simData.phongThuy.queDich.thuongQuai, " - Hạ: ", simData.phongThuy.queDich.haQuai), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: '12px',
+      color: '#cbd5e1',
+      fontStyle: 'italic',
+      marginTop: '2px'
+    }
+  }, "\"", simData.phongThuy.queDich.yNghia, "\""))))), /*#__PURE__*/React.createElement(Result, {
+    text: aiOut,
+    title: "Lời Luận Giải Chi Tiết Của AI"
   }));
 }
 function Result({
