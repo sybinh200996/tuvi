@@ -540,6 +540,64 @@
     }
   }
 
+  /**
+   * Smart Transcript Deduplicator for Speech Recognition
+   * Eliminates Android Chrome / iOS cumulative transcript repetitions and duplicate lines.
+   */
+  function dedupeTranscript(eventResults) {
+    if (!eventResults || !eventResults.length) return { finalTranscript: '', interimTranscript: '', speechText: '' };
+
+    const finals = [];
+    let interim = '';
+
+    for (let i = 0; i < eventResults.length; i++) {
+      const item = eventResults[i];
+      const text = (item && item[0] ? item[0].transcript : '').trim();
+      if (!text) continue;
+
+      if (item.isFinal) {
+        if (finals.length > 0) {
+          const last = finals[finals.length - 1];
+          const lowerCur = text.toLowerCase();
+          const lowerPrev = last.toLowerCase();
+
+          // Android Chrome cumulative transcript bug:
+          // If current final string starts with previous final string, replace it with the complete version!
+          if (lowerCur.startsWith(lowerPrev)) {
+            finals[finals.length - 1] = text;
+            continue;
+          }
+          // If exact match or previous already ends with current, skip duplicate
+          if (lowerPrev === lowerCur || lowerPrev.endsWith(lowerCur)) {
+            continue;
+          }
+        }
+        finals.push(text);
+      } else {
+        interim = text;
+      }
+    }
+
+    let finalTranscript = finals.join(' ').trim();
+
+    // Check if interim is cumulative of the final transcript
+    if (interim && finalTranscript) {
+      const lowerInterim = interim.toLowerCase();
+      const lowerFinal = finalTranscript.toLowerCase();
+      if (lowerInterim.startsWith(lowerFinal)) {
+        interim = interim.slice(finalTranscript.length).trim();
+      }
+    }
+
+    const speechText = [finalTranscript, interim].filter(Boolean).join(' ').trim();
+
+    return {
+      finalTranscript,
+      interimTranscript: interim,
+      speechText
+    };
+  }
+
   return {
     isSupported: isSpeechSupported,
     cleanText: cleanMarkdownForSpeech,
@@ -549,6 +607,7 @@
     getActiveId: () => activeSession ? activeSession.id : null,
     isSpeaking: () => Boolean(activeSession),
     createStreamPacer: createStreamPacer,
-    smoothScrollToBottom: smoothScrollToBottom
+    smoothScrollToBottom: smoothScrollToBottom,
+    dedupeTranscript: dedupeTranscript
   };
 }));

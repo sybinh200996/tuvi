@@ -1034,20 +1034,32 @@ function startVoiceInput(){
     voiceRecognizer.interimResults=true;
     voiceRecognizer.continuous=true;
     voiceListening=true;
-    const baseText=$('chatText')?.value ? $('chatText').value.trim()+' ' : '';
+    const initialBaseText=$('chatText')?.value ? $('chatText').value.trim() : '';
+    let sessionFullText=initialBaseText;
     setVoiceStatus('🎙️ Đang nghe tiếng Việt... Đọc đến đâu chữ hiện đến đó',true);
     voiceRecognizer.onresult=(event)=>{
-      let finalStr='';
-      let interimStr='';
-      for(let i=0;i<event.results.length;i++){
-        const res=event.results[i];
-        const txt=res[0]?.transcript||'';
-        if(res.isFinal) finalStr+=txt+' ';
-        else interimStr+=txt;
+      let speechText='', interimText='';
+      if(typeof window !== 'undefined' && window.SyncSpeech?.dedupeTranscript){
+        const parsed=window.SyncSpeech.dedupeTranscript(event.results);
+        speechText=parsed.speechText;
+        interimText=parsed.interimTranscript;
+      } else {
+        let f='';
+        for(let i=0;i<event.results.length;i++){
+          const item=event.results[i];
+          const t=(item && item[0] ? item[0].transcript : '').trim();
+          if(!t) continue;
+          if(item.isFinal){
+            if(f && t.toLowerCase().startsWith(f.toLowerCase())) f=t;
+            else if(!f.toLowerCase().endsWith(t.toLowerCase())) f=f ? f+' '+t : t;
+          } else { interimText=t; }
+        }
+        speechText=[f,interimText].filter(Boolean).join(' ').trim();
       }
-      const fullText=(baseText+finalStr+interimStr).replace(/\s+/g,' ').trim();
+      const fullText=[initialBaseText, speechText].filter(Boolean).join(' ').trim();
+      sessionFullText=fullText;
       setChatTextValue(fullText);
-      setVoiceStatus(interimStr ? '🎙️ Đang nhận: "'+interimStr.trim()+'"' : '🎙️ Đang lắng nghe...', true);
+      setVoiceStatus(interimText ? '🎙️ Đang nhận: "'+interimText.trim()+'"' : '🎙️ Đang lắng nghe...', true);
     };
     voiceRecognizer.onerror=(e)=>{
       if(e.error==='not-allowed'||e.error==='service-not-allowed'){
@@ -1059,8 +1071,11 @@ function startVoiceInput(){
     };
     voiceRecognizer.onend=()=>{
       voiceListening=false;
+      if(sessionFullText.trim()){
+        setChatTextValue(sessionFullText);
+      }
       setVoiceStatus('✅ Đã nhận diện xong! Bạn có thể xem lại, sửa câu hỏi rồi bấm Gửi.',false);
-      setTimeout(()=>setVoiceStatus('',false),5000);
+      setTimeout(()=>setVoiceStatus('',false),4500);
     };
     voiceRecognizer.start();
   }catch(e){voiceListening=false;setVoiceStatus('🎙️ Không khởi động được micro',false);toast('Không mở được micro: '+(e.message||e))}

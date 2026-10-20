@@ -634,8 +634,10 @@ function Chat({ providers }) {
       recognition.interimResults = true;
       recognition.maxAlternatives = 1;
 
-      const prefixDraft = draftRef.current ? draftRef.current.trim() + ' ' : '';
-      voiceTranscriptRef.current = prefixDraft;
+      // Capture base text in composer before this dictation session starts
+      const initialBaseText = draftRef.current ? draftRef.current.trim() : '';
+      let sessionFullText = initialBaseText;
+      voiceTranscriptRef.current = initialBaseText;
 
       recognition.onstart = () => {
         setListening(true);
@@ -643,24 +645,32 @@ function Chat({ providers }) {
       };
 
       recognition.onresult = event => {
-        let finalStr = '';
-        let interimStr = '';
-        for (let i = 0; i < event.results.length; i++) {
-          const res = event.results[i];
-          const transcript = res[0]?.transcript || '';
-          if (res.isFinal) {
-            finalStr += transcript + ' ';
-          } else {
-            interimStr += transcript;
+        let speechText = '', interimText = '';
+        if (typeof window !== 'undefined' && window.SyncSpeech?.dedupeTranscript) {
+          const parsed = window.SyncSpeech.dedupeTranscript(event.results);
+          speechText = parsed.speechText;
+          interimText = parsed.interimTranscript;
+        } else {
+          let f = '';
+          for (let i = 0; i < event.results.length; i++) {
+            const item = event.results[i];
+            const t = (item && item[0] ? item[0].transcript : '').trim();
+            if (!t) continue;
+            if (item.isFinal) {
+              if (f && t.toLowerCase().startsWith(f.toLowerCase())) f = t;
+              else if (!f.toLowerCase().endsWith(t.toLowerCase())) f = f ? f + ' ' + t : t;
+            } else { interimText = t; }
           }
+          speechText = [f, interimText].filter(Boolean).join(' ').trim();
         }
 
-        const combinedText = (prefixDraft + finalStr + interimStr).replace(/\s+/g, ' ').trim();
+        const combinedText = [initialBaseText, speechText].filter(Boolean).join(' ').trim();
+        sessionFullText = combinedText;
         draftRef.current = combinedText;
         setText(combinedText);
 
-        if (interimStr.trim()) {
-          setVoiceStatus(`🎙️ Đang nhận: "${interimStr.trim()}"`);
+        if (interimText.trim()) {
+          setVoiceStatus('🎙️ Đang nhận: "' + interimText.trim() + '"');
         } else {
           setVoiceStatus('🎙️ Đang lắng nghe... Hãy tiếp tục nói');
         }
@@ -671,29 +681,31 @@ function Chat({ providers }) {
           setListening(false);
           setVoiceStatus('⚠️ Chưa có quyền dùng micro. Hãy bật quyền micro cho trang web.');
         } else if (event.error === 'no-speech') {
-          // Người dùng tạm ngừng nói, tiếp tục giữ micro
+          // Tạm ngừng nói, giữ mic
         } else {
           setListening(false);
-          setVoiceStatus(`⚠️ Lỗi micro: ${event.error}`);
+          setVoiceStatus('⚠️ Lỗi micro: ' + event.error);
         }
       };
 
       recognition.onend = () => {
         setListening(false);
         recognitionRef.current = null;
-        if (draftRef.current.trim()) {
+        if (sessionFullText.trim()) {
+          draftRef.current = sessionFullText;
+          setText(sessionFullText);
           setVoiceStatus('✅ Đã nhận diện xong! Bạn có thể xem lại, sửa chữ nếu cần rồi bấm ➤ để gửi.');
-          setTimeout(() => setVoiceStatus(''), 5000);
+          setTimeout(() => setVoiceStatus(''), 4500);
         } else {
           setVoiceStatus('');
         }
       };
 
-      recognitionRef.current = recognition;
       recognition.start();
+      recognitionRef.current = recognition;
     } catch (error) {
       setListening(false);
-      setVoiceStatus(`Không mở được micro: ${error.message || 'hãy thử lại.'}`);
+      setVoiceStatus('Không mở được micro: ' + (error.message || 'hãy thử lại.'));
     }
   }
 
@@ -838,13 +850,17 @@ function Chat({ providers }) {
 
   function toggleSpeak(textToSpeak, id = 'header') {
     if (speakingId === id) {
-      try {
-      if (typeof window !== 'undefined' && window.SyncSpeech) window.SyncSpeech.stop();
-      else speechSynthesis.cancel();
-    } catch {}
+      if (typeof window !== 'undefined' && window.SyncSpeech) {
+        window.SyncSpeech.stop();
+      } else {
+        try { speechSynthesis.cancel(); } catch {}
+      }
       setSpeakingId(null);
       return;
     }
+
+    if (!textToSpeak) return;
+
     if (typeof window !== 'undefined' && window.SyncSpeech) {
       window.SyncSpeech.stop();
       setSpeakingId(id);
@@ -867,7 +883,12 @@ function Chat({ providers }) {
         rate: 1.0,
         onWord: (revealedText, isDone) => {
           if (targetIdx >= 0) {
-            setMessages(prev => prev.map((m, idx) => idx === targetIdx ? { ...m, text: revealedText, isSpeaking: !isDone } : m));
+            setMessages(prev => prev.map((m, idx) => idx === targetIdx ? { 
+              ...m, 
+              fullText: m.fullText || m.text,
+              speakingText: revealedText, 
+              isSpeaking: !isDone 
+            } : m));
           }
           if (boxRef.current && window.SyncSpeech) {
             window.SyncSpeech.smoothScrollToBottom(boxRef.current);
@@ -876,13 +897,23 @@ function Chat({ providers }) {
         onDone: (finalText) => {
           setSpeakingId(null);
           if (targetIdx >= 0) {
-            setMessages(prev => prev.map((m, idx) => idx === targetIdx ? { ...m, text: finalText, isSpeaking: false } : m));
+            setMessages(prev => prev.map((m, idx) => idx === targetIdx ? { 
+              ...m, 
+              text: m.fullText || finalText || m.text, 
+              speakingText: null, 
+              isSpeaking: false 
+            } : m));
           }
         },
         onError: () => {
           setSpeakingId(null);
           if (targetIdx >= 0) {
-            setMessages(prev => prev.map((m, idx) => idx === targetIdx ? { ...m, text: textToSpeak, isSpeaking: false } : m));
+            setMessages(prev => prev.map((m, idx) => idx === targetIdx ? { 
+              ...m, 
+              text: m.fullText || textToSpeak || m.text, 
+              speakingText: null, 
+              isSpeaking: false 
+            } : m));
           }
         }
       });
@@ -1025,7 +1056,7 @@ function Chat({ providers }) {
                   {m.attachments.map((file, index) => <span key={`${file.name}-${index}`}>📎 {file.name}</span>)}
                 </div>
               )}
-              <div dangerouslySetInnerHTML={{__html: markdownLite(m.text)}} />
+              <div dangerouslySetInnerHTML={{__html: markdownLite(m.isSpeaking && m.speakingText ? m.speakingText : m.text)}} />
               {(m.streaming || m.isSpeaking) && <span className="streaming-cursor"></span>}
               {m.meta && !m.streaming && <div className="msg-meta-tag" style={{fontSize:'10px', opacity:0.65, marginTop:'4px'}}>✦ {m.meta}</div>}
               {m.role==='assistant' && !m.loading && !m.streaming && (

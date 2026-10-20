@@ -1,4 +1,4 @@
-const CACHE = "v54-sync-speech-stream-20261020";
+const CACHE = "v55-dictation-dedupe-20261020";
 const APP_SHELL = [
   "./",
   "./index.html",
