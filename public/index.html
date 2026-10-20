@@ -1161,7 +1161,7 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
             <div class="chat-upload-bar pro-upload">
               <label class="upload-chip">📷 Tải ảnh<input id="chatImageInput" type="file" accept="image/*" multiple onchange="handleChatFiles(event)"></label>
               <label class="upload-chip">📸 Chụp ảnh<input id="chatCameraInput" type="file" accept="image/*" capture="environment" onchange="handleChatFiles(event)"></label>
-              <label class="upload-chip">📎 Tải file<input id="chatFileInput" type="file" accept=".txt,.md,.json,.csv,.html,.css,.js,.pdf,image/*" multiple onchange="handleChatFiles(event)"></label>
+              <label class="upload-chip">📎 Tải file<input id="chatFileInput" type="file" accept=".txt,.md,.json,.csv,.html,.css,.js,.pdf,image/*,video/*,.mp4,.webm,.mov" multiple onchange="handleChatFiles(event)"></label>
               <button class="clear-attachments" onclick="clearChatAttachments()">Xóa file</button>
             </div>
             <div id="chatAttachments" class="chat-attachments"></div>
@@ -1252,7 +1252,7 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="mystic-engine.js"></script><script src="sync-speech.js?v=1792400100"></script><script src="app.js?v=1792400100"></script>
+  <script src="mystic-engine.js"></script><script src="sync-speech.js?v=1792400200"></script><script src="app.js?v=1792400200"></script>
 
   <!-- App Download Modal -->
   <div id="appDownloadModal" class="modal-overlay" onclick="if(event.target===this) closeAppModal()">

@@ -3752,3 +3752,33 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
   0%, 100% { opacity: 1; transform: scaleY(1); }
   50% { opacity: 0.15; transform: scaleY(0.7); }
 }
+
+
+/* ===== UNIVERSAL CODE BLOCK & MONOSPACE ENHANCEMENT ===== */
+pre {
+  background: #181926 !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 10px !important;
+  padding: 12px 16px !important;
+  overflow-x: auto !important;
+  margin: 12px 0 !important;
+  font-family: 'Fira Code', Consolas, Monaco, 'Courier New', monospace !important;
+  font-size: 13.5px !important;
+  line-height: 1.55 !important;
+  color: #a6da95 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+}
+code {
+  font-family: 'Fira Code', Consolas, Monaco, 'Courier New', monospace !important;
+  font-size: 13px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  color: #f5a97f !important;
+}
+pre code {
+  background: transparent !important;
+  padding: 0 !important;
+  color: inherit !important;
+  border-radius: 0 !important;
+}

@@ -104,7 +104,7 @@ function readFileAsText(file) {
 
 async function prepareChatAttachment(file) {
   if (!file) throw new Error('File đính kèm không hợp lệ.');
-  if (file.size > 12 * 1024 * 1024) throw new Error(`${file.name}: tối đa 12 MB mỗi file.`);
+  if (file.size > 18 * 1024 * 1024) throw new Error(`${file.name}: tối đa 18 MB mỗi file/video clip.`);
   const name = String(file.name || 'file');
   const originalType = String(file.type || 'application/octet-stream').toLowerCase();
   const isText = originalType.startsWith('text/') || /\.(txt|md|csv|json|xml|html|js|ts|py|log|css)$/i.test(name);
@@ -118,6 +118,9 @@ async function prepareChatAttachment(file) {
     } catch {
       return { name, type: originalType, size: file.size, dataUrl: await readFileAsDataUrl(file) };
     }
+  }
+  if (originalType.startsWith('video/') || /\.(mp4|webm|mov)$/i.test(name)) {
+    return { name, type: originalType || 'video/mp4', size: file.size, dataUrl: await readFileAsDataUrl(file), isVideo: true };
   }
   return { name, type: originalType, size: file.size, dataUrl: await readFileAsDataUrl(file) };
 }
@@ -561,6 +564,19 @@ function Chat({ providers }) {
   const draftRef = useRef('');
   const sendRef = useRef(null);
   const requestAbortRef = useRef(null);
+  const autoSendTimerRef = useRef(null);
+  const autoSendIntervalRef = useRef(null);
+
+  function cancelAutoSend() {
+    if (autoSendTimerRef.current || autoSendIntervalRef.current) {
+      if (autoSendTimerRef.current) clearTimeout(autoSendTimerRef.current);
+      if (autoSendIntervalRef.current) clearInterval(autoSendIntervalRef.current);
+      autoSendTimerRef.current = null;
+      autoSendIntervalRef.current = null;
+      setVoiceStatus('Đã dừng tự động gửi. Bạn có thể chỉnh sửa câu hỏi.');
+      setTimeout(() => setVoiceStatus(''), 2500);
+    }
+  }
 
   useEffect(() => () => {
     try { recognitionRef.current?.abort(); } catch {}
@@ -694,8 +710,34 @@ function Chat({ providers }) {
         if (sessionFullText.trim()) {
           draftRef.current = sessionFullText;
           setText(sessionFullText);
-          setVoiceStatus('✅ Đã nhận diện xong! Bạn có thể xem lại, sửa chữ nếu cần rồi bấm ➤ để gửi.');
-          setTimeout(() => setVoiceStatus(''), 4500);
+
+          if (autoSendTimerRef.current) clearTimeout(autoSendTimerRef.current);
+          if (autoSendIntervalRef.current) clearInterval(autoSendIntervalRef.current);
+
+          let secondsLeft = 2;
+          setVoiceStatus('⚡ Đã đọc xong! Tự động gửi sau ' + secondsLeft + 's... [Chạm đây để hủy]');
+
+          autoSendIntervalRef.current = setInterval(() => {
+            secondsLeft -= 1;
+            if (secondsLeft > 0) {
+              setVoiceStatus('⚡ Đã đọc xong! Tự động gửi sau ' + secondsLeft + 's... [Chạm đây để hủy]');
+            } else {
+              clearInterval(autoSendIntervalRef.current);
+              autoSendIntervalRef.current = null;
+            }
+          }, 1000);
+
+          autoSendTimerRef.current = setTimeout(() => {
+            if (autoSendIntervalRef.current) {
+              clearInterval(autoSendIntervalRef.current);
+              autoSendIntervalRef.current = null;
+            }
+            autoSendTimerRef.current = null;
+            setVoiceStatus('');
+            if (draftRef.current && draftRef.current.trim()) {
+              send();
+            }
+          }, 2000);
         } else {
           setVoiceStatus('');
         }
@@ -786,7 +828,9 @@ function Chat({ providers }) {
           payload: {
             message: requestText,
             history: next.slice(-20),
-            birthProfile: destinyProfile
+            birthProfile: destinyProfile,
+            provider: selectedProvider,
+            model: selectedModel
           },
           signal: controller?.signal,
           onStart: () => {},
@@ -1077,7 +1121,7 @@ function Chat({ providers }) {
       <div className="chat-composer-panel">
         <input ref={imageInputRef} className="chat-hidden-input" type="file" accept="image/*" multiple onChange={e=>{addFiles(e.target.files);e.target.value='';setShowUploads(false);}} />
         <input ref={cameraInputRef} className="chat-hidden-input" type="file" accept="image/*" capture="environment" onChange={e=>{addFiles(e.target.files);e.target.value='';setShowUploads(false);}} />
-        <input ref={fileInputRef} className="chat-hidden-input" type="file" accept="image/*,.pdf,.txt,.md,.csv,.json,.xml,.html,.js,.ts,.py,.log,.css,.doc,.docx,.xls,.xlsx" multiple onChange={e=>{addFiles(e.target.files);e.target.value='';setShowUploads(false);}} />
+        <input ref={fileInputRef} className="chat-hidden-input" type="file" accept="image/*,video/*,.mp4,.webm,.mov,.pdf,.txt,.md,.csv,.json,.xml,.html,.js,.ts,.py,.log,.css,.doc,.docx,.xls,.xlsx" multiple onChange={e=>{addFiles(e.target.files);e.target.value='';setShowUploads(false);}} />
 
         {attachments.length > 0 && (
           <div className="chat-attachment-list">
@@ -1093,7 +1137,7 @@ function Chat({ providers }) {
         {attachments.length > 0 && modelChoice !== 'auto' && !modelChoice.startsWith('gemini::') && (
           <div className="chat-attachment-note">Ảnh/file được xử lý tối ưu qua Gemini đa phương thức.</div>
         )}
-        {voiceStatus && <div className="chat-voice-status" role="status">{voiceStatus}</div>}
+        {voiceStatus && <div className="chat-voice-status" role="status" onClick={cancelAutoSend} style={{cursor:'pointer'}} title="Chạm để hủy tự động gửi">{voiceStatus}</div>}
 
         <div className="chat-quick-chips">
           <button type="button" className="quick-chip" onClick={() => send('Luận giải tổng quan vận hạn năm 2026 cho bản mệnh')}>🔮 Vận hạn 2026</button>
@@ -1141,7 +1185,7 @@ function Chat({ providers }) {
                     onClick={() => { fileInputRef.current?.click(); setShowUploads(false); }}
                   >
                     <span className="popover-icon">📎</span>
-                    <span>Tải file</span>
+                    <span>Tải file / Video</span>
                   </button>
                   {attachments.length > 0 && (
                     <button
@@ -1161,7 +1205,7 @@ function Chat({ providers }) {
           <div className="chat-input-wrapper">
             <textarea
               value={text}
-              onChange={e => { draftRef.current = e.target.value; setText(e.target.value); }}
+              onChange={e => { cancelAutoSend(); draftRef.current = e.target.value; setText(e.target.value); }}
               onKeyDown={e => {
                 if (!isTouchDevice && e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();

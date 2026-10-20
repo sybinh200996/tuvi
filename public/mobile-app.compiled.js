@@ -153,7 +153,7 @@ function readFileAsText(file) {
 }
 async function prepareChatAttachment(file) {
   if (!file) throw new Error('File đính kèm không hợp lệ.');
-  if (file.size > 12 * 1024 * 1024) throw new Error(`${file.name}: tối đa 12 MB mỗi file.`);
+  if (file.size > 18 * 1024 * 1024) throw new Error(`${file.name}: tối đa 18 MB mỗi file/video clip.`);
   const name = String(file.name || 'file');
   const originalType = String(file.type || 'application/octet-stream').toLowerCase();
   const isText = originalType.startsWith('text/') || /\.(txt|md|csv|json|xml|html|js|ts|py|log|css)$/i.test(name);
@@ -182,6 +182,15 @@ async function prepareChatAttachment(file) {
         dataUrl: await readFileAsDataUrl(file)
       };
     }
+  }
+  if (originalType.startsWith('video/') || /\.(mp4|webm|mov)$/i.test(name)) {
+    return {
+      name,
+      type: originalType || 'video/mp4',
+      size: file.size,
+      dataUrl: await readFileAsDataUrl(file),
+      isVideo: true
+    };
   }
   return {
     name,
@@ -758,6 +767,18 @@ function Chat({
   const draftRef = useRef('');
   const sendRef = useRef(null);
   const requestAbortRef = useRef(null);
+  const autoSendTimerRef = useRef(null);
+  const autoSendIntervalRef = useRef(null);
+  function cancelAutoSend() {
+    if (autoSendTimerRef.current || autoSendIntervalRef.current) {
+      if (autoSendTimerRef.current) clearTimeout(autoSendTimerRef.current);
+      if (autoSendIntervalRef.current) clearInterval(autoSendIntervalRef.current);
+      autoSendTimerRef.current = null;
+      autoSendIntervalRef.current = null;
+      setVoiceStatus('Đã dừng tự động gửi. Bạn có thể chỉnh sửa câu hỏi.');
+      setTimeout(() => setVoiceStatus(''), 2500);
+    }
+  }
   useEffect(() => () => {
     try {
       recognitionRef.current?.abort();
@@ -896,8 +917,30 @@ function Chat({
         if (sessionFullText.trim()) {
           draftRef.current = sessionFullText;
           setText(sessionFullText);
-          setVoiceStatus('✅ Đã nhận diện xong! Bạn có thể xem lại, sửa chữ nếu cần rồi bấm ➤ để gửi.');
-          setTimeout(() => setVoiceStatus(''), 4500);
+          if (autoSendTimerRef.current) clearTimeout(autoSendTimerRef.current);
+          if (autoSendIntervalRef.current) clearInterval(autoSendIntervalRef.current);
+          let secondsLeft = 2;
+          setVoiceStatus('⚡ Đã đọc xong! Tự động gửi sau ' + secondsLeft + 's... [Chạm đây để hủy]');
+          autoSendIntervalRef.current = setInterval(() => {
+            secondsLeft -= 1;
+            if (secondsLeft > 0) {
+              setVoiceStatus('⚡ Đã đọc xong! Tự động gửi sau ' + secondsLeft + 's... [Chạm đây để hủy]');
+            } else {
+              clearInterval(autoSendIntervalRef.current);
+              autoSendIntervalRef.current = null;
+            }
+          }, 1000);
+          autoSendTimerRef.current = setTimeout(() => {
+            if (autoSendIntervalRef.current) {
+              clearInterval(autoSendIntervalRef.current);
+              autoSendIntervalRef.current = null;
+            }
+            autoSendTimerRef.current = null;
+            setVoiceStatus('');
+            if (draftRef.current && draftRef.current.trim()) {
+              send();
+            }
+          }, 2000);
         } else {
           setVoiceStatus('');
         }
@@ -1017,7 +1060,9 @@ function Chat({
           payload: {
             message: requestText,
             history: next.slice(-20),
-            birthProfile: destinyProfile
+            birthProfile: destinyProfile,
+            provider: selectedProvider,
+            model: selectedModel
           },
           signal: controller?.signal,
           onStart: () => {},
@@ -1422,7 +1467,7 @@ function Chat({
     ref: fileInputRef,
     className: "chat-hidden-input",
     type: "file",
-    accept: "image/*,.pdf,.txt,.md,.csv,.json,.xml,.html,.js,.ts,.py,.log,.css,.doc,.docx,.xls,.xlsx",
+    accept: "image/*,video/*,.mp4,.webm,.mov,.pdf,.txt,.md,.csv,.json,.xml,.html,.js,.ts,.py,.log,.css,.doc,.docx,.xls,.xlsx",
     multiple: true,
     onChange: e => {
       addFiles(e.target.files);
@@ -1446,7 +1491,12 @@ function Chat({
     className: "chat-attachment-note"
   }, "Ảnh/file được xử lý tối ưu qua Gemini đa phương thức."), voiceStatus && /*#__PURE__*/React.createElement("div", {
     className: "chat-voice-status",
-    role: "status"
+    role: "status",
+    onClick: cancelAutoSend,
+    style: {
+      cursor: 'pointer'
+    },
+    title: "Chạm để hủy tự động gửi"
   }, voiceStatus), /*#__PURE__*/React.createElement("div", {
     className: "chat-quick-chips"
   }, /*#__PURE__*/React.createElement("button", {
@@ -1513,7 +1563,7 @@ function Chat({
     }
   }, /*#__PURE__*/React.createElement("span", {
     className: "popover-icon"
-  }, "📎"), /*#__PURE__*/React.createElement("span", null, "Tải file")), attachments.length > 0 && /*#__PURE__*/React.createElement("button", {
+  }, "📎"), /*#__PURE__*/React.createElement("span", null, "Tải file / Video")), attachments.length > 0 && /*#__PURE__*/React.createElement("button", {
     type: "button",
     className: "chat-popover-item is-clear",
     onClick: () => {
@@ -1528,6 +1578,7 @@ function Chat({
   }, /*#__PURE__*/React.createElement("textarea", {
     value: text,
     onChange: e => {
+      cancelAutoSend();
       draftRef.current = e.target.value;
       setText(e.target.value);
     },

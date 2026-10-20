@@ -999,7 +999,7 @@ function loadVoicePrefs(){
 let voiceRecognizer=null;
 let voiceListening=false;
 
-function autoResizeChatText(){
+function autoResizeChatText(){ cancelDesktopAutoSend();
   const el=$('chatText');
   if(!el) return;
   el.style.height='auto';
@@ -1073,14 +1073,51 @@ function startVoiceInput(){
       voiceListening=false;
       if(sessionFullText.trim()){
         setChatTextValue(sessionFullText);
+        if(window.desktopAutoSendTimer) clearTimeout(window.desktopAutoSendTimer);
+        if(window.desktopAutoSendInterval) clearInterval(window.desktopAutoSendInterval);
+
+        let secondsLeft = 2;
+        setVoiceStatus('⚡ Đã đọc xong! Tự động gửi sau ' + secondsLeft + 's... [Bấm vào đây để hủy]', true);
+
+        window.desktopAutoSendInterval = setInterval(() => {
+          secondsLeft--;
+          if(secondsLeft > 0) {
+            setVoiceStatus('⚡ Đã đọc xong! Tự động gửi sau ' + secondsLeft + 's... [Bấm vào đây để hủy]', true);
+          } else {
+            clearInterval(window.desktopAutoSendInterval);
+            window.desktopAutoSendInterval = null;
+          }
+        }, 1000);
+
+        window.desktopAutoSendTimer = setTimeout(() => {
+          if(window.desktopAutoSendInterval) {
+            clearInterval(window.desktopAutoSendInterval);
+            window.desktopAutoSendInterval = null;
+          }
+          window.desktopAutoSendTimer = null;
+          setVoiceStatus('', false);
+          if($('chatText')?.value?.trim()) {
+            sendChat();
+          }
+        }, 2000);
+      } else {
+        setVoiceStatus('', false);
       }
-      setVoiceStatus('✅ Đã nhận diện xong! Bạn có thể xem lại, sửa câu hỏi rồi bấm Gửi.',false);
-      setTimeout(()=>setVoiceStatus('',false),4500);
     };
     voiceRecognizer.start();
   }catch(e){voiceListening=false;setVoiceStatus('🎙️ Không khởi động được micro',false);toast('Không mở được micro: '+(e.message||e))}
 }
-function stopVoiceInput(){try{voiceRecognizer?.stop?.()}catch{} voiceListening=false;setVoiceStatus('🎙️ Đã dừng nghe',false)}
+function cancelDesktopAutoSend(){
+  if(window.desktopAutoSendTimer || window.desktopAutoSendInterval){
+    if(window.desktopAutoSendTimer) clearTimeout(window.desktopAutoSendTimer);
+    if(window.desktopAutoSendInterval) clearInterval(window.desktopAutoSendInterval);
+    window.desktopAutoSendTimer = null;
+    window.desktopAutoSendInterval = null;
+    setVoiceStatus('Đã hủy tự động gửi. Bạn có thể sửa câu hỏi rồi bấm Gửi.', false);
+    setTimeout(()=>setVoiceStatus('', false), 2500);
+  }
+}
+function stopVoiceInput(){cancelDesktopAutoSend();try{voiceRecognizer?.stop?.()}catch{} voiceListening=false;setVoiceStatus('🎙️ Đã dừng nghe',false)}
 function toggleVoiceInput(){voiceListening?stopVoiceInput():startVoiceInput()}
 function scrollChatBottom(force = false){
   const el=$('chatLog');
@@ -1139,7 +1176,7 @@ async function handleChatFiles(e){
 function renderChatAttachments(){
   const box=$('chatAttachments'); if(!box) return;
   if(!chatAttachments.length){box.innerHTML='';return}
-  box.innerHTML=chatAttachments.map((f,i)=>`<div class="attachment-pill"><span>${f.type.startsWith('image/')?'🖼':'📄'} ${escapeHtml(f.name)}</span><small>${Math.ceil((f.size||0)/1024)} KB</small><button onclick="removeChatAttachment(${i})">×</button></div>`).join('');
+  box.innerHTML=chatAttachments.map((f,i)=>`<div class="attachment-pill"><span>${f.type.startsWith('image/')?'🖼':(f.type.startsWith('video/')?'🎬':'📄')} ${escapeHtml(f.name)}</span><small>${Math.ceil((f.size||0)/1024)} KB</small><button onclick="removeChatAttachment(${i})">×</button></div>`).join('');
 }
 function removeChatAttachment(i){chatAttachments.splice(i,1);renderChatAttachments()}
 function clearChatAttachments(){chatAttachments=[];renderChatAttachments();toast('Đã xóa file đính kèm')}
@@ -1343,7 +1380,7 @@ async function sendChat(customPrompt){
     input.value='';
     autoResizeChatText();
   }
-  const attachLabel=attachments.length?`<div class="msg-files">${attachments.map(f=>`${f.type.startsWith('image/')?'🖼':'📄'} ${escapeHtml(f.name)}`).join('<br>')}</div>`:'';
+  const attachLabel=attachments.length?`<div class="msg-files">${attachments.map(f=>`${f.type.startsWith('image/')?'🖼':(f.type.startsWith('video/')?'🎬':'📄')} ${escapeHtml(f.name)}`).join('<br>')}</div>`:'';
   $('chatLog').insertAdjacentHTML('beforeend',`<div class="msg me">${getChatUserRoleHtml()}${escapeHtml(q||'Phân tích file/ảnh đã tải lên')}${attachLabel}</div>`);
 
   const msgId = 'ai-msg-' + Date.now();
