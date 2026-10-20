@@ -1,13 +1,17 @@
 const fs = require('fs');
+const path = require('path');
 const babel = require('@babel/core');
+const presetReact = require('@babel/preset-react');
 
-const source = fs.readFileSync('public/mobile-app.js', 'utf8');
+const inputPath = path.join(__dirname, 'public', 'mobile-app.js');
+const outputPath = path.join(__dirname, 'public', 'mobile-app.compiled.js');
+const source = fs.readFileSync(inputPath, 'utf8');
 
 babel.transformAsync(source, {
   presets: [
-    ['@babel/preset-react', { runtime: 'classic' }]
+    [presetReact, { runtime: 'classic' }]
   ]
 }).then(res => {
-  fs.writeFileSync('public/mobile-app.compiled.js', res.code);
+  fs.writeFileSync(outputPath, res.code);
   console.log("Recompiled perfectly with React.createElement!");
 }).catch(console.error);

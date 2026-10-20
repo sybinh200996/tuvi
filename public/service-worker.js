@@ -1,10 +1,11 @@
-const CACHE = "v53-realtime-voice-typing-20261019";
+const CACHE = "v54-sync-speech-stream-20261020";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./mobile.html",
   "./style.css",
   "./app.js",
+  "./sync-speech.js",
   "./knowledge.js",
   "./manifest.webmanifest",
   "./assets/icon.svg",

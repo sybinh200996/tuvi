@@ -193,7 +193,10 @@ async function prepareChatAttachment(file) {
 function markdownLite(text = '') {
   try {
     if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
-      return DOMPurify.sanitize(marked.parse(String(text)));
+      return DOMPurify.sanitize(marked.parse(String(text), {
+        breaks: true,
+        gfm: true
+      }));
     }
   } catch (e) {}
   const safe = String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -761,7 +764,7 @@ function Chat({
     } catch {}
     requestAbortRef.current?.abort?.();
     try {
-      speechSynthesis.cancel();
+      if (typeof window !== 'undefined' && window.SyncSpeech) window.SyncSpeech.stop();else speechSynthesis.cancel();
     } catch {}
   }, []);
   useEffect(() => {
@@ -772,20 +775,19 @@ function Chat({
     }
   }, []);
   useEffect(() => {
-    const isStreaming = messages.some(m => m.streaming);
+    const isStreaming = messages.some(m => m.streaming || m.isSpeaking);
     if (!isStreaming) {
       try {
         localStorage.setItem('nam44_messages', JSON.stringify(messages.slice(-50)));
       } catch (e) {}
     }
     if (boxRef.current) {
-      if (isStreaming) {
+      if (typeof window !== 'undefined' && window.SyncSpeech) {
+        window.SyncSpeech.smoothScrollToBottom(boxRef.current, isStreaming);
+      } else if (isStreaming) {
         boxRef.current.scrollTop = boxRef.current.scrollHeight;
       } else {
-        boxRef.current.scrollTo({
-          top: boxRef.current.scrollHeight,
-          behavior: 'smooth'
-        });
+        boxRef.current.scrollTop = boxRef.current.scrollHeight;
       }
     }
   }, [messages]);
@@ -936,6 +938,19 @@ function Chat({
     requestAbortRef.current = controller;
     const destinyProfile = getDestinyProfile();
     let accumulatedText = '';
+    const pacer = typeof window !== 'undefined' && window.SyncSpeech ? window.SyncSpeech.createStreamPacer({
+      onTextUpdate: (revealedText, isDone) => {
+        setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? {
+          ...m,
+          text: revealedText,
+          streaming: !isDone,
+          loading: false
+        } : m));
+        if (boxRef.current && window.SyncSpeech) {
+          window.SyncSpeech.smoothScrollToBottom(boxRef.current);
+        }
+      }
+    }) : null;
     try {
       const [selectedProvider, selectedModel] = modelChoice === 'auto' ? ['auto', ''] : modelChoice.split('::');
       if (attachments.length) {
@@ -956,16 +971,21 @@ function Chat({
           onStart: () => {},
           onDelta: (chunk, fullText) => {
             accumulatedText = fullText;
-            setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? {
-              ...m,
-              text: fullText,
-              streaming: true,
-              loading: false
-            } : m));
+            if (pacer) {
+              pacer.pushDelta(fullText);
+            } else {
+              setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? {
+                ...m,
+                text: fullText,
+                streaming: true,
+                loading: false
+              } : m));
+            }
           },
           onDone: (fullText, meta) => {
             accumulatedText = fullText;
             const finalMeta = meta?.label || meta?.model || 'Đặng Năm AI';
+            if (pacer) pacer.complete(fullText);
             setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? {
               ...m,
               text: fullText,
@@ -988,16 +1008,21 @@ function Chat({
           onStart: () => {},
           onDelta: (chunk, fullText) => {
             accumulatedText = fullText;
-            setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? {
-              ...m,
-              text: fullText,
-              streaming: true,
-              loading: false
-            } : m));
+            if (pacer) {
+              pacer.pushDelta(fullText);
+            } else {
+              setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? {
+                ...m,
+                text: fullText,
+                streaming: true,
+                loading: false
+              } : m));
+            }
           },
           onDone: (fullText, meta) => {
             accumulatedText = fullText;
             const finalMeta = meta?.label || meta?.model || 'Đặng Năm AI';
+            if (pacer) pacer.complete(fullText);
             setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? {
               ...m,
               text: fullText,
@@ -1010,6 +1035,7 @@ function Chat({
         });
       }
     } catch (e) {
+      if (pacer) pacer.abort();
       if (e.name === 'AbortError') {
         setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? {
           ...m,
@@ -1049,9 +1075,62 @@ function Chat({
   function toggleSpeak(textToSpeak, id = 'header') {
     if (speakingId === id) {
       try {
-        speechSynthesis.cancel();
+        if (typeof window !== 'undefined' && window.SyncSpeech) window.SyncSpeech.stop();else speechSynthesis.cancel();
       } catch {}
       setSpeakingId(null);
+      return;
+    }
+    if (typeof window !== 'undefined' && window.SyncSpeech) {
+      window.SyncSpeech.stop();
+      setSpeakingId(id);
+      let targetIdx = -1;
+      if (id === 'header') {
+        for (let j = messages.length - 1; j >= 0; j--) {
+          if (messages[j].role === 'assistant') {
+            targetIdx = j;
+            break;
+          }
+        }
+      } else if (id.startsWith('msg-')) {
+        targetIdx = parseInt(id.replace('msg-', ''), 10);
+      }
+      window.SyncSpeech.speakWithSync({
+        id,
+        text: textToSpeak,
+        rate: 1.0,
+        onWord: (revealedText, isDone) => {
+          if (targetIdx >= 0) {
+            setMessages(prev => prev.map((m, idx) => idx === targetIdx ? {
+              ...m,
+              text: revealedText,
+              isSpeaking: !isDone
+            } : m));
+          }
+          if (boxRef.current && window.SyncSpeech) {
+            window.SyncSpeech.smoothScrollToBottom(boxRef.current);
+          }
+        },
+        onDone: finalText => {
+          setSpeakingId(null);
+          if (targetIdx >= 0) {
+            setMessages(prev => prev.map((m, idx) => idx === targetIdx ? {
+              ...m,
+              text: finalText,
+              isSpeaking: false
+            } : m));
+          }
+        },
+        onError: () => {
+          setSpeakingId(null);
+          if (targetIdx >= 0) {
+            setMessages(prev => prev.map((m, idx) => idx === targetIdx ? {
+              ...m,
+              text: textToSpeak,
+              isSpeaking: false
+            } : m));
+          }
+        }
+      });
       return;
     }
     const cleanText = cleanMarkdownForSpeech(textToSpeak);
@@ -1081,7 +1160,7 @@ function Chat({
       setText('');
       setFileNotice('');
       try {
-        speechSynthesis.cancel();
+        if (typeof window !== 'undefined' && window.SyncSpeech) window.SyncSpeech.stop();else speechSynthesis.cancel();
       } catch {}
       setSpeakingId(null);
     }
@@ -1256,7 +1335,7 @@ function Chat({
     ref: boxRef
   }, messages.map((m, i) => /*#__PURE__*/React.createElement("div", {
     key: i,
-    className: `bubble ${m.role} ${m.loading ? 'loading' : ''}`
+    className: `bubble ${m.role} ${m.loading ? 'loading' : ''} ${m.isSpeaking ? 'speaking' : ''}`
   }, /*#__PURE__*/React.createElement("div", {
     className: "avatar"
   }, m.role === 'user' ? '👤' : '✦'), /*#__PURE__*/React.createElement("div", {
@@ -1269,7 +1348,7 @@ function Chat({
     dangerouslySetInnerHTML: {
       __html: markdownLite(m.text)
     }
-  }), m.streaming && /*#__PURE__*/React.createElement("span", {
+  }), (m.streaming || m.isSpeaking) && /*#__PURE__*/React.createElement("span", {
     className: "streaming-cursor"
   }), m.meta && !m.streaming && /*#__PURE__*/React.createElement("div", {
     className: "msg-meta-tag",
@@ -1551,6 +1630,7 @@ function Settings({
       await reload();
       await loadDestinyProfileFromCloud();
     } catch (e) {
+      if (pacer) pacer.abort();
       if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
         setSocialLoading(false);
         return;
@@ -1595,6 +1675,7 @@ function Settings({
       await reload();
       await loadDestinyProfileFromCloud();
     } catch (e) {
+      if (pacer) pacer.abort();
       alert(e.message || 'Thao tác không thành công.');
     } finally {
       setLoading(false);
@@ -2026,6 +2107,7 @@ function VisionTool({
       setResult(text);
       saveHistory(title, text);
     } catch (e) {
+      if (pacer) pacer.abort();
       console.error('Vision analysis error:', e);
       const fb = window.MysticEngine ? mode === 'palm' ? window.MysticEngine.Palmistry.analyze(note, '') : window.MysticEngine.Face.analyze(note, '') : mode === 'palm' ? '### Lỗi tải Mystic Engine - Chỉ Tay' : '### Lỗi tải Mystic Engine - Tướng Mặt';
       const fallbackMsg = fb + '\n\n*(Lưu ý: Đang hiển thị kết quả phân tích offline do máy chủ: ' + (e.message || 'Mất kết nối') + ')*';

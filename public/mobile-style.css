@@ -2434,3 +2434,43 @@ html, body {
   cursor: pointer;
   white-space: nowrap;
 }
+
+/* ==========================================================================
+   MOBILE CHAT SYNC & ANTI-OVERFLOW OPTIMIZATIONS
+   Prevents text dumps, horizontal layout break, and scroll stutter
+   ========================================================================== */
+.chat-box,
+.chat-layout .bubble,
+.chat-layout .bubble-body,
+.chat-layout .bubble-body * {
+  word-wrap: break-word !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+.chat-box {
+  overflow-x: hidden !important;
+  scroll-behavior: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.bubble-body {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.streaming-cursor {
+  display: inline-block;
+  width: 6px;
+  height: 14px;
+  vertical-align: middle;
+  margin-left: 4px;
+  background-color: #60a5fa;
+  border-radius: 2px;
+  animation: synamCursorPulse 0.75s infinite ease-in-out;
+}
+
+@keyframes synamCursorPulse {
+  0%, 100% { opacity: 1; transform: scaleY(1); }
+  50% { opacity: 0.15; transform: scaleY(0.7); }
+}

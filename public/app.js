@@ -306,7 +306,10 @@ function getChatUserRoleHtml(){
   return `<span class="msg-role user-role">${u.icon} ${escapeHtml(u.name)}${plan}</span>`;
 }
 function stopSpeaking(){
-  try{speechSynthesis?.cancel?.()}catch{}
+  try{
+    if (typeof window !== 'undefined' && window.SyncSpeech) window.SyncSpeech.stop();
+    else speechSynthesis?.cancel?.();
+  }catch{}
   setVoiceStatus('🔇 Đã khóa mỏ / dừng đọc',false);
   toast('Đã dừng đọc giọng AI');
 }
@@ -705,6 +708,7 @@ async function analyzeCung(cungName, cungChi, cungDesc) {
         saveHistory(`Tử Vi: Cung ${cungName}`, finalText);
       },
       onError: (err) => {
+        if (pacer) pacer.abort();
         if (resultContent) {
           resultContent.innerHTML = `<span style="color:#ff7888;">⚠️ Chưa thể kết nối AI: ${escapeHtml(err.message || err)}. Vui lòng thử lại sau ít giây.</span>`;
         }
@@ -769,6 +773,7 @@ async function analyzeTuviPrompt(promptText) {
         saveHistory('Tử Vi Đặng Năm AI', finalText);
       },
       onError: (err) => {
+        if (pacer) pacer.abort();
         if (resultContent) {
           resultContent.innerHTML = `<span style="color:#ff7888;">⚠️ Chưa thể kết nối AI: ${escapeHtml(err.message || err)}.</span>`;
         }
@@ -818,7 +823,7 @@ function hideModelLeak(text=''){
 function markdownish(text=''){
   if(typeof window !== 'undefined' && window.marked && window.DOMPurify){
     try {
-      return window.DOMPurify.sanitize(window.marked.parse(String(text||'')));
+      return window.DOMPurify.sanitize(window.marked.parse(String(text||''), { breaks: true, gfm: true }));
     } catch(e) {}
   }
   text=String(text||'').replace(/\\n/g,'\n').replace(/\r/g,'');
@@ -912,6 +917,41 @@ function speakText(text, force=false){
   if(!('speechSynthesis' in window)){toast('Trình duyệt chưa hỗ trợ đọc giọng nói');return}
   const clean=cleanSpeakText(text);
   if(!clean){toast('Không có nội dung để đọc');return}
+  if (typeof window !== 'undefined' && window.SyncSpeech) {
+    const voice=getPreferredVoice();
+    const rate=Number($('voiceRate')?.value||1);
+    if(voice){
+      setVoiceStatus('🔊 Đang đọc: '+voice.name, true);
+    } else {
+      setVoiceStatus('🔊 Đang đọc giọng AI...', true);
+    }
+    const lastAiMsg = $('chatLog')?.querySelector('.msg.ai-msg:last-child .content-body');
+    window.SyncSpeech.speakWithSync({
+      id: 'desktop-chat-tts',
+      text,
+      rate,
+      voice,
+      onWord: (revealedText, isDone) => {
+        if (lastAiMsg && $('page-chat')?.classList.contains('active')) {
+          lastAiMsg.innerHTML = markdownish(revealedText);
+          scrollChatBottom();
+        }
+      },
+      onDone: (finalText) => {
+        if (lastAiMsg && $('page-chat')?.classList.contains('active')) {
+          lastAiMsg.innerHTML = markdownish(finalText);
+          scrollChatBottom();
+        }
+        setVoiceStatus('Đã đọc xong.', false);
+        if($('autoListenToggle')?.checked && $('page-chat')?.classList.contains('active')) startVoiceInput();
+      },
+      onError: () => {
+        setVoiceStatus('', false);
+      }
+    });
+    return;
+  }
+
   speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(clean);
   u.lang='vi-VN';
@@ -1357,6 +1397,18 @@ async function sendChat(customPrompt){
     };
 
     let accumulatedText = '';
+    const pacer = typeof window !== 'undefined' && window.SyncSpeech ? window.SyncSpeech.createStreamPacer({
+      onTextUpdate: (revealed, isDone) => {
+        if (bodyElem) {
+          bodyElem.innerHTML = markdownish(revealed);
+        }
+        scrollChatBottom();
+      },
+      onDone: (final) => {
+        if (bodyElem) bodyElem.innerHTML = markdownish(final);
+        scrollChatBottom();
+      }
+    }) : null;
     await streamChatResponse({
       url: streamUrl,
       payload,
@@ -1368,6 +1420,10 @@ async function sendChat(customPrompt){
       },
       onDelta: (chunk, full) => {
         accumulatedText = hideModelLeak(full);
+        if (pacer) {
+          pacer.pushDelta(accumulatedText);
+          return;
+        }
         if (bodyElem) {
           bodyElem.innerHTML = markdownish(accumulatedText);
         }
@@ -1375,6 +1431,7 @@ async function sendChat(customPrompt){
       },
       onDone: (finalFull, meta) => {
         const text = hideModelLeak(finalFull || accumulatedText || 'Đã hoàn thành phản hồi.');
+        if (pacer) pacer.complete(text);
         if (bodyElem) bodyElem.innerHTML = markdownish(text);
         if (cursorElem) cursorElem.remove();
         appendChatActions(msgElem, text);
@@ -1388,6 +1445,7 @@ async function sendChat(customPrompt){
         currentChatAbortController = null;
       },
       onError: (err) => {
+        if (pacer) pacer.abort();
         setChatSendBtnState(false);
         currentChatAbortController = null;
         throw err;

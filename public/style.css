@@ -3711,3 +3711,44 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
   color: #f87171;
   font-size: 11.5px;
 }
+
+/* ==========================================================================
+   CHAT SYNC & ANTI-OVERFLOW OPTIMIZATIONS (Desktop & Mobile)
+   Prevents horizontal layout breaking, text dumps, and auto-scroll jitter
+   ========================================================================== */
+.pro-chat-log,
+.pro-chat-log .msg,
+.pro-chat-log .content-body,
+.pro-chat-log .msg * {
+  word-wrap: break-word !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+}
+
+.pro-chat-log {
+  overflow-x: hidden !important;
+  scroll-behavior: auto !important;
+}
+
+.pro-chat-log .content-body {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  line-height: 1.65;
+}
+
+.streaming-cursor {
+  display: inline-block;
+  width: 6px;
+  height: 14px;
+  vertical-align: middle;
+  margin-left: 4px;
+  background-color: #60a5fa;
+  border-radius: 2px;
+  animation: synamCursorPulse 0.75s infinite ease-in-out;
+}
+
+@keyframes synamCursorPulse {
+  0%, 100% { opacity: 1; transform: scaleY(1); }
+  50% { opacity: 0.15; transform: scaleY(0.7); }
+}

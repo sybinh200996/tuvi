@@ -126,7 +126,7 @@ async function prepareChatAttachment(file) {
 function markdownLite(text = '') {
   try {
     if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
-      return DOMPurify.sanitize(marked.parse(String(text)));
+      return DOMPurify.sanitize(marked.parse(String(text), { breaks: true, gfm: true }));
     }
   } catch(e) {}
   const safe = String(text)
@@ -565,7 +565,10 @@ function Chat({ providers }) {
   useEffect(() => () => {
     try { recognitionRef.current?.abort(); } catch {}
     requestAbortRef.current?.abort?.();
-    try { speechSynthesis.cancel(); } catch {}
+    try {
+      if (typeof window !== 'undefined' && window.SyncSpeech) window.SyncSpeech.stop();
+      else speechSynthesis.cancel();
+    } catch {}
   }, []);
   
   useEffect(() => {
@@ -577,17 +580,19 @@ function Chat({ providers }) {
   }, []);
 
   useEffect(() => {
-    const isStreaming = messages.some(m => m.streaming);
+    const isStreaming = messages.some(m => m.streaming || m.isSpeaking);
     if (!isStreaming) {
       try {
         localStorage.setItem('nam44_messages', JSON.stringify(messages.slice(-50)));
       } catch(e) {}
     }
     if (boxRef.current) {
-      if (isStreaming) {
+      if (typeof window !== 'undefined' && window.SyncSpeech) {
+        window.SyncSpeech.smoothScrollToBottom(boxRef.current, isStreaming);
+      } else if (isStreaming) {
         boxRef.current.scrollTop = boxRef.current.scrollHeight;
       } else {
-        boxRef.current.scrollTo({ top: boxRef.current.scrollHeight, behavior: 'smooth' });
+        boxRef.current.scrollTop = boxRef.current.scrollHeight;
       }
     }
   }, [messages]);
@@ -720,6 +725,14 @@ function Chat({ providers }) {
     requestAbortRef.current = controller;
     const destinyProfile = getDestinyProfile();
     let accumulatedText = '';
+    const pacer = typeof window !== 'undefined' && window.SyncSpeech ? window.SyncSpeech.createStreamPacer({
+      onTextUpdate: (revealedText, isDone) => {
+        setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? { ...m, text: revealedText, streaming: !isDone, loading: false } : m));
+        if (boxRef.current && window.SyncSpeech) {
+          window.SyncSpeech.smoothScrollToBottom(boxRef.current);
+        }
+      }
+    }) : null;
 
     try {
       const [selectedProvider, selectedModel] = modelChoice === 'auto' ? ['auto', ''] : modelChoice.split('::');
@@ -741,11 +754,16 @@ function Chat({ providers }) {
           onStart: () => {},
           onDelta: (chunk, fullText) => {
             accumulatedText = fullText;
-            setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? { ...m, text: fullText, streaming: true, loading: false } : m));
+            if (pacer) {
+              pacer.pushDelta(fullText);
+            } else {
+              setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? { ...m, text: fullText, streaming: true, loading: false } : m));
+            }
           },
           onDone: (fullText, meta) => {
             accumulatedText = fullText;
             const finalMeta = meta?.label || meta?.model || 'Đặng Năm AI';
+            if (pacer) pacer.complete(fullText);
             setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? { ...m, text: fullText, streaming: false, loading: false, meta: finalMeta } : m));
             saveHistory('AI Chat', `${userText}: ${fullText.slice(0, 140)}...`);
           }
@@ -762,17 +780,23 @@ function Chat({ providers }) {
           onStart: () => {},
           onDelta: (chunk, fullText) => {
             accumulatedText = fullText;
-            setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? { ...m, text: fullText, streaming: true, loading: false } : m));
+            if (pacer) {
+              pacer.pushDelta(fullText);
+            } else {
+              setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? { ...m, text: fullText, streaming: true, loading: false } : m));
+            }
           },
           onDone: (fullText, meta) => {
             accumulatedText = fullText;
             const finalMeta = meta?.label || meta?.model || 'Đặng Năm AI';
+            if (pacer) pacer.complete(fullText);
             setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? { ...m, text: fullText, streaming: false, loading: false, meta: finalMeta } : m));
             saveHistory('AI Chat', `${userText}: ${fullText.slice(0, 140)}...`);
           }
         });
       }
     } catch (e) {
+      if (pacer) pacer.abort();
       if (e.name === 'AbortError') {
         setMessages(prev => prev.map((m, idx) => idx === prev.length - 1 ? { ...m, text: accumulatedText || 'Đã dừng phản hồi.', streaming: false, loading: false } : m));
       } else {
@@ -814,10 +838,57 @@ function Chat({ providers }) {
 
   function toggleSpeak(textToSpeak, id = 'header') {
     if (speakingId === id) {
-      try { speechSynthesis.cancel(); } catch {}
+      try {
+      if (typeof window !== 'undefined' && window.SyncSpeech) window.SyncSpeech.stop();
+      else speechSynthesis.cancel();
+    } catch {}
       setSpeakingId(null);
       return;
     }
+    if (typeof window !== 'undefined' && window.SyncSpeech) {
+      window.SyncSpeech.stop();
+      setSpeakingId(id);
+
+      let targetIdx = -1;
+      if (id === 'header') {
+        for (let j = messages.length - 1; j >= 0; j--) {
+          if (messages[j].role === 'assistant') {
+            targetIdx = j;
+            break;
+          }
+        }
+      } else if (id.startsWith('msg-')) {
+        targetIdx = parseInt(id.replace('msg-', ''), 10);
+      }
+
+      window.SyncSpeech.speakWithSync({
+        id,
+        text: textToSpeak,
+        rate: 1.0,
+        onWord: (revealedText, isDone) => {
+          if (targetIdx >= 0) {
+            setMessages(prev => prev.map((m, idx) => idx === targetIdx ? { ...m, text: revealedText, isSpeaking: !isDone } : m));
+          }
+          if (boxRef.current && window.SyncSpeech) {
+            window.SyncSpeech.smoothScrollToBottom(boxRef.current);
+          }
+        },
+        onDone: (finalText) => {
+          setSpeakingId(null);
+          if (targetIdx >= 0) {
+            setMessages(prev => prev.map((m, idx) => idx === targetIdx ? { ...m, text: finalText, isSpeaking: false } : m));
+          }
+        },
+        onError: () => {
+          setSpeakingId(null);
+          if (targetIdx >= 0) {
+            setMessages(prev => prev.map((m, idx) => idx === targetIdx ? { ...m, text: textToSpeak, isSpeaking: false } : m));
+          }
+        }
+      });
+      return;
+    }
+
     const cleanText = cleanMarkdownForSpeech(textToSpeak);
     if (!cleanText) return;
     try {
@@ -845,7 +916,10 @@ function Chat({ providers }) {
       setAttachments([]);
       setText('');
       setFileNotice('');
-      try { speechSynthesis.cancel(); } catch {}
+      try {
+      if (typeof window !== 'undefined' && window.SyncSpeech) window.SyncSpeech.stop();
+      else speechSynthesis.cancel();
+    } catch {}
       setSpeakingId(null);
     }
   }
@@ -943,7 +1017,7 @@ function Chat({ providers }) {
 
       <div className="chat-box" ref={boxRef}>
         {messages.map((m, i) => (
-          <div key={i} className={`bubble ${m.role} ${m.loading?'loading':''}`}>
+          <div key={i} className={`bubble ${m.role} ${m.loading?'loading':''} ${m.isSpeaking?'speaking':''}`}>
             <div className="avatar">{m.role==='user'?'👤':'✦'}</div>
             <div className="bubble-body">
               {m.attachments?.length > 0 && (
@@ -952,7 +1026,7 @@ function Chat({ providers }) {
                 </div>
               )}
               <div dangerouslySetInnerHTML={{__html: markdownLite(m.text)}} />
-              {m.streaming && <span className="streaming-cursor"></span>}
+              {(m.streaming || m.isSpeaking) && <span className="streaming-cursor"></span>}
               {m.meta && !m.streaming && <div className="msg-meta-tag" style={{fontSize:'10px', opacity:0.65, marginTop:'4px'}}>✦ {m.meta}</div>}
               {m.role==='assistant' && !m.loading && !m.streaming && (
                 <div className="msg-actions">
@@ -1181,6 +1255,7 @@ function Settings({ providers, reload }) {
       await reload();
       await loadDestinyProfileFromCloud();
     } catch (e) {
+      if (pacer) pacer.abort();
       if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
         setSocialLoading(false);
         return;
@@ -1222,6 +1297,7 @@ function Settings({ providers, reload }) {
       await reload();
       await loadDestinyProfileFromCloud();
     } catch (e) {
+      if (pacer) pacer.abort();
       alert(e.message || 'Thao tác không thành công.');
     } finally {
       setLoading(false);
@@ -1468,6 +1544,7 @@ function VisionTool({ mode, title, icon }) {
       setResult(text);
       saveHistory(title, text);
     } catch (e) {
+      if (pacer) pacer.abort();
       console.error('Vision analysis error:', e);
       const fb = window.MysticEngine
         ? (mode === 'palm' ? window.MysticEngine.Palmistry.analyze(note, '') : window.MysticEngine.Face.analyze(note, ''))
