@@ -2506,36 +2506,37 @@ async function analyzeSimPhongThuy(){
 
     let tagsHtml = '';
     if(p.tags && p.tags.length){
-      tagsHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0;">' + p.tags.map(t=>'<span class="badge" style="background:rgba(255,215,0,0.15);color:#ffd700;border:1px solid rgba(255,215,0,0.3);padding:3px 8px;border-radius:12px;font-size:11px;">⭐ ' + escapeHtml(t) + '</span>').join('') + '</div>';
+      tagsHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:10px 0;">' + p.tags.map(t=>'<span class="badge" style="background:rgba(255,215,0,0.15);color:#ffd700;border:1px solid rgba(255,215,0,0.3);padding:3px 8px;border-radius:12px;font-size:11px;">⭐ ' + escapeHtml(t) + '</span>').join('') + '</div>';
     }
 
     const previewCard = '<div class="sim-preview-box" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,215,0,0.3);border-radius:12px;padding:16px;margin-bottom:15px;">' +
       '<div style="text-align:center;margin-bottom:12px;">' +
         '<span style="font-size:12px;color:#ffd700;text-transform:uppercase;letter-spacing:1px;">Định Giá Thị Trường Ước Tính</span>' +
-        '<div style="font-size:28px;font-weight:900;color:#ffd700;margin:4px 0;">' + p.formattedPrice + '</div>' +
-        '<div style="font-size:12px;opacity:0.75;">Biên độ giá: ' + p.priceRange + '</div>' +
+        '<div style="font-size:32px;font-weight:900;color:#ffd700;margin:4px 0;">' + p.formattedPrice + '</div>' +
       '</div>' +
       tagsHtml +
-      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;font-size:13px;margin-top:10px;">' +
+      '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;font-size:13px;margin-top:10px;">' +
         '<div style="background:rgba(0,0,0,0.25);padding:10px;border-radius:8px;">' +
-          '<b>Điểm nút số:</b> <span style="color:#ffd700;font-weight:bold;font-size:16px;">' + pt.nutSo.score + '</span> / 10 điểm' +
-          '<div style="font-size:12px;opacity:0.8;margin-top:2px;">' + escapeHtml(pt.nutSo.meaning) + ' (Tổng ' + pt.nutSo.totalSum + ')</div>' +
+          '<b>Ngũ Hành Bản Mệnh:</b> Mệnh <span style="color:#38bdf8;font-weight:bold;">' + escapeHtml(pt.nguHanh.userMenh) + '</span> (' + escapeHtml(pt.nguHanh.userCanChi) + ') - Đuôi <span style="color:#fbbf24;font-weight:bold;">' + pt.nguHanh.lastDigit + ' (' + escapeHtml(pt.nguHanh.simElement) + ')</span>' +
+          '<div style="font-size:12px;color:#86efac;margin-top:3px;font-weight:500;">' + escapeHtml(pt.nguHanh.tuongTac) + '</div>' +
         '</div>' +
         '<div style="background:rgba(0,0,0,0.25);padding:10px;border-radius:8px;">' +
           '<div style="display:flex;justify-content:space-between;margin-bottom:4px;">' +
-            '<span><b>Âm Dương:</b> ' + pt.yinYang.evenPercent + '% Âm</span>' +
-            '<span>' + pt.yinYang.oddPercent + '% Dương</span>' +
+            '<span><b>Điểm nút:</b> <span style="color:#ffd700;font-weight:bold;">' + pt.nutSo.score + '</span> / 10</span>' +
+            '<span><b>Âm Dương:</b> ' + escapeHtml(pt.yinYang.ratio) + '</span>' +
           '</div>' +
-          '<div style="width:100%;height:8px;border-radius:4px;overflow:hidden;display:flex;">' +
+          '<div style="width:100%;height:8px;border-radius:4px;overflow:hidden;display:flex;margin:4px 0;">' +
             '<div style="width:' + pt.yinYang.evenPercent + '%;background:#6366f1;"></div>' +
             '<div style="width:' + pt.yinYang.oddPercent + '%;background:#eab308;"></div>' +
           '</div>' +
-          '<div style="font-size:12px;opacity:0.8;margin-top:4px;">' + escapeHtml(pt.yinYang.evaluation) + '</div>' +
         '</div>' +
         '<div style="background:rgba(0,0,0,0.25);padding:10px;border-radius:8px;">' +
-          '<b>Quẻ Kinh Dịch:</b> <span style="color:#f87171;font-weight:bold;">' + escapeHtml(pt.queDich.tenQue) + '</span> (' + escapeHtml(pt.queDich.tinhChat) + ')' +
-          '<div style="font-size:12px;opacity:0.8;margin-top:2px;">Thượng: ' + escapeHtml(pt.queDich.thuongQuai) + ' - Hạ: ' + escapeHtml(pt.queDich.haQuai) + '</div>' +
-          '<div style="font-size:12px;color:#cbd5e1;font-style:italic;margin-top:2px;">\"' + escapeHtml(pt.queDich.yNghia) + '\"</div>' +
+          '<b>Cửu Tinh Đồ Pháp (Vận 9: 2024-2043):</b>' +
+          '<div style="font-size:12px;color:#cbd5e1;margin-top:3px;">' + escapeHtml(pt.van9.evaluation) + '</div>' +
+        '</div>' +
+        '<div style="background:rgba(0,0,0,0.25);padding:10px;border-radius:8px;">' +
+          '<div><b>Quẻ Chủ:</b> <span style="color:#f87171;font-weight:bold;">' + escapeHtml(pt.queDich.queChu.ten) + '</span> (' + escapeHtml(pt.queDich.queChu.tinhChat) + ') - <i>"' + escapeHtml(pt.queDich.queChu.yNghia) + '"</i></div>' +
+          '<div style="margin-top:4px;"><b>Quẻ Hỗ:</b> <span style="color:#c084fc;font-weight:bold;">' + escapeHtml(pt.queDich.queHo.ten) + '</span> (' + escapeHtml(pt.queDich.queHo.tinhChat) + ') - <i>"' + escapeHtml(pt.queDich.queHo.yNghia) + '"</i></div>' +
         '</div>' +
       '</div>' +
     '</div>' +
@@ -2546,9 +2547,7 @@ async function analyzeSimPhongThuy(){
 
     if(resPanel) resPanel.innerHTML = previewCard;
 
-    const prompt = 'Đóng vai Chuyên gia Phong thủy Số học & Định giá Sim cao cấp. Dựa trên các thông số kỹ thuật đã tính toán chính xác sau đây:\n\n' + data.aiPromptData + '\n\nHãy phân tích và luận giải chuyên sâu bằng tiếng Việt:\n1. Đánh giá thế số và độ đẹp của số điện thoại này theo phong thủy và thẩm mỹ sim.\n2. Bình giải Quẻ Kinh Dịch (' + pt.queDich.tenQue + ') tác động như thế nào đến công việc làm ăn, tài lộc và gia đạo.\n3. Số điện thoại này tương sinh hay tương khắc với người sinh năm ' + data.birthYear + '?\n4. Đánh giá mức giá định giá (' + p.formattedPrice + ') có hợp lý không và lời khuyên sở hữu/sử dụng sim.';
-
-    const aiRes = await postJSON('/api/multi-ai/chat', { provider: 'auto', model: 'gemini-3.5-flash-lite', message: prompt });
+    const aiRes = await postJSON('/api/multi-ai/chat', { provider: 'auto', model: 'gemini-3.5-flash-lite', message: data.aiPromptData });
     const aiText = aiRes.text || aiRes.reply || 'Đã phân tích xong.';
     const simAiContent = $('simAiContent');
     if(simAiContent) simAiContent.innerHTML = markdownish(aiText);

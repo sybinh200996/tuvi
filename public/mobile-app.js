@@ -2299,17 +2299,12 @@ function SimTool() {
       });
       setSimData(res);
 
-      setAiOut('✦ Chuyên gia AI đang phân tích sâu thế số, quẻ Dịch và định giá sim...');
-      const prompt = `Đóng vai Chuyên gia Phong thủy Số học & Định giá Sim cao cấp. Dựa trên các thông số kỹ thuật đã tính toán chính xác sau đây:\n\n${res.aiPromptData}\n\nHãy phân tích và luận giải chuyên sâu bằng tiếng Việt:
-1. Đánh giá thế số và độ đẹp của số điện thoại này theo phong thủy và thẩm mỹ sim.
-2. Bình giải Quẻ Kinh Dịch (${res.phongThuy.queDich.tenQue}) tác động như thế nào đến công việc làm ăn, tài lộc và gia đạo.
-3. Số điện thoại này tương sinh hay tương khắc với người sinh năm ${res.birthYear}?
-4. Đánh giá mức giá định giá (${res.price.formattedPrice}) có hợp lý không và lời khuyên sử dụng sim.`;
+      setAiOut('✦ Chuyên gia AI đang phân tích sâu thế số, ngũ hành, vận 9 và quẻ dịch...');
 
       const aiRes = await apiJSON('/api/multi-ai/chat', {
         provider: 'auto',
         model: 'gemini-3.5-flash-lite',
-        message: prompt
+        message: res.aiPromptData
       });
       setAiOut(aiRes.text || aiRes.reply || 'Đã phân tích xong.');
     } catch (err) {
@@ -2323,12 +2318,12 @@ function SimTool() {
   return (
     <section className="tool-grid">
       <div className="premium-panel">
-        <h2>📱 Định Giá Sim & Phong Thủy Số</h2>
+        <h2>📱 Định Giá Sim & Phong Thủy Số Học</h2>
         <p style={{ fontSize: '13px', opacity: 0.8, marginBottom: '12px' }}>
-          Định giá thị trường, tra cứu Quẻ Kinh Dịch, Nút số và tỷ lệ Âm Dương kết hợp AI luận giải.
+          Định giá chuẩn xác thị trường, ngũ hành sinh khắc, đắc vận 9 và quẻ Kinh Dịch (Chủ & Hỗ).
         </p>
         <label>
-          Số điện thoại cần xem:
+          Số điện thoại cần thẩm định:
           <input
             type="tel"
             value={phone}
@@ -2338,12 +2333,12 @@ function SimTool() {
           />
         </label>
         <label>
-          Năm sinh của bạn (để xét hợp mệnh):
+          Năm sinh bản mệnh của bạn:
           <input
             type="number"
             value={birthYear}
             onChange={e => setBirthYear(e.target.value)}
-            placeholder="Ví dụ: 1990"
+            placeholder="Ví dụ: 1984, 1990..."
           />
         </label>
 
@@ -2354,13 +2349,12 @@ function SimTool() {
         </button>
 
         {simData && (
-          <div style={{ marginTop: '20px', padding: '15px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,215,0,0.3)' }}>
+          <div style={{ marginTop: '20px', padding: '16px', borderRadius: '12px', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,215,0,0.3)' }}>
             <div style={{ textAlign: 'center', marginBottom: '15px' }}>
               <span style={{ fontSize: '12px', color: '#ffd700', textTransform: 'uppercase', letterSpacing: '1px' }}>Định Giá Thị Trường Ước Tính</span>
-              <div style={{ fontSize: '28px', fontWeight: '900', color: '#ffd700', margin: '4px 0' }}>
+              <div style={{ fontSize: '30px', fontWeight: '900', color: '#ffd700', margin: '4px 0' }}>
                 {simData.price.formattedPrice}
               </div>
-              <div style={{ fontSize: '12px', opacity: 0.7 }}>Dao động: {simData.price.priceRange}</div>
             </div>
 
             {simData.price.tags?.length > 0 && (
@@ -2374,27 +2368,34 @@ function SimTool() {
             )}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px', fontSize: '13px' }}>
-              <div style={{ padding: '10px', borderRadius: '8px', background: 'rgba(0,0,0,0.2)' }}>
-                <b>Điểm nút số:</b> <span style={{ color: '#ffd700', fontWeight: 'bold', fontSize: '16px' }}>{simData.phongThuy.nutSo.score}</span> / 10 điểm
-                <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '2px' }}>{simData.phongThuy.nutSo.meaning} (Tổng {simData.phongThuy.nutSo.totalSum})</div>
+              {/* Ngũ Hành Bản Mệnh */}
+              <div style={{ padding: '10px', borderRadius: '8px', background: 'rgba(0,0,0,0.25)' }}>
+                <b>Ngũ Hành Bản Mệnh:</b> Mệnh <span style={{ color: '#38bdf8', fontWeight: 'bold' }}>{simData.phongThuy.nguHanh.userMenh}</span> ({simData.phongThuy.nguHanh.userCanChi}) - Đuôi <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>{simData.phongThuy.nguHanh.lastDigit} ({simData.phongThuy.nguHanh.simElement})</span>
+                <div style={{ fontSize: '12px', color: '#86efac', marginTop: '2px', fontWeight: '500' }}>{simData.phongThuy.nguHanh.tuongTac}</div>
               </div>
 
-              <div style={{ padding: '10px', borderRadius: '8px', background: 'rgba(0,0,0,0.2)' }}>
+              {/* Nút số & Âm Dương */}
+              <div style={{ padding: '10px', borderRadius: '8px', background: 'rgba(0,0,0,0.25)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span><b>Âm Dương:</b> {simData.phongThuy.yinYang.evenPercent}% Âm</span>
-                  <span>{simData.phongThuy.yinYang.oddPercent}% Dương</span>
+                  <span><b>Điểm nút:</b> <span style={{ color: '#ffd700', fontWeight: 'bold' }}>{simData.phongThuy.nutSo.score}</span> / 10</span>
+                  <span><b>Âm Dương:</b> {simData.phongThuy.yinYang.ratio}</span>
                 </div>
-                <div style={{ width: '100%', height: '8px', borderRadius: '4px', overflow: 'hidden', display: 'flex', background: '#3b82f6' }}>
+                <div style={{ width: '100%', height: '8px', borderRadius: '4px', overflow: 'hidden', display: 'flex', background: '#3b82f6', margin: '4px 0' }}>
                   <div style={{ width: `${simData.phongThuy.yinYang.evenPercent}%`, background: '#6366f1' }} />
                   <div style={{ width: `${simData.phongThuy.yinYang.oddPercent}%`, background: '#eab308' }} />
                 </div>
-                <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '4px' }}>{simData.phongThuy.yinYang.evaluation}</div>
               </div>
 
-              <div style={{ padding: '10px', borderRadius: '8px', background: 'rgba(0,0,0,0.2)' }}>
-                <b>Quẻ Chủ Kinh Dịch:</b> <span style={{ color: '#f87171', fontWeight: 'bold' }}>{simData.phongThuy.queDich.tenQue}</span> ({simData.phongThuy.queDich.tinhChat})
-                <div style={{ fontSize: '12px', opacity: 0.8, marginTop: '2px' }}>Thượng: {simData.phongThuy.queDich.thuongQuai} - Hạ: {simData.phongThuy.queDich.haQuai}</div>
-                <div style={{ fontSize: '12px', color: '#cbd5e1', fontStyle: 'italic', marginTop: '2px' }}>"{simData.phongThuy.queDich.yNghia}"</div>
+              {/* Cửu Tinh Đồ Pháp */}
+              <div style={{ padding: '10px', borderRadius: '8px', background: 'rgba(0,0,0,0.25)' }}>
+                <b>Cửu Tinh Đồ Pháp (Vận 9: 2024-2043):</b>
+                <div style={{ fontSize: '12px', color: '#cbd5e1', marginTop: '2px' }}>{simData.phongThuy.van9.evaluation}</div>
+              </div>
+
+              {/* Quẻ Dịch Chủ & Hỗ */}
+              <div style={{ padding: '10px', borderRadius: '8px', background: 'rgba(0,0,0,0.25)' }}>
+                <div><b>Quẻ Chủ:</b> <span style={{ color: '#f87171', fontWeight: 'bold' }}>{simData.phongThuy.queDich.queChu.ten}</span> ({simData.phongThuy.queDich.queChu.tinhChat}) - <i>"{simData.phongThuy.queDich.queChu.yNghia}"</i></div>
+                <div style={{ marginTop: '4px' }}><b>Quẻ Hỗ:</b> <span style={{ color: '#c084fc', fontWeight: 'bold' }}>{simData.phongThuy.queDich.queHo.ten}</span> ({simData.phongThuy.queDich.queHo.tinhChat}) - <i>"{simData.phongThuy.queDich.queHo.yNghia}"</i></div>
               </div>
             </div>
           </div>

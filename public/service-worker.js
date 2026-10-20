@@ -1,4 +1,4 @@
-const CACHE = "v57-sim-phong-thuy-20261020";
+const CACHE = "v58-sim-advanced-20261020";
 const APP_SHELL = [
   "./",
   "./index.html",
