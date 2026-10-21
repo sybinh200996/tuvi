@@ -28,7 +28,9 @@ let currentChatPersona = localStorage.getItem('synam_chat_persona') || 'assistan
 let isChatStreaming = false;
 let userChatScrolledUp = false;
 
-const routes=[['home','Trang Chủ','home'],['tuvi','Tử Vi','tuvi'],['palm','Xem Chỉ Tay','palm'],['face','Xem Tướng','face'],['astrology','Chiêm Tinh','astro'],['love','Tình Duyên','love'],['numerology','Thần Số Học','num'],['sim','Sim Phong Thủy','sim'],['chat','AI Chat','chat'],['ai','Multi AI','deep'],['fengshui','Phong Thủy','feng'],['tarot','Bói Bài','tarot'],['history','Lịch Sử','history']];
+const TAROT_CARDS_DATA = [{"id":0,"num":"0","name":"The Fool - Chàng Khờ","en":"The Fool","vi":"Chàng Khờ","icon":"🎒","keywords":"Khởi đầu mới, tự do, tiềm năng","mean":"Đại diện cho sự bắt đầu một hành trình mới đầy hứng khởi. Hãy tự tin dấn bước, giữ tâm hồn cởi mở và lạc quan."},{"id":1,"num":"I","name":"The Magician - Ảo Thuật Gia","en":"The Magician","vi":"Ảo Thuật Gia","icon":"🪄","keywords":"Ý chí, hành động, hiện thực hóa","mean":"Bạn đang nắm trong tay mọi kỹ năng và nguồn lực để biến ý tưởng thành hiện thực. Hãy chủ động hành động."},{"id":2,"num":"II","name":"The High Priestess - Nữ Tu Tối Cao","en":"The High Priestess","vi":"Nữ Tu Tối Cao","icon":"📜","keywords":"Trực giác, bí ẩn, tĩnh lặng","mean":"Lắng nghe tiếng nói trực giác bên trong bạn. Mọi câu trả lời bạn tìm kiếm đang ẩn sâu trong nội tâm."},{"id":3,"num":"III","name":"The Empress - Hoàng Hậu","en":"The Empress","vi":"Hoàng Hậu","icon":"👑","keywords":"Trù phú, nuôi dưỡng, tình yêu","mean":"Báo hiệu thời kỳ thịnh vượng, tình cảm đơm hoa kết trái và những dự định sáng tạo có kết quả tốt."},{"id":4,"num":"IV","name":"The Emperor - Hoàng Đế","en":"The Emperor","vi":"Hoàng Đế","icon":"🏛️","keywords":"Trật tự, quyền uy, kỷ luật","mean":"Xây dựng cấu trúc vững chắc, kiểm soát tốt tình hình và làm chủ cuộc sống bằng sự kiên định."},{"id":5,"num":"V","name":"The Hierophant - Đại Tư Tế","en":"The Hierophant","vi":"Đại Tư Tế","icon":"📿","keywords":"Đạo đức, tri thức, dẫn lối","mean":"Tìm kiếm lời khuyên từ người có kinh nghiệm hoặc tuân theo các chuẩn mực đạo đức, quy tắc chung."},{"id":6,"num":"VI","name":"The Lovers - Đôi Uyên Ương","en":"The Lovers","vi":"Đôi Uyên Ương","icon":"💕","keywords":"Tình duyên, hòa hợp, lựa chọn","mean":"Gắn kết tình cảm sâu sắc hoặc đứng trước một lựa chọn quan trọng từ trái tim. Hãy chọn con đường chân thành."},{"id":7,"num":"VII","name":"The Chariot - Cỗ Chiến Xa","en":"The Chariot","vi":"Cỗ Chiến Xa","icon":"🛡️","keywords":"Quyết đoán, vượt khó, chiến thắng","mean":"Ý chí kiên cường và lòng quyết tâm sẽ giúp bạn vượt qua mọi chướng ngại và tiến thẳng đến mục tiêu."},{"id":8,"num":"VIII","name":"Strength - Sức Mạnh Nội Tâm","en":"Strength","vi":"Sức Mạnh Nội Tâm","icon":"🦁","keywords":"Bình tĩnh, nhẫn nại, kiên cường","mean":"Sức mạnh thực sự đến từ lòng nhân từ và sự điềm tĩnh, biết chế ngự cảm xúc để cảm hóa mọi khó khăn."},{"id":9,"num":"IX","name":"The Hermit - Ẩn Sĩ","en":"The Hermit","vi":"Ẩn Sĩ","icon":"🕯️","keywords":"Chiêm nghiệm, soi sáng, tìm kiếm","mean":"Thời điểm cần một khoảng lặng tĩnh tâm để nhìn nhận lại bản thân, lắng nghe nội tâm trước khi quyết định."},{"id":10,"num":"X","name":"Wheel of Fortune - Vòng Xoay Vận Mệnh","en":"Wheel of Fortune","vi":"Vòng Xoay Vận Mệnh","icon":"🎡","keywords":"Bước ngoặt, thời vận, may mắn","mean":"Bánh xe số phận đang quay theo hướng có lợi cho bạn. Hãy đón nhận sự thay đổi bất ngờ với tâm thế tích cực."},{"id":11,"num":"XI","name":"Justice - Công Lý","en":"Justice","vi":"Công Lý","icon":"⚖️","keywords":"Công bằng, sự thật, nhân quả","mean":"Sự thật sẽ được sáng tỏ. Mọi quyết định cần dựa trên lý trí, sự công tâm và trách nhiệm."},{"id":12,"num":"XII","name":"The Hanged Man - Kẻ Treo Ngược","en":"The Hanged Man","vi":"Kẻ Treo Ngược","icon":"🙃","keywords":"Đổi góc nhìn, kiên nhẫn, giác ngộ","mean":"Tạm dừng lại để đổi một góc nhìn mới. Đôi khi lùi một bước lại là tiến ba bước dài hơn."},{"id":13,"num":"XIII","name":"Death - Chuyển Hóa & Tái Sinh","en":"Death","vi":"Chuyển Hóa & Tái Sinh","icon":"🦋","keywords":"Kết thúc cái cũ, tái sinh cái mới","mean":"Khép lại một giai đoạn cũ đã lỗi thời để nhường chỗ cho những điều mới mẻ, tốt đẹp hơn phát triển."},{"id":14,"num":"XIV","name":"Temperance - Tiết Chế","en":"Temperance","vi":"Tiết Chế","icon":"🏺","keywords":"Cân bằng, điều độ, kiên nhẫn","mean":"Giữ tâm thái cân bằng, dung hòa giữa các mặt đối lập và bình tĩnh giải quyết từng bước."},{"id":15,"num":"XV","name":"The Devil - Giải Phóng Cám Dỗ","en":"The Devil","vi":"Giải Phóng Cám Dỗ","icon":"⛓️","keywords":"Cảnh giác, ràng buộc, giải thoát","mean":"Cảnh báo những ràng buộc độc hại, thói quen tiêu cực hoặc ảo tưởng. Bạn hoàn toàn có quyền tự giải phóng mình."},{"id":16,"num":"XVI","name":"The Tower - Ngọn Tháp Sụp Đổ","en":"The Tower","vi":"Ngọn Tháp Sụp Đổ","icon":"⚡","keywords":"Biến động, thức tỉnh, xây dựng lại","mean":"Một biến cố bất ngờ xảy ra để phá vỡ những nền tảng sai lầm, giúp bạn nhìn thẳng vào sự thật để tái tạo vững vàng hơn."},{"id":17,"num":"XVII","name":"The Star - Ngôi Sao Hy Vọng","en":"The Star","vi":"Ngôi Sao Hy Vọng","icon":"⭐","keywords":"Hy vọng, chữa lành, niềm tin","mean":"Ánh sáng hy vọng soi đường sau cơn bão. Bạn đang được hồi phục năng lượng và tìm lại sự bình yên."},{"id":18,"num":"XVIII","name":"The Moon - Mặt Trăng Mờ Ảo","en":"The Moon","vi":"Mặt Trăng Mờ Ảo","icon":"🌙","keywords":"Ảo ảnh, trực giác, khám phá nỗi sợ","mean":"Cần thận trọng với những điều chưa rõ ràng. Hãy tin vào trực giác và đừng để nỗi sợ vô căn cứ chi phối."},{"id":19,"num":"XIX","name":"The Sun - Mặt Trời Tỏa Sáng","en":"The Sun","vi":"Mặt Trời Tỏa Sáng","icon":"☀️","keywords":"Thành công, rạng rỡ, niềm vui lớn","mean":"Một trong những lá bài tốt lành nhất bộ Tarot. Báo hiệu niềm vui, sự minh bạch, ấm áp và thành công rực rỡ."},{"id":20,"num":"XX","name":"Judgement - Sự Thức Tỉnh","en":"Judgement","vi":"Sự Thức Tỉnh","icon":"🎺","keywords":"Thức tỉnh, hồi sinh, tha thứ","mean":"Tiếng gọi của sự thức tỉnh. Thời điểm tha thứ cho quá khứ và bước vào một chương mới trong cuộc đời."},{"id":21,"num":"XXI","name":"The World - Thế Giới Toàn Năng","en":"The World","vi":"Thế Giới Toàn Năng","icon":"🌍","keywords":"Viên mãn, hoàn tất, đỉnh cao","mean":"Bạn đã hoàn thành xuất sắc một chu kỳ lớn. Sự viên mãn, thành tựu trọn vẹn và niềm tự hào xứng đáng."}];
+
+const routes=[['home','Trang Chủ','home'],['tuvi','Tử Vi','tuvi'],['tarot','Bói Bài Tarot','tarot'],['sim','Sim Phong Thủy','sim'],['palm','Xem Chỉ Tay','palm'],['face','Xem Tướng','face'],['astrology','Chiêm Tinh','astro'],['love','Tình Duyên','love'],['numerology','Thần Số Học','num'],['chat','AI Chat','chat'],['fengshui','Phong Thủy','feng'],['history','Lịch Sử','history']];
 let lastResult='';
 const $=id=>document.getElementById(id);
 function init(){renderTabs();renderHistory();loadAccount();loadVoicePrefs();initVietnameseVoices();startClock();loadDestinyProfileToForm();loadDestinyProfileFromCloud().then(loadDestinyProfileToForm);const firstRoute=location.hash?.replace('#/','')||(window.matchMedia&&window.matchMedia('(max-width: 760px)').matches?'chat':'home');routeTo(firstRoute,false);window.addEventListener('hashchange',()=>routeTo(location.hash.replace('#/','')||'home',false));checkGeminiStatus();loadAIProviders();setTimeout(()=>{if(window.matchMedia&&window.matchMedia('(max-width:760px)').matches&&$('chatText')){$('chatText').focus({preventScroll:true});}},600);}
@@ -262,7 +264,7 @@ async function handleSaveDestinyProfile() {
 }
 
 function tabIcon(icon){return `<span class="holo-icon icon-${icon}"><i></i></span>`}
-function renderTabs(){const html=routes.map(([id,name,ico])=>`<button class="tab-card" data-route="${id}" onclick="routeTo('${id}')">${tabIcon(ico)}<span>${name}</span></button>`).join('');$('featureTabs').innerHTML=html;$('sideLinks').innerHTML=routes.concat([['deep','AI phân tích sâu','deep'],['ai','Cài đặt Multi-AI','deep'],['account','Tài khoản','account']]).map(([id,name,ico])=>`<button class="link" onclick="routeTo('${id}');toggleMenu(false)">${tabIcon(ico)} <span>${name}</span></button>`).join('')}
+function renderTabs(){const html=routes.map(([id,name,ico])=>`<button class="tab-card" data-route="${id}" onclick="routeTo('${id}')">${tabIcon(ico)}<span>${name}</span></button>`).join('');$('featureTabs').innerHTML=html;$('sideLinks').innerHTML=routes.concat([['deep','AI phân tích sâu','deep'],['account','Tài khoản','account']]).map(([id,name,ico])=>`<button class="link" onclick="routeTo('${id}');toggleMenu(false)">${tabIcon(ico)} <span>${name}</span></button>`).join('')}
 function routeTo(route,push=true){
   if(!route)route='home';
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -2301,39 +2303,59 @@ function synamRefreshServiceWorker() {
 window.addEventListener('load', synamRefreshServiceWorker, { once: true });
 
 async function drawTarotDesktop() {
-  const cards=[
-    {name: 'The Fool - Khởi đầu', img: 'https://upload.wikimedia.org/wikipedia/commons/9/90/RWS_Tarot_00_Fool.jpg'},
-    {name: 'The Magician - Chủ động', img: 'https://upload.wikimedia.org/wikipedia/commons/d/de/RWS_Tarot_01_Magician.jpg'},
-    {name: 'The High Priestess - Trực giác', img: 'https://upload.wikimedia.org/wikipedia/commons/8/88/RWS_Tarot_02_High_Priestess.jpg'},
-    {name: 'The Lovers - Tình cảm', img: 'https://upload.wikimedia.org/wikipedia/commons/3/3a/TheLovers.jpg'},
-    {name: 'The Chariot - Quyết đoán', img: 'https://upload.wikimedia.org/wikipedia/commons/9/9b/RWS_Tarot_07_Chariot.jpg'},
-    {name: 'Strength - Bình tĩnh', img: 'https://upload.wikimedia.org/wikipedia/commons/f/f5/RWS_Tarot_08_Strength.jpg'},
-    {name: 'The Hermit - Suy ngẫm', img: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/RWS_Tarot_09_Hermit.jpg'},
-    {name: 'Wheel of Fortune - Vận trình', img: 'https://upload.wikimedia.org/wikipedia/commons/3/3c/RWS_Tarot_10_Wheel_of_Fortune.jpg'},
-    {name: 'The Star - Hy vọng', img: 'https://upload.wikimedia.org/wikipedia/commons/d/db/RWS_Tarot_17_Star.jpg'},
-    {name: 'The Sun - Tích cực', img: 'https://upload.wikimedia.org/wikipedia/commons/1/17/RWS_Tarot_19_Sun.jpg'}
-  ];
-  const q = $('tarotAsk')?.value || '';
-  const deck = [...cards].sort(()=>Math.random()-.5).slice(0,3);
+  const q = ($('tarotAsk')?.value || '').trim();
+  const btn = document.querySelector('#page-tarot button.primary');
+  const id = 'tarotResult';
   
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳ AI đang trải bài và giải nghĩa...';
+  }
+  setLoading(id, true);
+  
+  const deck = [...TAROT_CARDS_DATA].sort(() => Math.random() - 0.5).slice(0, 3);
   const container = $('desktopTarotCards');
   if (container) {
-    container.innerHTML = deck.map(c => `<div style="flex:1;text-align:center;"><img src="${c.img}" style="width:100%;max-width:120px;border-radius:8px;box-shadow:0 4px 8px rgba(0,0,0,0.5);"><div style="font-size:12px;margin-top:8px;color:#ffd700;">${c.name}</div></div>`).join('');
+    container.innerHTML = deck.map((c, i) => `
+      <div style="flex:1;max-width:160px;text-align:center;background:rgba(255,255,255,0.06);border:1px solid rgba(255,215,0,0.3);border-radius:14px;padding:14px 8px;box-shadow:0 8px 20px rgba(0,0,0,0.4);transition:0.3s;">
+        <div style="font-size:11px;color:#38bdf8;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;font-weight:bold;">${['Lá 1: Hiện Tại', 'Lá 2: Lời Khuyên', 'Lá 3: Tương Lai Gần'][i]}</div>
+        <div style="font-size:38px;margin:8px 0;filter:drop-shadow(0 0 10px rgba(255,215,0,0.5));">${c.icon}</div>
+        <div style="font-size:13px;font-weight:bold;color:#ffd700;margin-bottom:4px;line-height:1.2;">${escapeHtml(c.name)}</div>
+        <div style="font-size:11px;color:#94a3b8;font-style:italic;">${escapeHtml(c.keywords)}</div>
+      </div>
+    `).join('');
   }
 
-  const deckNames = deck.map(c=>c.name);
-  const title = '🃏 Kết quả bài Tarot';
-  const id = 'tarotResult';
-  setLoading(id, true);
+  const userQuestion = q || 'Tổng quan vận trình, năng lượng và thông điệp vũ trụ hôm nay';
+  const deckInfo = deck.map((c, i) => `${['Lá 1 (Hiện tại)', 'Lá 2 (Lời khuyên)', 'Lá 3 (Tương lai gần)'][i]}: ${c.name} (${c.keywords})`).join('\n');
+  const title = '🃏 Kết quả bài Tarot: ' + (q ? q.substring(0, 30) : 'Trải bài 3 lá');
+
   try {
-    const data = await postJSON('/api/multi-ai/chat', { message: `Xem bài tarot tham khảo. Câu hỏi: ${q}. Ba lá: ${deckNames.join(', ')}. Hãy luận rõ: hiện tại, lời khuyên, kết quả gần.`, provider: 'auto' });
+    const data = await postJSON('/api/multi-ai/chat', {
+      message: `Bạn là chuyên gia bói bài Tarot huyền học. Người dùng hỏi: "${userQuestion}".\nTrải bài 3 lá:\n${deckInfo}\nHãy luận giải chi tiết, sâu sắc: 1) Ý nghĩa từng lá bài trong vị trí tương ứng. 2) Thông điệp kết nối giữa 3 lá bài. 3) Lời khuyên cụ thể, thực tế và hướng hành động tốt nhất.`,
+      provider: 'auto',
+      model: 'gemini-3.5-flash-lite'
+    });
     const text = data.text || data.answer || data.result;
+    if (!text) throw new Error('Không nhận được nội dung từ AI');
     $(id).innerHTML = htmlResult(title, text);
     saveHistory(title, text);
   } catch(e) {
-    $(id).innerHTML = htmlResult(title, 'AI chưa phản hồi được. Vui lòng thử lại.');
+    const fallbackText = `### 🃏 Luận Giải 3 Lá Bài Tarot\n**Câu hỏi:** ${escapeHtml(userQuestion)}\n\n` +
+      deck.map((c, idx) => `#### ${['1. Hiện tại', '2. Lời khuyên', '3. Tương lai gần'][idx]}: ${c.name} (${c.num})\n- **Từ khóa:** ${c.keywords}\n- **Ý nghĩa:** ${c.mean}`).join('\n\n') +
+      `\n\n---\n💡 **Lời khuyên tổng kết:** Hãy đón nhận các thông điệp với tâm thái bình thản, tập trung vào sức mạnh nội tâm để đưa ra lựa chọn sáng suốt nhất.`;
+    $(id).innerHTML = htmlResult(title, fallbackText);
+    saveHistory(title, fallbackText);
   } finally {
     setLoading(id, false);
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = '🃏 Đổi bài khác';
+    }
+    const resEl = $(id);
+    if (resEl) {
+      resEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   }
 }
 

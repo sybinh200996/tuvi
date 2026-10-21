@@ -1,4 +1,4 @@
-const CACHE = "v58-sim-advanced-20261020";
+const CACHE = "v59-tarot-desktop-fix-20261021";
 const APP_SHELL = [
   "./",
   "./index.html",
