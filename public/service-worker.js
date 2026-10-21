@@ -1,4 +1,4 @@
-const CACHE = "v59-tarot-desktop-fix-20261021";
+const CACHE = "v60-compact-bottom-cards-20261021";
 const APP_SHELL = [
   "./",
   "./index.html",

@@ -7,7 +7,7 @@
   <meta name="description" content="Đặng Năm Mystic - AI tử vi, chỉ tay, xem tướng, chiêm tinh, chat, lịch sử và tài khoản." />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="assets/icon.svg" />
-  <link rel="stylesheet" href="style.css?v=1791908000" />
+  <link rel="stylesheet" href="style.css?v=1792455000" />
   
       <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
@@ -839,6 +839,9 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
         <article class="feature-card wide" onclick="routeTo('sim')" style="border-color:rgba(255,215,0,0.4);">
           <div><h2>ĐỊNH GIÁ & PHONG THỦY SIM <em>PRO</em></h2><p>Thẩm định giá trị thị trường, cân bằng Âm Dương, điểm Nút số và Quẻ Kinh Dịch.</p><button>📱 ĐỊNH GIÁ SIM</button></div><div class="card-art" style="color:#ffd700;text-shadow:0 0 22px #ffd700;">📱</div>
         </article>
+        <article class="feature-card wide" onclick="routeTo('tuvi')" style="border-color:rgba(56,189,248,0.4);">
+          <div><h2>BÀN LÁ SỐ TỬ VI <em>12 CUNG</em></h2><p>Bàn lá số 12 Cung tương tác thời gian thực, an sao và luận giải chuyên sâu theo Đẩu Số.</p><button>🔮 BÀN LÁ SỐ</button></div><div class="card-art" style="color:#38bdf8;text-shadow:0 0 22px #38bdf8;">📜</div>
+        </article>
         <article class="feature-card wide" onclick="routeTo('deep')">
           <div><h2>AI PHÂN TÍCH SÂU <em>PRO</em></h2><p>AI phân tích đa lớp, kết hợp thông tin bạn nhập để đưa ra bản luận giải chi tiết nhất.</p><button>✦ BẮT ĐẦU NGAY</button></div><div class="card-art ai-head">AI</div>
         </article>
@@ -857,10 +860,70 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
         <article class="feature-card wide" onclick="routeTo('chat')">
           <div><h2>AI CHAT - HỎI VÀ ĐÁP <em>PRO</em></h2><p>Hỏi đáp với Gemini AI thật, có thể tải ảnh/file để phân tích nội dung.</p><button>☻ BẮT ĐẦU CHAT</button></div><div class="card-art bot-art">🤖</div>
         </article>
-        <article class="mini-card nam33-history-card"><h3>LỊCH SỬ PHÂN TÍCH</h3><div id="historyMini"></div><div class="nam33-card-actions"><button type="button" onclick="routeTo('history')">📜 Mở lịch sử</button><button type="button" onclick="exportHistoryTxt(event)">⬇ TXT</button><button type="button" onclick="clearHistory()">🗑 Xóa</button></div></article>
-        <article class="mini-card nam33-voice-card"><h3>GIỌNG NÓI AI</h3><div class="wave"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><p>Nghe kết quả phân tích bằng giọng nói thật của trình duyệt.</p><div class="nam33-voice-controls"><select id="homeVoiceSelect" onchange="syncHomeVoiceSelect()"><option value="auto">Tự động chọn giọng Việt</option></select><input id="homeVoiceRate" type="range" min="0.7" max="1.35" step="0.05" value="1" oninput="syncHomeVoiceRate()"></div><div class="nam33-card-actions"><button type="button" onclick="speakLastResult()">▶ Đọc kết quả</button><button type="button" onclick="testVoice()">🔊 Test</button><button type="button" onclick="stopSpeaking()">⏹ Dừng</button></div></article>
-        <article class="mini-card stats-card nam33-stats-card"><h3>THỐNG KÊ CỦA BẠN</h3><div class="ring"><span id="nam33StatPercent">0%</span><small>hoạt động</small></div><ul><li>Phân tích đã thực hiện <b id="statCount">0</b></li><li>Câu hỏi AI <b id="statChatCount">0</b></li><li>Ảnh/file <b id="statImageCount">0</b></li><li>Ngày sử dụng <b id="statDaysUsed">1</b></li></ul><div class="nam33-card-actions"><button type="button" onclick="renderNam33Stats();toast('Đã cập nhật thống kê')">🔄 Cập nhật</button><button type="button" onclick="resetNam33Stats(event)">♻ Reset</button></div></article>
       </div>
+
+      <!-- 3 BẢNG CHỨC NĂNG TIỆN ÍCH THU GỌN Ở DƯỚI CÙNG TRANG WEB -->
+      <section class="home-bottom-utilities">
+        <div class="home-utilities-header">
+          <span>⚙️ BẢNG ĐIỀU KHIỂN & TIỆN ÍCH HỆ THỐNG</span>
+        </div>
+        <div class="home-utilities-grid">
+          <!-- Bảng 1: Giọng nói AI -->
+          <article class="mini-card nam33-voice-card compact-card">
+            <div class="compact-card-head">
+              <h3>🔊 GIỌNG NÓI AI</h3>
+              <div class="nam33-card-actions compact-actions">
+                <button type="button" onclick="speakLastResult()">▶ Đọc</button>
+                <button type="button" onclick="testVoice()">🔊 Test</button>
+                <button type="button" onclick="stopSpeaking()">⏹ Dừng</button>
+              </div>
+            </div>
+            <div class="nam33-voice-controls compact-voice">
+              <select id="homeVoiceSelect" onchange="syncHomeVoiceSelect()"><option value="auto">Tự động chọn giọng Việt</option></select>
+              <div class="voice-rate-slider">
+                <span style="font-size:11px;color:#94a3b8;white-space:nowrap;">Tốc độ:</span>
+                <input id="homeVoiceRate" type="range" min="0.7" max="1.35" step="0.05" value="1" oninput="syncHomeVoiceRate()">
+              </div>
+            </div>
+          </article>
+
+          <!-- Bảng 2: Thống kê của bạn -->
+          <article class="mini-card stats-card nam33-stats-card compact-card">
+            <div class="compact-card-head">
+              <h3>📊 THỐNG KÊ CỦA BẠN</h3>
+              <div class="nam33-card-actions compact-actions">
+                <button type="button" onclick="renderNam33Stats();toast('Đã cập nhật')">🔄</button>
+                <button type="button" onclick="resetNam33Stats(event)">♻</button>
+              </div>
+            </div>
+            <div class="compact-stats-body">
+              <div class="ring compact-ring">
+                <span id="nam33StatPercent">0%</span>
+                <small>hoạt động</small>
+              </div>
+              <ul class="compact-stats-list">
+                <li>Phân tích: <b id="statCount">0</b></li>
+                <li>Câu hỏi AI: <b id="statChatCount">0</b></li>
+                <li>Ảnh/file: <b id="statImageCount">0</b></li>
+                <li>Số ngày: <b id="statDaysUsed">1</b></li>
+              </ul>
+            </div>
+          </article>
+
+          <!-- Bảng 3: Lịch sử phân tích -->
+          <article class="mini-card nam33-history-card compact-card">
+            <div class="compact-card-head">
+              <h3>🕒 LỊCH SỬ PHÂN TÍCH</h3>
+              <div class="nam33-card-actions compact-actions">
+                <button type="button" onclick="routeTo('history')">📜 Mở</button>
+                <button type="button" onclick="exportHistoryTxt(event)">⬇ TXT</button>
+                <button type="button" onclick="clearHistory()">🗑 Xóa</button>
+              </div>
+            </div>
+            <div id="historyMini" class="compact-history-list"></div>
+          </article>
+        </div>
+      </section>
     </section>
 
     <section id="page-deep" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();analyzeDeep()"><h2>🧠 AI Phân Tích Chuyên Sâu PRO</h2><p class="muted">Cung cấp thông tin chi tiết nhất để AI tổng hợp đa lớp và luận giải chuyên sâu.</p><label>Họ tên<input id="deepName" placeholder="Vd: Nguyễn Văn A"></label><label>Ngày tháng năm sinh<input id="deepBirth" type="date"></label><label>Câu hỏi hoặc vấn đề<textarea id="deepAsk" placeholder="Trình bày rõ vấn đề bạn đang gặp phải hoặc điều muốn hỏi thật chi tiết..."></textarea></label><label>Khía cạnh tập trung<select id="deepFocus"><option>Tổng quan cuộc đời & Vận hạn</option><option>Công danh sự nghiệp & Tài lộc</option><option>Tình duyên & Hôn nhân</option><option>Phân tích tâm lý & Lời khuyên</option></select></label><button class="primary">✦ Bắt Đầu Phân Tích Sâu</button></form><article id="deepResult" class="result-panel"><h2>Kết quả phân tích sâu</h2><p>Vui lòng điền thông tin và bấm bắt đầu để AI xử lý.</p></article></div></section>
@@ -1260,7 +1323,7 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="mystic-engine.js"></script><script src="sync-speech.js?v=1792450000"></script><script src="app.js?v=1792450000"></script>
+  <script src="mystic-engine.js"></script><script src="sync-speech.js?v=1792455000"></script><script src="app.js?v=1792455000"></script>
 
   <!-- App Download Modal -->
   <div id="appDownloadModal" class="modal-overlay" onclick="if(event.target===this) closeAppModal()">
