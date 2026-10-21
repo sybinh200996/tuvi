@@ -1,4 +1,4 @@
-const CACHE = "v64-banner-revert-20261021";
+const CACHE = "v65-remove-tuvi-banner-20261021";
 const APP_SHELL = [
   "./",
   "./index.html",

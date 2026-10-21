@@ -885,8 +885,6 @@ function Hero({
   }, configured || 0, " AI đang bật")), /*#__PURE__*/React.createElement("h1", null, "Đặng Năm ", /*#__PURE__*/React.createElement("b", null, "Mystic")), /*#__PURE__*/React.createElement("p", null, "AI • Tử vi • Chỉ tay • Xem tướng • Chiêm tinh"), /*#__PURE__*/React.createElement("div", {
     className: "hero-actions quick"
   }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => setTab('horoscope')
-  }, "🔮 Tử vi hôm nay"), /*#__PURE__*/React.createElement("button", {
     onClick: () => setTab('astrology')
   }, "🪐 Cung hoàng đạo"), /*#__PURE__*/React.createElement("button", {
     onClick: () => setTab('palm')

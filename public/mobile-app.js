@@ -494,7 +494,6 @@ function Hero({ setTab, health, providers }) {
       <h1>Đặng Năm <b>Mystic</b></h1>
       <p>AI • Tử vi • Chỉ tay • Xem tướng • Chiêm tinh</p>
       <div className="hero-actions quick">
-        <button onClick={() => setTab('horoscope')}>🔮 Tử vi hôm nay</button>
         <button onClick={() => setTab('astrology')}>🪐 Cung hoàng đạo</button>
         <button onClick={() => setTab('palm')}>✋ Xem chỉ tay</button>
         <button onClick={() => setTab('face')}>🙂 Xem tướng</button>
