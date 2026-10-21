@@ -1,4 +1,4 @@
-const CACHE = "v63-animated-stars-background-20261021";
+const CACHE = "v64-banner-revert-20261021";
 const APP_SHELL = [
   "./",
   "./index.html",
