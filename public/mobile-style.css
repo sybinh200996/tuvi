@@ -38,8 +38,243 @@
 @media (max-width:520px){.account-actions button{flex:1 1 120px}.settings .primary{width:100%}}
 
 /* Dynamic Stars Background */
-#stars{position:fixed;inset:0;pointer-events:none;z-index:-1;background-image:radial-gradient(circle,#fff8 1px,transparent 1.8px),radial-gradient(circle,#38d5ff66 1px,transparent 1.8px),radial-gradient(circle,#b773ff55 1px,transparent 1.8px);background-size:86px 86px,142px 142px,210px 210px;animation:drift 28s linear infinite}
-@keyframes drift{to{background-position:220px 140px,-180px 110px,160px -130px}}
+#stars {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+  overflow: hidden !important;
+  background-color: transparent !important;
+  background-image: 
+    radial-gradient(1.5px 1.5px at 25px 35px, rgba(255, 255, 255, 0.95), transparent),
+    radial-gradient(1.8px 1.8px at 120px 80px, rgba(56, 213, 255, 0.9), transparent),
+    radial-gradient(1.5px 1.5px at 220px 160px, rgba(183, 115, 255, 0.85), transparent),
+    radial-gradient(2px 2px at 340px 60px, rgba(255, 215, 0, 0.85), transparent),
+    radial-gradient(1.2px 1.2px at 80px 240px, rgba(255, 255, 255, 0.75), transparent),
+    radial-gradient(1.5px 1.5px at 190px 310px, rgba(56, 213, 255, 0.8), transparent),
+    radial-gradient(2px 2px at 290px 220px, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1.2px 1.2px at 410px 290px, rgba(183, 115, 255, 0.75), transparent),
+    radial-gradient(1.8px 1.8px at 60px 380px, rgba(56, 213, 255, 0.85), transparent),
+    radial-gradient(1.5px 1.5px at 260px 420px, rgba(255, 215, 0, 0.8), transparent) !important;
+  background-size: 450px 450px, 380px 380px, 520px 520px, 480px 480px, 320px 320px, 420px 420px, 500px 500px, 360px 360px, 460px 460px, 400px 400px !important;
+  animation: cosmicStarDrift 50s linear infinite !important;
+  will-change: background-position;
+}
+#root {
+  position: relative;
+  z-index: 2;
+}
+
+/* Living Cosmic Nebulae Glow */
+#stars::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: -40% !important;
+  width: 180% !important;
+  height: 180% !important;
+  background: 
+    radial-gradient(circle at 25% 30%, rgba(30, 80, 190, 0.28) 0%, transparent 45%),
+    radial-gradient(circle at 75% 25%, rgba(139, 92, 246, 0.25) 0%, transparent 42%),
+    radial-gradient(circle at 50% 70%, rgba(6, 182, 212, 0.18) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(217, 70, 239, 0.18) 0%, transparent 40%) !important;
+  animation: cosmicNebulaBreathe 18s ease-in-out infinite alternate !important;
+  pointer-events: none !important;
+  mix-blend-mode: screen !important;
+  will-change: transform, opacity;
+}
+
+/* Primary Shooting Star */
+#stars::after {
+  content: "" !important;
+  position: absolute !important;
+  top: -120px !important;
+  left: 65% !important;
+  width: 3px !important;
+  height: 140px !important;
+  background: linear-gradient(180deg, #ffffff, rgba(56,213,255,0.9), transparent) !important;
+  border-radius: 999px !important;
+  filter: drop-shadow(0 0 10px #38d5ff) drop-shadow(0 0 20px #8b5cf6) !important;
+  opacity: 0 !important;
+  transform: rotate(-45deg) !important;
+  animation: shootingStarMain 9s ease-in-out infinite !important;
+  pointer-events: none !important;
+  will-change: transform, opacity;
+}
+
+/* Extra star layers for depth & shimmer */
+.star-cluster {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.star-cluster-1 {
+  background-image: 
+    radial-gradient(1px 1px at 45px 120px, rgba(255,255,255,0.95), transparent),
+    radial-gradient(1.5px 1.5px at 160px 40px, rgba(147,197,253,0.85), transparent),
+    radial-gradient(2px 2px at 280px 190px, rgba(253,224,71,0.9), transparent),
+    radial-gradient(1.2px 1.2px at 390px 110px, rgba(192,132,252,0.8), transparent),
+    radial-gradient(1.8px 1.8px at 90px 320px, rgba(255,255,255,0.85), transparent),
+    radial-gradient(1.5px 1.5px at 310px 370px, rgba(56,213,255,0.85), transparent);
+  background-size: 420px 420px;
+  animation: starTwinklePulse 6s ease-in-out infinite alternate, cosmicStarDriftReverse 65s linear infinite;
+  will-change: opacity, background-position;
+}
+.star-cluster-2 {
+  background-image: 
+    radial-gradient(1.2px 1.2px at 70px 70px, rgba(255,255,255,0.85), transparent),
+    radial-gradient(2px 2px at 200px 260px, rgba(56,213,255,0.95), transparent),
+    radial-gradient(1px 1px at 340px 180px, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1.8px 1.8px at 150px 390px, rgba(216,180,254,0.85), transparent);
+  background-size: 350px 350px;
+  animation: starTwinklePulse 8s ease-in-out 2s infinite alternate, cosmicStarDrift 55s linear infinite;
+  will-change: opacity, background-position;
+}
+
+/* Staggered Shooting Stars / Meteors */
+.meteor {
+  position: absolute;
+  width: 2.5px;
+  height: 120px;
+  background: linear-gradient(180deg, #ffffff, rgba(56,213,255,0.95), transparent);
+  border-radius: 999px;
+  filter: drop-shadow(0 0 8px #38d5ff) drop-shadow(0 0 16px #3b82f6);
+  opacity: 0;
+  pointer-events: none;
+  transform: rotate(-45deg);
+  will-change: transform, opacity;
+}
+.meteor-1 {
+  top: -100px;
+  left: 30%;
+  animation: meteorFly1 12s ease-in-out 2.5s infinite;
+}
+.meteor-2 {
+  top: -100px;
+  left: 78%;
+  animation: meteorFly2 16s ease-in-out 7.5s infinite;
+}
+.meteor-3 {
+  top: -100px;
+  left: 52%;
+  animation: meteorFly3 20s ease-in-out 12.5s infinite;
+}
+
+@keyframes cosmicStarDrift {
+  0% {
+    background-position: 
+      0 0, 0 0, 0 0, 0 0, 0 0, 
+      0 0, 0 0, 0 0, 0 0, 0 0;
+  }
+  100% {
+    background-position: 
+      450px 900px, -380px 760px, 520px -520px, -480px 480px, 320px 640px,
+      -420px 840px, 500px -500px, -360px 720px, 460px -460px, -400px 800px;
+  }
+}
+
+@keyframes cosmicStarDriftReverse {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: -420px -840px;
+  }
+}
+
+@keyframes starTwinklePulse {
+  0%, 100% { opacity: 0.65; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
+@keyframes cosmicNebulaBreathe {
+  0% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.65;
+  }
+  50% {
+    transform: scale(1.1) rotate(3deg);
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(1.04) rotate(-2deg);
+    opacity: 0.72;
+  }
+}
+
+@keyframes shootingStarMain {
+  0% {
+    transform: translate(250px, -120px) rotate(-45deg);
+    opacity: 0;
+  }
+  2.5% {
+    opacity: 1;
+  }
+  5.5% {
+    transform: translate(-550px, 680px) rotate(-45deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-550px, 680px) rotate(-45deg);
+    opacity: 0;
+  }
+}
+
+@keyframes meteorFly1 {
+  0% {
+    transform: translate(200px, -100px) rotate(-45deg);
+    opacity: 0;
+  }
+  2% {
+    opacity: 1;
+  }
+  5% {
+    transform: translate(-500px, 600px) rotate(-45deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-500px, 600px) rotate(-45deg);
+    opacity: 0;
+  }
+}
+
+@keyframes meteorFly2 {
+  0% {
+    transform: translate(250px, -100px) rotate(-42deg);
+    opacity: 0;
+  }
+  2% {
+    opacity: 1;
+  }
+  5% {
+    transform: translate(-600px, 700px) rotate(-42deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-600px, 700px) rotate(-42deg);
+    opacity: 0;
+  }
+}
+
+@keyframes meteorFly3 {
+  0% {
+    transform: translate(180px, -80px) rotate(-48deg);
+    opacity: 0;
+  }
+  2% {
+    opacity: 1;
+  }
+  4.5% {
+    transform: translate(-450px, 550px) rotate(-48deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(-450px, 550px) rotate(-48deg);
+    opacity: 0;
+  }
+}
+
 
 /* Mystic background for cards */
 .feature-card {
@@ -65,14 +300,14 @@
   }
 }
 
- 
- / *   M o b i l e   B a n n e r   A d j u s t m e n t s   * / 
- 
- @ m e d i a   ( m a x - w i d t h :   9 0 0 p x )   {   . h e r o   {   g r i d - t e m p l a t e - c o l u m n s :   2 8 %   1 f r   2 8 %   ! i m p o r t a n t ;   m i n - h e i g h t :   1 4 0 p x   ! i m p o r t a n t ;   }   . h e r o - i m g   {   m i n - h e i g h t :   1 4 0 p x   ! i m p o r t a n t ;   d i s p l a y :   f l e x ;   a l i g n - i t e m s :   c e n t e r ;   j u s t i f y - c o n t e n t :   c e n t e r ;   }   . h e r o - i m g   i m g   {   o b j e c t - f i t :   c o n t a i n   ! i m p o r t a n t ;   h e i g h t :   1 0 0 %   ! i m p o r t a n t ;   m a x - w i d t h :   1 0 0 % ;   }   } 
- 
- @ m e d i a   ( m a x - w i d t h :   5 2 0 p x )   {   . h e r o   {   m i n - h e i g h t :   1 2 5 p x   ! i m p o r t a n t ;   }   . h e r o - i m g   {   m i n - h e i g h t :   1 2 5 p x   ! i m p o r t a n t ;   }   . h e r o   h 1   {   f o n t - s i z e :   2 0 p x   ! i m p o r t a n t ;   }   } 
- 
- 
+
+/* Mobile Banner Adjustments */
+
+@media (max-width: 900px) { .hero { grid-template-columns: 28% 1fr 28% !important; min-height: 140px !important; } .hero-img { min-height: 140px !important; display: flex; align-items: center; justify-content: center; } .hero-img img { object-fit: contain !important; height: 100% !important; max-width: 100%; } }
+
+@media (max-width: 520px) { .hero { min-height: 125px !important; } .hero-img { min-height: 125px !important; } .hero h1 { font-size: 20px !important; } }
+
+
 /* Neon Mystical Theme */
 :root {
   --bg: #030612;

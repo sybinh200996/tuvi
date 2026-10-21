@@ -1,4 +1,4 @@
-const CACHE = "v62-deep-tuvi-rename-20261021";
+const CACHE = "v63-animated-stars-background-20261021";
 const APP_SHELL = [
   "./",
   "./index.html",
