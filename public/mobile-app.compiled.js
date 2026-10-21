@@ -2230,7 +2230,52 @@ function Settings({
   }), /*#__PURE__*/React.createElement("small", null, p.model)))), /*#__PURE__*/React.createElement("button", {
     className: "primary",
     onClick: save
-  }, "💾 Lưu keys"));
+  }, "💾 Lưu keys"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: '24px',
+      padding: '16px',
+      background: 'rgba(255,255,255,0.04)',
+      borderRadius: '16px',
+      border: '1px solid rgba(255,215,0,0.25)',
+      textAlign: 'center',
+      fontSize: '12px',
+      lineHeight: '1.6'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontWeight: 'bold',
+      color: '#ffd700',
+      fontSize: '13px',
+      marginBottom: '6px'
+    }
+  }, "© Copyright SyBinh · Bản Quyền Chủ Sở Hữu"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#cbd5e1',
+      marginBottom: '4px'
+    }
+  }, "✉ Email: ", /*#__PURE__*/React.createElement("a", {
+    href: "mailto:admin@dangnam.online",
+    style: {
+      color: '#38bdf8',
+      textDecoration: 'none'
+    }
+  }, "admin@dangnam.online")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#cbd5e1',
+      marginBottom: '8px'
+    }
+  }, "☎ SĐT: ", /*#__PURE__*/React.createElement("a", {
+    href: "tel:0898333365",
+    style: {
+      color: '#38bdf8',
+      textDecoration: 'none'
+    }
+  }, "0898.333.365")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      opacity: 0.6,
+      fontSize: '11px'
+    }
+  }, "Đặng Năm Mystic v2.0 · Mọi quyền được bảo lưu")));
 }
 function VisionTool({
   mode,

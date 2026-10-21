@@ -1,4 +1,4 @@
-const CACHE = "v60-compact-bottom-cards-20261021";
+const CACHE = "v61-copyright-sybinh-20261021";
 const APP_SHELL = [
   "./",
   "./index.html",
