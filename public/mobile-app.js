@@ -518,7 +518,7 @@ function TabRail({ tab, setTab }) {
 
 function Home({ setTab, providers }) {
   const cards = [
-    ['🧠', 'Phân Tích Chuyên Sâu PRO', 'AI tổng hợp đa lớp, luận giải chuyên sâu.', 'deep'],
+    ['🧠', 'Phân tích Tử vi chuyên sâu', 'AI tổng hợp đa lớp, luận giải chuyên sâu.', 'deep'],
     ['🔮','Tử vi','Luận giải hôm nay, công việc, tình cảm, tài chính.', 'horoscope'],
     ['✋','Xem chỉ tay','Upload ảnh bàn tay để AI phân tích rõ hơn.', 'palm'],
     ['🙂','Xem tướng','Upload ảnh khuôn mặt, nhận luận giải nhẹ nhàng.', 'face'],

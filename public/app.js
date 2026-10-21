@@ -264,7 +264,7 @@ async function handleSaveDestinyProfile() {
 }
 
 function tabIcon(icon){return `<span class="holo-icon icon-${icon}"><i></i></span>`}
-function renderTabs(){const html=routes.map(([id,name,ico])=>`<button class="tab-card" data-route="${id}" onclick="routeTo('${id}')">${tabIcon(ico)}<span>${name}</span></button>`).join('');$('featureTabs').innerHTML=html;$('sideLinks').innerHTML=routes.concat([['deep','AI phân tích sâu','deep'],['account','Tài khoản','account']]).map(([id,name,ico])=>`<button class="link" onclick="routeTo('${id}');toggleMenu(false)">${tabIcon(ico)} <span>${name}</span></button>`).join('')}
+function renderTabs(){const html=routes.map(([id,name,ico])=>`<button class="tab-card" data-route="${id}" onclick="routeTo('${id}')">${tabIcon(ico)}<span>${name}</span></button>`).join('');$('featureTabs').innerHTML=html;$('sideLinks').innerHTML=routes.concat([['deep','Phân tích Tử vi chuyên sâu','deep'],['account','Tài khoản','account']]).map(([id,name,ico])=>`<button class="link" onclick="routeTo('${id}');toggleMenu(false)">${tabIcon(ico)} <span>${name}</span></button>`).join('')}
 function routeTo(route,push=true){
   if(!route)route='home';
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -2259,8 +2259,8 @@ async function analyzeDeep() {
     if (!payload.ask) throw new Error("Vui lòng nhập vấn đề cần hỏi.");
     const data = await postJSON('/api/deep-ai', payload);
     const text = data.text || data.reply || data.answer || 'Không có kết quả trả về.';
-    $('deepResult').innerHTML = htmlResult('🧠 KẾT QUẢ PHÂN TÍCH SÂU ĐA LỚP', text);
-    saveHistory('Phân tích sâu', text);
+    $('deepResult').innerHTML = htmlResult('🧠 KẾT QUẢ PHÂN TÍCH TỬ VI CHUYÊN SÂU', text);
+    saveHistory('Tử vi chuyên sâu', text);
     toast('Đã phân tích xong!');
   } catch(e) {
     $('deepResult').innerHTML = `<h2>Lỗi</h2><p>${e.message}</p>`;

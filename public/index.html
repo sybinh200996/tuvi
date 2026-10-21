@@ -7,7 +7,7 @@
   <meta name="description" content="Đặng Năm Mystic - AI tử vi, chỉ tay, xem tướng, chiêm tinh, chat, lịch sử và tài khoản." />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="assets/icon.svg" />
-  <link rel="stylesheet" href="style.css?v=1792455000" />
+  <link rel="stylesheet" href="style.css?v=1792465000" />
   
       <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
@@ -816,11 +816,11 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
           <button onclick="quickAsk()">✦ AI PHÂN TÍCH</button>
         </div>
         <div class="quick-row">
-          <button onclick="routeTo('tuvi')">⚙ Tử vi hôm nay</button>
+          <button onclick="routeTo('deep')">🧠 Tử vi chuyên sâu</button>
+          <button onclick="routeTo('tuvi')">⚙ Lá số 12 Cung</button>
           <button onclick="routeTo('tarot')">🃏 Bói bài Tarot</button>
           <button onclick="routeTo('sim')">📱 Định giá Sim</button>
           <button onclick="routeTo('palm')">🖐 Xem chỉ tay</button>
-          <button onclick="routeTo('face')">♙ Xem tướng</button>
         </div>
       </div>
     </header>
@@ -833,6 +833,9 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
 
     <section id="page-home" class="page active">
       <div class="dashboard-grid">
+        <article class="feature-card wide" onclick="routeTo('deep')" style="border-color:rgba(56,220,255,0.45);">
+          <div><h2>PHÂN TÍCH TỬ VI CHUYÊN SÂU <em>PRO</em></h2><p>AI phân tích đa lớp kết hợp bản mệnh, ngày giờ sinh để đưa ra bản luận giải chi tiết nhất.</p><button>✦ BẮT ĐẦU NGAY</button></div><div class="card-art ai-head" style="color:#38e7ff;text-shadow:0 0 22px #38e7ff;">🧠</div>
+        </article>
         <article class="feature-card wide" onclick="routeTo('tarot')" style="border-color:rgba(192,124,255,0.4);">
           <div><h2>BÓI BÀI TAROT AI <em>PRO</em></h2><p>Trải bài 3 lá huyền bí giải mã hiện tại, thông điệp vũ trụ và định hướng tương lai gần bằng AI.</p><button>🃏 TRẢI BÀI NGAY</button></div><div class="card-art" style="color:#c084fc;text-shadow:0 0 22px #c084fc;">🃏</div>
         </article>
@@ -841,9 +844,6 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
         </article>
         <article class="feature-card wide" onclick="routeTo('tuvi')" style="border-color:rgba(56,189,248,0.4);">
           <div><h2>BÀN LÁ SỐ TỬ VI <em>12 CUNG</em></h2><p>Bàn lá số 12 Cung tương tác thời gian thực, an sao và luận giải chuyên sâu theo Đẩu Số.</p><button>🔮 BÀN LÁ SỐ</button></div><div class="card-art" style="color:#38bdf8;text-shadow:0 0 22px #38bdf8;">📜</div>
-        </article>
-        <article class="feature-card wide" onclick="routeTo('deep')">
-          <div><h2>AI PHÂN TÍCH SÂU <em>PRO</em></h2><p>AI phân tích đa lớp, kết hợp thông tin bạn nhập để đưa ra bản luận giải chi tiết nhất.</p><button>✦ BẮT ĐẦU NGAY</button></div><div class="card-art ai-head">AI</div>
         </article>
         <article class="feature-card wide" onclick="routeTo('palm')">
           <div><h2>XEM CHỈ TAY AI <em>PRO</em></h2><p>Upload ảnh bàn tay để AI phân tích đường sinh đạo, trí đạo, tâm đạo...</p><button>⇧ TẢI ẢNH LÊN</button></div><div class="card-art hand-art">🖐</div>
@@ -926,7 +926,7 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
       </section>
     </section>
 
-    <section id="page-deep" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();analyzeDeep()"><h2>🧠 AI Phân Tích Chuyên Sâu PRO</h2><p class="muted">Cung cấp thông tin chi tiết nhất để AI tổng hợp đa lớp và luận giải chuyên sâu.</p><label>Họ tên<input id="deepName" placeholder="Vd: Nguyễn Văn A"></label><label>Ngày tháng năm sinh<input id="deepBirth" type="date"></label><label>Câu hỏi hoặc vấn đề<textarea id="deepAsk" placeholder="Trình bày rõ vấn đề bạn đang gặp phải hoặc điều muốn hỏi thật chi tiết..."></textarea></label><label>Khía cạnh tập trung<select id="deepFocus"><option>Tổng quan cuộc đời & Vận hạn</option><option>Công danh sự nghiệp & Tài lộc</option><option>Tình duyên & Hôn nhân</option><option>Phân tích tâm lý & Lời khuyên</option></select></label><button class="primary">✦ Bắt Đầu Phân Tích Sâu</button></form><article id="deepResult" class="result-panel"><h2>Kết quả phân tích sâu</h2><p>Vui lòng điền thông tin và bấm bắt đầu để AI xử lý.</p></article></div></section>
+    <section id="page-deep" class="page"><div class="route-layout"><form class="glass-panel" onsubmit="event.preventDefault();analyzeDeep()"><h2>🧠 Phân Tích Tử Vi Chuyên Sâu PRO</h2><p class="muted">Cung cấp thông tin chi tiết nhất để AI tổng hợp đa lớp và luận giải chuyên sâu.</p><label>Họ tên<input id="deepName" placeholder="Vd: Nguyễn Văn A"></label><label>Ngày tháng năm sinh<input id="deepBirth" type="date"></label><label>Câu hỏi hoặc vấn đề<textarea id="deepAsk" placeholder="Trình bày rõ vấn đề bạn đang gặp phải hoặc điều muốn hỏi thật chi tiết..."></textarea></label><label>Khía cạnh tập trung<select id="deepFocus"><option>Tổng quan cuộc đời & Vận hạn</option><option>Công danh sự nghiệp & Tài lộc</option><option>Tình duyên & Hôn nhân</option><option>Phân tích tâm lý & Lời khuyên</option></select></label><button class="primary">✦ Bắt Đầu Phân Tích Sâu</button></form><article id="deepResult" class="result-panel"><h2>Kết quả phân tích tử vi chuyên sâu</h2><p>Vui lòng điền thông tin và bấm bắt đầu để AI xử lý.</p></article></div></section>
 
     <section id="page-tuvi" class="page">
       <div class="tuvi-page-shell">
@@ -1323,7 +1323,7 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="mystic-engine.js"></script><script src="sync-speech.js?v=1792460000"></script><script src="app.js?v=1792460000"></script>
+  <script src="mystic-engine.js"></script><script src="sync-speech.js?v=1792465000"></script><script src="app.js?v=1792465000"></script>
 
   <!-- App Download Modal -->
   <div id="appDownloadModal" class="modal-overlay" onclick="if(event.target===this) closeAppModal()">
