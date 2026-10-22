@@ -340,7 +340,11 @@ export async function evaluateSim(req, res) {
       });
     }
 
-    const year = Number(birthYear) || new Date().getFullYear();
+    let year = Number(birthYear);
+    if (!year || isNaN(year)) {
+      const match = String(birthYear || '').match(/(19|20)\d{2}/);
+      year = match ? parseInt(match[0], 10) : new Date().getFullYear();
+    }
 
     // 1. Tính toán định giá
     const priceData = calculatePrice(cleanPhone);

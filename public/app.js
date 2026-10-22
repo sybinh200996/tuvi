@@ -33,7 +33,7 @@ const TAROT_CARDS_DATA = [{"id":0,"num":"0","name":"The Fool - Chàng Khờ","en
 const routes=[['home','Trang Chủ','home'],['tuvi','Tử Vi','tuvi'],['tarot','Bói Bài Tarot','tarot'],['sim','Sim Phong Thủy','sim'],['palm','Xem Chỉ Tay','palm'],['face','Xem Tướng','face'],['astrology','Chiêm Tinh','astro'],['love','Tình Duyên','love'],['numerology','Thần Số Học','num'],['chat','AI Chat','chat'],['fengshui','Phong Thủy','feng'],['history','Lịch Sử','history']];
 let lastResult='';
 const $=id=>document.getElementById(id);
-function init(){renderTabs();renderHistory();loadAccount();loadVoicePrefs();initVietnameseVoices();startClock();loadDestinyProfileToForm();loadDestinyProfileFromCloud().then(loadDestinyProfileToForm);const firstRoute=location.hash?.replace('#/','')||(window.matchMedia&&window.matchMedia('(max-width: 760px)').matches?'chat':'home');routeTo(firstRoute,false);window.addEventListener('hashchange',()=>routeTo(location.hash.replace('#/','')||'home',false));checkGeminiStatus();loadAIProviders();setTimeout(()=>{if(window.matchMedia&&window.matchMedia('(max-width:760px)').matches&&$('chatText')){$('chatText').focus({preventScroll:true});}},600);}
+function init(){renderTabs();renderHistory();loadAccount();loadVoicePrefs();initVietnameseVoices();startClock();initSmartDateInputs();loadDestinyProfileToForm();loadDestinyProfileFromCloud().then(loadDestinyProfileToForm);const firstRoute=location.hash?.replace('#/','')||(window.matchMedia&&window.matchMedia('(max-width: 760px)').matches?'chat':'home');routeTo(firstRoute,false);window.addEventListener('hashchange',()=>routeTo(location.hash.replace('#/','')||'home',false));checkGeminiStatus();loadAIProviders();setTimeout(()=>{if(window.matchMedia&&window.matchMedia('(max-width:760px)').matches&&$('chatText')){$('chatText').focus({preventScroll:true});}},600);}
 
 const BIRTH_PROFILE_STORAGE_KEY = 'dangnam_birth_profile';
 const DESTINY_STORAGE_KEY = 'synam_destiny_profile';
@@ -80,14 +80,248 @@ function updateDestinyBadgeAndThienBan(profile) {
   if ($('tbHour')) $('tbHour').textContent = (p && (p.birthHour || p.birthTime)) ? (p.birthHour || p.birthTime) : 'Giờ Ngọ (11h-13h)';
 }
 
+// =========================================================================
+// UNIVERSAL SMART BIRTH DATE UTILITIES (DESKTOP & MOBILE HIGH RELIABILITY)
+// =========================================================================
+
+function parseBirthDate(input) {
+  if (!input) return null;
+  const str = String(input).trim();
+  if (!str) return null;
+
+  let y, m, d;
+
+  // Match YYYY-MM-DD or YYYY/MM/DD or YYYY.MM.DD
+  let match = str.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+  if (match) {
+    y = parseInt(match[1], 10);
+    m = parseInt(match[2], 10);
+    d = parseInt(match[3], 10);
+  } else {
+    // Match DD/MM/YYYY or DD-MM-YYYY or DD.MM.YYYY
+    match = str.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/);
+    if (match) {
+      d = parseInt(match[1], 10);
+      m = parseInt(match[2], 10);
+      y = parseInt(match[3], 10);
+    } else if (/^\d{8}$/.test(str)) {
+      // 8 contiguous digits: Try YYYYMMDD first if starts with 19 or 20 and month valid
+      const my = str.match(/^(\d{4})(\d{2})(\d{2})$/);
+      const ty = parseInt(my[1], 10);
+      const tm = parseInt(my[2], 10);
+      const td = parseInt(my[3], 10);
+      if (ty >= 1900 && ty <= 2100 && tm >= 1 && tm <= 12 && td >= 1 && td <= 31) {
+        y = ty; m = tm; d = td;
+      } else {
+        // Try DDMMYYYY
+        const md = str.match(/^(\d{2})(\d{2})(\d{4})$/);
+        const cd = parseInt(md[1], 10);
+        const cm = parseInt(md[2], 10);
+        const cy = parseInt(md[3], 10);
+        if (cy >= 1900 && cy <= 2100 && cm >= 1 && cm <= 12 && cd >= 1 && cd <= 31) {
+          d = cd; m = cm; y = cy;
+        }
+      }
+    }
+  }
+
+  // Validate numeric presence & sensible bounds
+  if (!y || !m || !d) return null;
+  if (y < 1900 || y > 2100) return null;
+  if (m < 1 || m > 12) return null;
+  if (d < 1 || d > 31) return null;
+
+  // Verify real calendar day (e.g. Feb 30th is invalid)
+  const dt = new Date(y, m - 1, d);
+  if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) {
+    return null;
+  }
+
+  const pad = n => String(n).padStart(2, '0');
+  const iso = `${y}-${pad(m)}-${pad(d)}`; // YYYY-MM-DD
+  const display = `${pad(d)}/${pad(m)}/${y}`; // DD/MM/YYYY
+  return { year: y, month: m, day: d, iso, display, isValid: true };
+}
+
+function openSmartDatePicker(id) {
+  const textInput = document.getElementById(id);
+  const picker = document.getElementById(id + '_picker');
+  if (!picker) return;
+
+  // Sync current text to picker if valid
+  if (textInput && textInput.value) {
+    const parsed = parseBirthDate(textInput.value);
+    if (parsed) {
+      picker.value = parsed.iso;
+    }
+  }
+
+  // Open native picker dialog
+  if (typeof picker.showPicker === 'function') {
+    try {
+      picker.showPicker();
+      return;
+    } catch (e) {
+      console.warn('showPicker:', e);
+    }
+  }
+  try {
+    picker.focus();
+    picker.click();
+  } catch (e) {}
+}
+
+function setSmartDateValue(id, val) {
+  const textInput = document.getElementById(id);
+  const picker = document.getElementById(id + '_picker');
+  if (!textInput) return;
+  if (!val) {
+    textInput.value = '';
+    if (picker) picker.value = '';
+    return;
+  }
+  const parsed = parseBirthDate(val);
+  if (parsed) {
+    textInput.value = parsed.display;
+    if (picker) picker.value = parsed.iso;
+  } else {
+    textInput.value = val;
+  }
+}
+
+function initSmartDateInputs() {
+  document.querySelectorAll('.smart-date-wrapper').forEach(wrapper => {
+    const input = wrapper.querySelector('.smart-date-input');
+    const picker = wrapper.querySelector('.smart-date-picker-hidden');
+    if (!input || input.dataset.smartDateInit === 'true') return;
+    input.dataset.smartDateInit = 'true';
+
+    // Auto masking & typing support
+    input.addEventListener('input', e => {
+      let val = input.value;
+      if (e.inputType && e.inputType.startsWith('delete')) return;
+      const digits = val.replace(/\D/g, '');
+      if (digits.length >= 8) {
+        const d = digits.slice(0, 2);
+        const m = digits.slice(2, 4);
+        const y = digits.slice(4, 8);
+        input.value = `${d}/${m}/${y}`;
+        const parsed = parseBirthDate(input.value);
+        if (parsed && picker) picker.value = parsed.iso;
+        return;
+      }
+      if (val.length === 2 && !val.includes('/')) {
+        input.value = val + '/';
+      } else if (val.length === 5 && val.split('/').length === 2) {
+        input.value = val + '/';
+      }
+    });
+
+    // Restrict invalid characters
+    input.addEventListener('keypress', e => {
+      if (['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) return;
+      if (!/[\d/\-.]/.test(e.key)) {
+        e.preventDefault();
+      }
+    });
+
+    // Format & validate on blur
+    input.addEventListener('blur', () => {
+      const val = (input.value || '').trim();
+      if (!val) return;
+      if (/^\d{4}$/.test(val) && (input.id === 'simBirth' || input.id === 'fengYear')) return;
+      const parsed = parseBirthDate(val);
+      if (parsed) {
+        input.value = parsed.display;
+        if (picker) picker.value = parsed.iso;
+      }
+    });
+
+    // Handle paste event
+    input.addEventListener('paste', () => {
+      setTimeout(() => {
+        const parsed = parseBirthDate(input.value);
+        if (parsed) {
+          input.value = parsed.display;
+          if (picker) picker.value = parsed.iso;
+        }
+      }, 20);
+    });
+
+    // Two-way sync when calendar picker changes
+    if (picker) {
+      picker.addEventListener('change', () => {
+        if (picker.value) {
+          const parsed = parseBirthDate(picker.value);
+          if (parsed) {
+            input.value = parsed.display;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        }
+      });
+    }
+  });
+}
+
+function autoPopulateProfileToTools() {
+  const p = getBirthProfile();
+  if (!p) return;
+  const name = p.fullName || p.name || '';
+  const birth = p.birthDate || '';
+
+  // 1. Phân Tích Tử Vi Chuyên Sâu
+  if ($('deepName') && !$('deepName').value && name) $('deepName').value = name;
+  if ($('deepBirth') && !$('deepBirth').value && birth) {
+    setSmartDateValue('deepBirth', birth);
+  }
+
+  // 2. Thần Số Học AI
+  if ($('numName') && !$('numName').value && name) $('numName').value = name;
+  if ($('numBirth') && !$('numBirth').value && birth) {
+    setSmartDateValue('numBirth', birth);
+  }
+
+  // 3. Tình Duyên (Người 1 = chính chủ)
+  if ($('loveName1') && !$('loveName1').value && name) $('loveName1').value = name;
+  if ($('loveBirth1') && !$('loveBirth1').value && birth) {
+    setSmartDateValue('loveBirth1', birth);
+  }
+
+  // 4. Sim Phong Thủy (Năm sinh)
+  if ($('simBirth') && !$('simBirth').value && birth) {
+    const parsed = parseBirthDate(birth);
+    if (parsed) {
+      $('simBirth').value = String(parsed.year);
+    } else {
+      const ym = String(birth).match(/(19|20)\d{2}/);
+      if (ym) $('simBirth').value = ym[0];
+    }
+  }
+
+  // 5. Phong Thủy
+  if ($('fengYear') && !$('fengYear').value && birth) {
+    const parsed = parseBirthDate(birth);
+    if (parsed) {
+      $('fengYear').value = String(parsed.year);
+    } else {
+      const ym = String(birth).match(/(19|20)\d{2}/);
+      if (ym) $('fengYear').value = ym[0];
+    }
+  }
+}
+
 function openDestinyProfileModal() {
   const modal = $('destinyModal');
   if (!modal) return;
+  initSmartDateInputs();
   const p = getBirthProfile() || {};
   if ($('destinyModalFullName')) $('destinyModalFullName').value = p.fullName || p.name || '';
   if ($('destinyModalGender')) $('destinyModalGender').value = p.gender || 'Nam';
   if ($('destinyModalCalendarType')) $('destinyModalCalendarType').value = p.calendarType || 'solar';
-  if ($('destinyModalBirthDate')) $('destinyModalBirthDate').value = p.birthDate || '';
+  if ($('destinyModalBirthDate')) {
+    setSmartDateValue('destinyModalBirthDate', p.birthDate || '');
+  }
   if ($('destinyModalBirthHour')) $('destinyModalBirthHour').value = p.birthHour || (p.birthTime ? `Giờ Ngọ (11h00 - 12h59)` : 'Ngọ (11h00 - 12h59)');
   if ($('destinyModalBirthPlace')) $('destinyModalBirthPlace').value = p.birthPlace || '';
   modal.style.display = 'flex';
@@ -158,16 +392,23 @@ async function saveDestinyProfile(profile) {
 
 async function saveBirthProfileFromModal() {
   const fullName = $('destinyModalFullName')?.value?.trim();
-  const birthDate = $('destinyModalBirthDate')?.value;
-  if (!fullName || !birthDate) {
+  const rawBirth = $('destinyModalBirthDate')?.value?.trim();
+  if (!fullName || !rawBirth) {
     toast('Vui lòng điền họ tên và ngày sinh');
+    return;
+  }
+  const parsed = parseBirthDate(rawBirth);
+  if (!parsed) {
+    toast('⚠️ Ngày sinh không hợp lệ. Vui lòng nhập dạng Ngày/Tháng/Năm (ví dụ: 20/10/1995)');
+    $('destinyModalBirthDate')?.focus();
     return;
   }
   const profile = {
     fullName,
     gender: $('destinyModalGender')?.value || 'Nam',
     calendarType: $('destinyModalCalendarType')?.value || 'solar',
-    birthDate,
+    birthDate: parsed.display,
+    birthDateIso: parsed.iso,
     birthHour: $('destinyModalBirthHour')?.value || 'Ngọ (11h00 - 12h59)',
     birthPlace: $('destinyModalBirthPlace')?.value?.trim() || '',
     updatedAt: new Date().toISOString()
@@ -175,6 +416,7 @@ async function saveBirthProfileFromModal() {
 
   await saveBirthProfile(profile);
   closeDestinyProfileModal();
+  autoPopulateProfileToTools();
   toast('✅ Đã lưu Hồ Sơ Bản Mệnh thành công!');
 }
 
@@ -236,10 +478,14 @@ async function loadDestinyProfileFromCloud() {
 function loadDestinyProfileToForm() {
   const p = getBirthProfile();
   updateDestinyBadgeAndThienBan(p);
+  autoPopulateProfileToTools();
   if (!p) return;
   if ($('name') && !$('name').value) $('name').value = p.fullName || p.name || '';
   if ($('gender') && p.gender) $('gender').value = p.gender;
-  if ($('birthDate') && !$('birthDate').value) $('birthDate').value = p.birthDate || '';
+  if ($('birthDate') && !$('birthDate').value) {
+    const parsed = parseBirthDate(p.birthDate);
+    $('birthDate').value = parsed ? parsed.iso : (p.birthDate || '');
+  }
   if ($('birthTime') && !$('birthTime').value) $('birthTime').value = p.birthHour || p.birthTime || '';
   if ($('calendarType') && p.calendarType) $('calendarType').value = p.calendarType;
   if ($('birthPlace') && !$('birthPlace').value) $('birthPlace').value = p.birthPlace || '';
@@ -275,6 +521,7 @@ function routeTo(route,push=true){
   document.querySelectorAll('.bottom-nav button').forEach(btn=>btn.classList.remove('active'));
   document.querySelectorAll('.side-menu button.link').forEach(btn=>btn.classList.remove('active'));
   if(push) location.hash='#/'+route;
+  try { initSmartDateInputs(); autoPopulateProfileToTools(); } catch(e) {}
   requestAnimationFrame(()=>{
     if (route === 'chat') {
       window.scrollTo({top: 0, behavior: 'smooth'});
@@ -1598,19 +1845,62 @@ function localNumerologyReport(name,birth){
   return `### 🔢 Thần số học tổng quan\n- Họ tên: ${name||'Chưa nhập'}\n- Ngày sinh: ${birth||'Chưa nhập'}\n- Con số chủ đạo: ${life} — ${numberMeaning(life)}.\n- Con số linh hồn: ${soul} — điều bên trong bạn hướng tới: ${numberMeaning(soul)}.\n- Con số biểu đạt: ${expr} — cách bạn thể hiện ra ngoài: ${numberMeaning(expr)}.\n- Con số nhân cách: ${personality} — ấn tượng người khác dễ cảm nhận: ${numberMeaning(personality)}.\n\n### Điểm mạnh\n- Bạn có năng lượng nổi bật của số ${life}: ${numberMeaning(life)}.\n- Khi cân bằng cảm xúc, bạn dễ phát huy tốt năng lực giao tiếp, lựa chọn và kiên trì.\n\n### Điểm cần cân bằng\n- Tránh để cảm xúc nhất thời quyết định thay mục tiêu dài hạn.\n- Nên rèn thói quen ghi chép, lên kế hoạch và kiểm tra lại việc quan trọng.\n\n### Gợi ý tình duyên & công việc\n- Tình duyên: hợp với người biết tôn trọng nhịp sống và cách suy nghĩ của bạn.\n- Công việc: ưu tiên môi trường giúp bạn phát huy điểm mạnh của số ${life}.\n\n### Lưu ý\n- Kết quả thần số học chỉ mang tính tham khảo, không thay thế quyết định thực tế.`;
 }
 async function generateNumerology(){
-  const name=$('numName')?.value||''; const birth=$('numBirth')?.value||''; const focus=$('numFocus')?.value||'Tổng quan';
-  if(!String(birth||'').replace(/\D/g,'')){ toast('Vui lòng nhập ngày sinh để tính thần số học'); if($('numerologyResult'))$('numerologyResult').innerHTML=htmlResult('🔢 Kết quả thần số học','Vui lòng nhập ngày sinh hợp lệ trước khi phân tích.'); return; }
-  const local=localNumerologyReport(name,birth); setLoading('numerologyResult',true);
+  const name = $('numName')?.value?.trim() || '';
+  const rawBirth = $('numBirth')?.value?.trim() || '';
+  const focus = $('numFocus')?.value || 'Tổng quan';
+  const parsed = parseBirthDate(rawBirth);
+  const birth = parsed ? parsed.display : rawBirth;
+
+  if(!String(birth || '').replace(/\D/g, '')){
+    toast('Vui lòng nhập ngày sinh để tính thần số học');
+    if($('numerologyResult')) $('numerologyResult').innerHTML = htmlResult('🔢 Kết quả thần số học', 'Vui lòng nhập ngày sinh hợp lệ (ví dụ: 20/10/1995) trước khi phân tích.');
+    return;
+  }
+  const local = localNumerologyReport(name, birth);
+  setLoading('numerologyResult', true);
   try{
-    const prompt=`Luận thần số học tiếng Việt thật chi tiết cho: Họ tên ${name}, ngày sinh ${birth}, trọng tâm ${focus}. Dựa trên bản tính local sau, mở rộng thành báo cáo đẹp, rõ mục, có điểm mạnh/yếu, công việc, tình duyên và lời khuyên thực tế. Không mê tín cực đoan.\n\n${local}`;
-    const data=await postJSON('/api/chat-ai',{message:prompt});
-    const text=data.text||data.answer||data.result||local;
-    $('numerologyResult').innerHTML=htmlResult('🔢 Kết quả thần số học AI',text); saveHistory('Thần số học',text);
-  }catch(e){$('numerologyResult').innerHTML=htmlResult('🔢 Kết quả thần số học',local); saveHistory('Thần số học local',local)}
-  finally{setLoading('numerologyResult',false)}
+    const prompt = `Luận thần số học tiếng Việt thật chi tiết cho: Họ tên ${name}, ngày sinh ${birth}, trọng tâm ${focus}. Dựa trên bản tính local sau, mở rộng thành báo cáo đẹp, rõ mục, có điểm mạnh/yếu, công việc, tình duyên và lời khuyên thực tế. Không mê tín cực đoan.\n\n${local}`;
+    const data = await postJSON('/api/chat-ai', { message: prompt });
+    const text = data.text || data.answer || data.result || local;
+    $('numerologyResult').innerHTML = htmlResult('🔢 Kết quả thần số học AI', text);
+    saveHistory('Thần số học', text);
+  } catch(e) {
+    $('numerologyResult').innerHTML = htmlResult('🔢 Kết quả thần số học', local);
+    saveHistory('Thần số học local', local);
+  } finally {
+    setLoading('numerologyResult', false);
+  }
 }
 
-async function generateLove(){setLoading('loveResult',true);try{const payload={name1:$('loveName1').value,birth1:$('loveBirth1').value,name2:$('loveName2').value,birth2:$('loveBirth2').value,focus:$('loveFocus').value};const data=await postJSON('/api/love-ai',payload);const text=data.text||data.result||data.answer;$('loveResult').innerHTML=htmlResult('💕 Kết quả tình duyên AI',text);saveHistory('Tình duyên',text)}catch(e){const text=`### Tình duyên tham khảo\n- Hai người cần xem sự hòa hợp qua cách giao tiếp, nhịp sống và mục tiêu dài hạn.\n- Điểm mạnh: có thể bổ sung cho nhau nếu biết lắng nghe.\n- Điểm cần tránh: im lặng, thử lòng, nóng vội.\n- Lời khuyên: dùng tử vi như tham khảo, tình cảm thật nằm ở hành động hằng ngày.`;$('loveResult').innerHTML=htmlResult('💕 Kết quả tình duyên',text);saveHistory('Tình duyên local',text)}finally{setLoading('loveResult',false)}}
+async function generateLove(){
+  setLoading('loveResult', true);
+  try {
+    const b1Raw = $('loveBirth1')?.value?.trim() || '';
+    const b2Raw = $('loveBirth2')?.value?.trim() || '';
+    const p1 = parseBirthDate(b1Raw);
+    const p2 = parseBirthDate(b2Raw);
+    const birth1 = p1 ? p1.display : b1Raw;
+    const birth2 = p2 ? p2.display : b2Raw;
+
+    const payload = {
+      name1: $('loveName1')?.value || 'Người 1',
+      birth1: birth1,
+      name2: $('loveName2')?.value || 'Người 2',
+      birth2: birth2,
+      focus: $('loveFocus')?.value || 'Tổng quan tình duyên'
+    };
+    const data = await postJSON('/api/love-ai', payload);
+    const text = data.text || data.result || data.answer;
+    $('loveResult').innerHTML = htmlResult('💕 Kết quả tình duyên AI', text);
+    saveHistory('Tình duyên', text);
+  } catch(e) {
+    const text = `### Tình duyên tham khảo\n- Hai người cần xem sự hòa hợp qua cách giao tiếp, nhịp sống và mục tiêu dài hạn.\n- Điểm mạnh: có thể bổ sung cho nhau nếu biết lắng nghe.\n- Điểm cần tránh: im lặng, thử lòng, nóng vội.\n- Lời khuyên: dùng tử vi như tham khảo, tình cảm thật nằm ở hành động hằng ngày.`;
+    $('loveResult').innerHTML = htmlResult('💕 Kết quả tình duyên', text);
+    saveHistory('Tình duyên local', text);
+  } finally {
+    setLoading('loveResult', false);
+  }
+}
 let desktopWebcamStreams = {};
 let desktopWebcamFacing = { face: 'user', palm: 'environment' };
 let desktopVisionDataUrls = {};
@@ -2250,11 +2540,15 @@ if ('serviceWorker' in navigator) {
 async function analyzeDeep() {
   setLoading('deepResult', true);
   try {
+    const rawBirth = $('deepBirth')?.value?.trim() || '';
+    const parsedBirth = parseBirthDate(rawBirth);
+    const birthFormatted = parsedBirth ? parsedBirth.display : rawBirth;
+
     const payload = {
-      name: $('deepName').value,
-      birth: $('deepBirth').value,
-      ask: $('deepAsk').value,
-      focus: $('deepFocus').value
+      name: $('deepName')?.value?.trim() || 'Đương số',
+      birth: birthFormatted,
+      ask: $('deepAsk')?.value?.trim() || '',
+      focus: $('deepFocus')?.value || 'Tổng quan cuộc đời & Vận hạn'
     };
     if (!payload.ask) throw new Error("Vui lòng nhập vấn đề cần hỏi.");
     const data = await postJSON('/api/deep-ai', payload);
@@ -2510,11 +2804,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function analyzeSimPhongThuy(){
   const phone = ($('simPhone')?.value || '').trim();
-  const birthYear = ($('simBirth')?.value || '').trim();
+  const rawBirth = ($('simBirth')?.value || '').trim();
   const cleanPhone = phone.replace(/\D/g, '');
   if(!cleanPhone || cleanPhone.length < 10){
     toast('Vui lòng nhập số điện thoại hợp lệ (tối thiểu 10 số)');
     return;
+  }
+  let birthYear = '';
+  const parsed = parseBirthDate(rawBirth);
+  if (parsed) {
+    birthYear = String(parsed.year);
+  } else {
+    const ym = rawBirth.match(/(19|20)\d{2}/);
+    if (ym) birthYear = ym[0];
   }
   const btn = $('btnSim');
   const resPanel = $('simResult');

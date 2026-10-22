@@ -4153,3 +4153,101 @@ pre code {
   }
 }
 
+/* =========================================================================
+   UNIVERSAL SMART BIRTH DATE INPUT (DESKTOP & MOBILE HIGH CONTRAST)
+   ========================================================================= */
+
+/* Native date input dark scheme & high-contrast indicator */
+input[type="date"] {
+  color-scheme: dark;
+}
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.85) sepia(1) saturate(5) hue-rotate(5deg) brightness(1.2);
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity 0.2s, transform 0.2s;
+  padding: 4px;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+/* Smart Date Wrapper for flexible typing, auto-masking & calendar popup */
+.smart-date-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.smart-date-wrapper .smart-date-input {
+  width: 100% !important;
+  padding-right: 46px !important;
+  box-sizing: border-box !important;
+  letter-spacing: 0.5px;
+  font-family: inherit;
+  font-size: 14px;
+}
+
+.smart-date-picker-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 215, 0, 0.12);
+  border: 1px solid rgba(255, 215, 0, 0.35);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0;
+  margin: 0;
+  transition: all 0.2s ease;
+  z-index: 3;
+  color: #ffd700;
+  user-select: none;
+}
+
+.smart-date-picker-btn:hover {
+  background: rgba(255, 215, 0, 0.28);
+  border-color: rgba(255, 215, 0, 0.7);
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.smart-date-picker-btn:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+/* Hidden date input anchor for invoking browser's native date dialog */
+.smart-date-picker-hidden {
+  position: absolute !important;
+  right: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 1px !important;
+  height: 1px !important;
+  opacity: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  outline: none !important;
+  pointer-events: none !important;
+  color-scheme: dark !important;
+}
+
+.smart-date-hint {
+  display: block;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+

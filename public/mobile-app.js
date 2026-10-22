@@ -1855,13 +1855,26 @@ function LoveTool() {
   async function run(){ setOut('Đang tính bằng code và AI luận giải...'); try{const d=await apiJSON('/api/love-ai',{ geminiModel: 'gemini-3.5-flash-lite', persons:[{name:'Người 1',birthDate:a},{name:'Người 2',birthDate:b}]}); setOut(d.text||d.reply||'Không có kết quả'); saveHistory('Tình duyên', d.text||d.reply||'Không có kết quả');}catch(e){setOut('⚠️ '+e.message)} }
   return <section className="tool-grid"><div className="premium-panel"><h2>💞 Tình duyên</h2><input value={a} onChange={e=>setA(e.target.value)} placeholder="Ngày sinh người 1: 01/01/2000"/><input value={b} onChange={e=>setB(e.target.value)} placeholder="Ngày sinh người 2: 02/02/2004"/><button className="primary" onClick={run}>Luận giải</button></div><Result text={out}/></section>;
 }
+function toIsoDate(str) {
+  if (!str) return '';
+  const m = String(str).trim().match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})$/);
+  if (m) return `${m[3]}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`;
+  return str;
+}
+function toDisplayDate(str) {
+  if (!str) return '';
+  const m = String(str).trim().match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/);
+  if (m) return `${m[3].padStart(2, '0')}/${m[2].padStart(2, '0')}/${m[1]}`;
+  return str;
+}
+
 function DestinyModal({ isOpen, onClose, profile, onSave }) {
   if (!isOpen) return null;
   const [form, setForm] = useState(() => ({
     fullName: profile.fullName || profile.name || '',
     gender: profile.gender || 'Nam',
     calendarType: profile.calendarType || 'solar',
-    birthDate: profile.birthDate || '',
+    birthDate: toIsoDate(profile.birthDate || ''),
     birthHour: profile.birthHour || 'Ngọ (11h00 - 12h59)',
     birthPlace: profile.birthPlace || ''
   }));
@@ -1872,7 +1885,7 @@ function DestinyModal({ isOpen, onClose, profile, onSave }) {
       alert('Vui lòng điền họ tên và ngày sinh');
       return;
     }
-    await onSave(form);
+    await onSave({ ...form, birthDate: toDisplayDate(form.birthDate) });
     onClose();
   }
 
