@@ -1,4 +1,4 @@
-const CACHE = "v68-cskh-support-assistant-20261104";
+const CACHE = "v69-multilingual-fixed-20261104";
 const APP_SHELL = [
   "./",
   "./index.html",

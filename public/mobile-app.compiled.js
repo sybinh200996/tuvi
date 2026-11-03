@@ -1,3 +1,26 @@
+
+const mi18n = (k, fb) => (typeof window !== 'undefined' && window.I18nEngine && typeof window.I18nEngine.t === 'function' ? window.I18nEngine.t(k, fb) : fb);
+const getMobileNavLabel = (id, fallback) => {
+  const map = {
+    home: 'nav_home',
+    horoscope: 'nav_tuvi',
+    palm: 'nav_palm',
+    face: 'nav_face',
+    astrology: 'nav_astrology',
+    love: 'nav_love',
+    numerology: 'nav_numerology',
+    sim: 'nav_sim',
+    chat: 'nav_chat',
+    multi: 'nav_chat',
+    fengshui: 'nav_fengshui',
+    tarot: 'nav_tarot',
+    settings: 'nav_account',
+    history: 'nav_history',
+    deep: 'nav_deep'
+  };
+  return mi18n(map[id] || ('nav_' + id), fallback);
+};
+
 const TAROT_CARDS_DATA = [{
   "id": 0,
   "num": "0",
@@ -751,6 +774,12 @@ function App() {
   const [tab, setTab] = useState('home');
   const [health, setHealth] = useState('Đang kiểm tra AI...');
   const [providers, setProviders] = useState([]);
+  const [currentLang, setCurrentLang] = useState(() => (typeof window !== 'undefined' && window.I18nEngine ? window.I18nEngine.getCurrentLang() : 'vi'));
+  useEffect(() => {
+    const handleLang = (e) => setCurrentLang(e.detail?.lang || 'vi');
+    window.addEventListener('languageChanged', handleLang);
+    return () => window.removeEventListener('languageChanged', handleLang);
+  }, []);
   useEffect(() => {
     fetch('/api/health').then(r => r.json()).then(d => setHealth(d.ok ? 'Server online' : 'Server lỗi')).catch(() => setHealth('Server chưa kết nối'));
     loadProviders();
@@ -809,7 +838,7 @@ function App() {
     d: "m3 10 9-7 9 7"
   }), /*#__PURE__*/React.createElement("path", {
     d: "M5.5 9v11h13V9M9.5 20v-6h5v6"
-  })), /*#__PURE__*/React.createElement("span", null, "Trang chủ")), /*#__PURE__*/React.createElement("button", {
+  })), /*#__PURE__*/React.createElement("span", null, mi18n("nav_home", "Trang chủ"))), /*#__PURE__*/React.createElement("button", {
     "aria-label": "Lịch sử",
     onClick: () => setTab('history'),
     className: tab === 'history' ? 'active' : ''
@@ -821,7 +850,7 @@ function App() {
     d: "M3.5 8.5A8.5 8.5 0 1 1 4 17"
   }), /*#__PURE__*/React.createElement("path", {
     d: "M3.5 3.5v5h5M12 7v5l3 2"
-  })), /*#__PURE__*/React.createElement("span", null, "Lịch sử")), /*#__PURE__*/React.createElement("button", {
+  })), /*#__PURE__*/React.createElement("span", null, mi18n("nav_history", "Lịch sử"))), /*#__PURE__*/React.createElement("button", {
     className: "magic",
     "aria-label": "Mở AI Chat",
     title: "Mở AI Chat",
@@ -838,7 +867,7 @@ function App() {
     d: "M20 11.5a7.5 7.5 0 0 1-7.5 7.5H6l-3 2 1.2-4.1A7.5 7.5 0 1 1 20 11.5Z"
   }), /*#__PURE__*/React.createElement("path", {
     d: "M8 11.5h.01M12 11.5h.01M16 11.5h.01"
-  })), /*#__PURE__*/React.createElement("span", null, "AI Chat")), /*#__PURE__*/React.createElement("button", {
+  })), /*#__PURE__*/React.createElement("span", null, mi18n("nav_chat", "AI Chat"))), /*#__PURE__*/React.createElement("button", {
     "aria-label": "Tài khoản",
     onClick: () => setTab('settings'),
     className: tab === 'settings' ? 'active' : ''
@@ -852,7 +881,7 @@ function App() {
     r: "3.5"
   }), /*#__PURE__*/React.createElement("path", {
     d: "M4.5 21a7.5 7.5 0 0 1 15 0M5 21h14"
-  })), /*#__PURE__*/React.createElement("span", null, "Tài khoản"))));
+  })), /*#__PURE__*/React.createElement("span", null, mi18n("nav_account", "Tài khoản")))));
 }
 function Hero({
   setTab,
@@ -920,7 +949,7 @@ function TabRail({
     key: t.id,
     className: tab === t.id ? 'active' : '',
     onClick: () => setTab(t.id)
-  }, /*#__PURE__*/React.createElement("span", null, t.icon), t.label))));
+  }, /*#__PURE__*/React.createElement("span", null, t.icon), getMobileNavLabel(t.id, t.label)))));
 }
 function Home({
   setTab,

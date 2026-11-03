@@ -78,6 +78,14 @@
       hero_subtitle: "Hệ thống luận giải Tử Vi Đẩu Số, Bát Tự, Phong Thủy, Tarot & Huyền Học kết hợp Trí Tuệ Nhân Tạo chuyên sâu.",
       hero_btn_tuvi: "📜 BÀN TỬ VI 12 CUNG",
       hero_btn_chat: "💬 TRÒ CHUYỆN VỚI AI",
+      hero_sub_tags: "AI TỬ VI - CHỈ TAY - XEM TƯỚNG - CHIÊM TINH",
+      quick_ask_btn: "✦ AI PHÂN TÍCH",
+      tuvi_tool_title: "LẬP LÁ SỐ TỬ VI 12 CUNG",
+      mobile_back_desktop: "🖥️ Máy tính",
+      history_title: "🗂 Lịch sử phân tích",
+      clear_history: "🧹 Xóa lịch sử",
+      cskh_fab_label: "Hỗ Trợ & Báo Lỗi",
+      cskh_title: "Trợ Lý CSKH & Hỗ Trợ Kỹ Thuật",
 
       // Destiny Profile Modal
       destiny_modal_title: "📜 Hồ Sơ Bản Mệnh",
@@ -245,6 +253,14 @@
       hero_subtitle: "Advanced Multi-layer AI for Zi Wei Dou Shu, Bazi, Feng Shui, Tarot & Eastern Metaphysics combined with precision algorithms.",
       hero_btn_tuvi: "📜 12 PALACES BOARD",
       hero_btn_chat: "💬 CHAT WITH AI",
+      hero_sub_tags: "AI ZI WEI - PALMISTRY - PHYSIOGNOMY - ASTROLOGY",
+      quick_ask_btn: "✦ AI ANALYZE",
+      tuvi_tool_title: "12-PALACE ZI WEI CHART",
+      mobile_back_desktop: "🖥️ Desktop View",
+      history_title: "🗂 Analysis History",
+      clear_history: "🧹 Clear History",
+      cskh_fab_label: "Support & Bug Report",
+      cskh_title: "Customer Care & Tech Support",
 
       // Destiny Profile Modal
       destiny_modal_title: "📜 Destiny Profile",
@@ -412,6 +428,14 @@
       hero_subtitle: "融合紫微斗数、四柱八字、易经六十四卦与塔罗占星的多模态人工智能研判大模型系统。",
       hero_btn_tuvi: "📜 紫微十二宫命盘",
       hero_btn_chat: "💬 开启灵机对话",
+      hero_sub_tags: "AI 紫微斗数 - 手相面相 - 东方神煞 - 占星术",
+      quick_ask_btn: "✦ AI 深度分析",
+      tuvi_tool_title: "紫微斗数十二宫命盘",
+      mobile_back_desktop: "🖥️ 电脑版",
+      history_title: "🗂 分析历史记录",
+      clear_history: "🧹 清空记录",
+      cskh_fab_label: "客服与报错",
+      cskh_title: "客服与技术支持助理",
 
       // Destiny Profile Modal
       destiny_modal_title: "📜 本命命盘档案",
@@ -622,8 +646,8 @@
     if (flagEl) flagEl.textContent = meta.flag;
     if (codeEl) codeEl.textContent = meta.code.toUpperCase();
 
-    // Mark active in dropdown
-    document.querySelectorAll('.lang-opt').forEach(btn => {
+    // Mark active across all selector styles (topbar bar, floating dock, mobile header, side menu)
+    document.querySelectorAll('.lang-opt, .lang-btn, .float-lang-btn, .m-lang-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.lang === l);
     });
   }
