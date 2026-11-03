@@ -3043,3 +3043,185 @@ window.addEventListener('languageChanged', () => {
   refreshVoiceList();
 });
 
+
+// =========================================================================
+// TRỢ LÝ CSKH & HỖ TRỢ KỸ THUẬT CLIENT LOGIC
+// =========================================================================
+const CSKH_FAQS = [
+  {
+    q: "Cách lập lá số Tử Vi 12 Cung và lưu Hồ sơ bản mệnh?",
+    a: "1. Bấm vào nút 'Hồ Sơ Bản Mệnh' (📜) trên thanh điều hướng trên cùng.\n2. Điền họ tên, ngày tháng năm sinh (Dương/Âm lịch), giờ sinh (12 Canh giờ) và bấm 'Lưu Hồ Sơ'.\n3. Chuyển sang tab 'Tử Vi 12 Cung': Chạm vào bất kỳ cung nào (Mệnh, Thân, Quan Lộc, Tài Bạch...) để AI tự động luận giải chuyên sâu theo bản mệnh của bạn."
+  },
+  {
+    q: "Tại sao web app đôi lúc tải chậm hoặc quay đơ?",
+    a: "1. Do kết nối mạng quốc tế hoặc bộ nhớ đệm trình duyệt cũ: Bạn hãy thử bấm Ctrl+F5 (hoặc vuốt xuống trên điện thoại để làm mới trang).\n2. Nếu truy cập bằng 4G/Wifi bị chập chờn, bạn hãy chuyển sang tab 'Báo lỗi dịch vụ' để gửi thông tin cho đội ngũ kỹ thuật hỗ trợ tuyến mạng ngay."
+  },
+  {
+    q: "Cách bói bài Tarot 3 lá và nhận thông điệp?",
+    a: "1. Chọn tab 'Bói Bài Tarot' trên thanh chức năng hoặc trang chủ.\n2. Nhập câu hỏi hoặc băn khoăn hiện tại của bạn vào ô nhập.\n3. Bấm 'Bắt đầu trải bài': Chọn 3 lá bài theo trực giác. AI sẽ giải mã ý nghĩa Quá khứ - Hiện tại - Định hướng tương lai chi tiết."
+  },
+  {
+    q: "Cách định giá Sim phong thủy và xem quẻ Kinh Dịch?",
+    a: "1. Chọn tab 'Sim Phong Thủy'.\n2. Nhập số điện thoại cần xem và năm sinh của bạn.\n3. Bấm 'Thẩm định AI': Hệ thống sẽ chấm điểm âm dương ngũ hành, quẻ Kinh Dịch (Quẻ Chủ - Quẻ Hỗ) và thời vận Cửu Tinh Đồ Pháp (Vận 9: 2024 - 2043)."
+  },
+  {
+    q: "Cách chuyển đổi ngôn ngữ (Tiếng Việt, Tiếng Anh, Tiếng Trung)?",
+    a: "1. Nhìn lên góc phải thanh menu trên cùng, bạn sẽ thấy nút ngôn ngữ (🇻🇳 VI / 🇬🇧 EN / 🇨🇳 ZH).\n2. Bấm vào và chọn ngôn ngữ mong muốn. Toàn bộ giao diện và trí tuệ nhân tạo AI sẽ tự động đồng bộ theo ngôn ngữ đó."
+  },
+  {
+    q: "Cách bật/tắt đọc giọng nói (TTS) và microphone (STT)?",
+    a: "1. Trong màn hình AI Chat, ở thanh công cụ phía trên khung chat có nút bật/tắt 'Đọc phản hồi AI' và 'Mic'.\n2. Bấm biểu tượng 🎤 để nói trực tiếp; đọc đến đâu chữ sẽ tự động nhập vào khung chat đến đó mà không cần gõ phím."
+  }
+];
+
+let cskhChatHistory = [];
+
+function toggleCskhPanel(forceOpen) {
+  const drawer = $('cskhDrawer');
+  if (!drawer) return;
+  const isHidden = drawer.style.display === 'none' || !drawer.style.display;
+  const shouldOpen = forceOpen !== undefined ? forceOpen : isHidden;
+
+  if (shouldOpen) {
+    drawer.style.display = 'block';
+    renderCskhFaqs();
+    updateCskhDeviceSummary();
+  } else {
+    drawer.style.display = 'none';
+  }
+}
+
+function switchCskhTab(tabName) {
+  ['faq', 'report', 'chat'].forEach(t => {
+    const btn = $('cskhTab' + t.charAt(0).toUpperCase() + t.slice(1));
+    const pane = $('cskhContent' + t.charAt(0).toUpperCase() + t.slice(1));
+    if (btn) btn.classList.toggle('active', t === tabName);
+    if (pane) pane.classList.toggle('active', t === tabName);
+  });
+  if (tabName === 'chat') {
+    setTimeout(() => { $('cskhChatInput')?.focus(); }, 100);
+  }
+}
+
+function renderCskhFaqs() {
+  const list = $('cskhFaqList');
+  if (!list || list.children.length > 0) return;
+  list.innerHTML = CSKH_FAQS.map((faq, i) => `
+    <div class="cskh-faq-card" id="cskhFaq_${i}">
+      <div class="cskh-faq-q" onclick="toggleCskhFaq(${i})">
+        <span>${escapeHtml(faq.q)}</span>
+        <span class="faq-arrow">▼</span>
+      </div>
+      <div class="cskh-faq-a">${escapeHtml(faq.a).replace(/\n/g, '<br>')}</div>
+    </div>
+  `).join('');
+}
+
+function toggleCskhFaq(index) {
+  const card = $('cskhFaq_' + index);
+  if (!card) return;
+  const isOpen = card.classList.contains('open');
+  document.querySelectorAll('.cskh-faq-card').forEach(c => c.classList.remove('open'));
+  if (!isOpen) card.classList.add('open');
+}
+
+function updateCskhDeviceSummary() {
+  const box = $('cskhDeviceSummary');
+  if (!box) return;
+  const route = document.body.dataset.route || 'home';
+  const lang = (window.I18nEngine && typeof window.I18nEngine.getCurrentLang === 'function') ? window.I18nEngine.getCurrentLang() : 'vi';
+  box.innerHTML = `ℹ️ <b>Môi trường thiết bị:</b> Màn hình: ${window.innerWidth}x${window.innerHeight} | Tuyến trang: #${route} | Ngôn ngữ: ${lang.toUpperCase()} | App v67`;
+}
+
+async function submitCskhReport() {
+  const type = $('cskhReportType')?.value || 'Chưa rõ';
+  const desc = $('cskhReportDesc')?.value?.trim();
+  const contact = $('cskhReportContact')?.value?.trim() || '';
+  const statusEl = $('cskhReportStatus');
+  const btn = $('cskhSubmitBtn');
+
+  if (!desc) {
+    toast('Vui lòng nhập mô tả sự cố.');
+    return;
+  }
+
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Đang gửi báo lỗi...'; }
+  if (statusEl) statusEl.innerHTML = '';
+
+  try {
+    const route = document.body.dataset.route || 'home';
+    const lang = (window.I18nEngine && typeof window.I18nEngine.getCurrentLang === 'function') ? window.I18nEngine.getCurrentLang() : 'vi';
+    const deviceInfo = {
+      userAgent: navigator.userAgent,
+      screen: `${window.innerWidth}x${window.innerHeight}`,
+      route,
+      lang,
+      timestamp: new Date().toISOString()
+    };
+
+    const res = await postJSON('/api/support/report', {
+      type,
+      description: desc,
+      contact,
+      deviceInfo,
+      lang
+    });
+
+    if (res && res.ok) {
+      if (statusEl) {
+        statusEl.innerHTML = `<span style="color:#4ade80;font-weight:bold;">✅ Báo lỗi thành công (Mã: ${res.ticketId})! Đội ngũ kỹ thuật Đặng Năm đã tiếp nhận và sẽ kiểm tra xử lý ngay.</span>`;
+      }
+      $('cskhReportDesc').value = '';
+      $('cskhReportContact').value = '';
+      toast('Đã gửi báo lỗi thành công!');
+    } else {
+      throw new Error(res?.error || 'Không thể gửi báo lỗi lúc này.');
+    }
+  } catch (err) {
+    if (statusEl) {
+      statusEl.innerHTML = `<span style="color:#f87171;">⚠️ Lỗi gửi: ${escapeHtml(err.message || err)}. Vui lòng thử lại sau.</span>`;
+    }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = '🚀 Gửi Báo Lỗi Cho Kỹ Thuật'; }
+  }
+}
+
+async function sendCskhChat() {
+  const input = $('cskhChatInput');
+  const logs = $('cskhChatLogs');
+  const text = input ? input.value.trim() : '';
+  if (!text) return;
+
+  input.value = '';
+
+  // Append user bubble
+  const userMsg = document.createElement('div');
+  userMsg.className = 'cskh-msg user';
+  userMsg.innerHTML = `<div class="cskh-msg-bubble">${escapeHtml(text)}</div>`;
+  logs.appendChild(userMsg);
+  logs.scrollTop = logs.scrollHeight;
+
+  // Append bot loading bubble
+  const botMsg = document.createElement('div');
+  botMsg.className = 'cskh-msg bot';
+  botMsg.innerHTML = `<div class="cskh-msg-bubble"><span class="typing-dots"><i></i><i></i><i></i></span> Đang tra cứu hỗ trợ...</div>`;
+  logs.appendChild(botMsg);
+  logs.scrollTop = logs.scrollHeight;
+
+  cskhChatHistory.push({ role: 'user', content: text });
+  if (cskhChatHistory.length > 8) cskhChatHistory = cskhChatHistory.slice(-8);
+
+  try {
+    const res = await postJSON('/api/support/chat', {
+      message: text,
+      history: cskhChatHistory
+    });
+
+    const reply = res?.text || 'Em đã tiếp nhận yêu cầu. Anh/Chị có thể tham khảo mục Câu hỏi thường gặp hoặc gửi biểu mẫu báo lỗi để kỹ thuật xử lý sâu hơn ạ.';
+    botMsg.innerHTML = `<div class="cskh-msg-bubble">${markdownish(reply)}</div>`;
+    cskhChatHistory.push({ role: 'assistant', content: reply });
+  } catch (err) {
+    botMsg.innerHTML = `<div class="cskh-msg-bubble" style="color:#f87171;">⚠️ Hiện tại hệ thống hỗ trợ AI đang bảo trì. Anh/Chị vui lòng gửi biểu mẫu tại tab "Báo lỗi dịch vụ" để kỹ thuật viên kiểm tra trực tiếp ạ.</div>`;
+  }
+  logs.scrollTop = logs.scrollHeight;
+}

@@ -3165,6 +3165,92 @@ Hãy viết bài luận giải cuối cùng theo cấu trúc:
 });
 
 
+// =========================================================================
+// TRỢ LÝ CSKH & HỖ TRỢ KỸ THUẬT (Customer Support & Feedback Endpoints)
+// =========================================================================
+const SUPPORT_REPORTS_FILE = path.join(DATA_DIR, 'support_reports.json');
+
+app.post("/api/support/report", async (req, res) => {
+  try {
+    const { type = 'Khác', description = '', deviceInfo = {}, contact = '', lang = 'vi' } = req.body || {};
+    const cleanDesc = String(description || '').trim();
+    if (!cleanDesc) {
+      return res.status(400).json({ ok: false, error: 'Vui lòng nhập mô tả lỗi hoặc góp ý.' });
+    }
+
+    const ticketId = 'DN-' + Date.now().toString(36).toUpperCase();
+    const newReport = {
+      ticketId,
+      type,
+      description: cleanDesc,
+      contact,
+      deviceInfo,
+      lang,
+      createdAt: new Date().toISOString()
+    };
+
+    let reports = [];
+    try {
+      const fileData = await fs.readFile(SUPPORT_REPORTS_FILE, 'utf-8');
+      reports = JSON.parse(fileData || '[]');
+    } catch (e) { reports = []; }
+
+    reports.push(newReport);
+    if (reports.length > 500) reports = reports.slice(-500);
+    try {
+      await fs.writeFile(SUPPORT_REPORTS_FILE, JSON.stringify(reports, null, 2), 'utf-8');
+    } catch (e) {
+      console.error('Failed to write support report:', e.message);
+    }
+
+    res.json({ ok: true, ticketId, message: 'Đã tiếp nhận yêu cầu hỗ trợ thành công.' });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: cleanError(error) });
+  }
+});
+
+app.post("/api/support/chat", aiLimiter, async (req, res) => {
+  try {
+    const { message = '', history = [], lang = 'vi' } = req.body || {};
+    const cleanMessage = String(message || '').trim();
+    if (!cleanMessage) {
+      return res.status(400).json({ ok: false, error: 'Vui lòng nhập nội dung câu hỏi.' });
+    }
+
+    const systemPrompt = `Bạn là Trợ Lý CSKH & Hỗ Trợ Kỹ Thuật trực tuyến của web app Đặng Năm Mystic (dangnam.online).
+Nhiệm vụ của bạn là hỗ trợ, giải đáp và hướng dẫn người dùng sử dụng đầy đủ các tính năng trong web app:
+- 1. Tử Vi 12 Cung: Cách mở bàn lá số, chạm vào từng cung (Mệnh, Quan, Tài, Phu thê...) để nghe AI luận giải.
+- 2. Hồ Sơ Bản Mệnh: Cách điền họ tên, ngày tháng năm sinh (Dương/Âm), giờ sinh để đồng bộ cloud và cá nhân hóa mọi bài xem.
+- 3. Bói bài Tarot: Trải bài 3 lá huyền bí, cách đặt câu hỏi và rút bài.
+- 4. Sim Phong Thủy: Nhập số điện thoại để thẩm định giá, cân bằng âm dương và quẻ Kinh Dịch.
+- 5. Xem chỉ tay & Xem tướng: Chụp ảnh lòng bàn tay hoặc khuôn mặt qua camera điện thoại/webcam để AI phân tích.
+- 6. Ngôn ngữ & Giọng đọc: Hướng dẫn đổi 3 ngôn ngữ (Tiếng Việt, English, 中文) ở góc trên và cách bật đọc giọng nói AI, mic nói chuyện.
+- 7. Báo lỗi dịch vụ: Tiếp nhận phản hồi nếu web tải chậm, lỗi giao diện hoặc lỗi kết nối.
+
+PHONG CÁCH PHẢN HỒI:
+- Lịch thiệp, ân cần, ngắn gọn, trực diện và hỗ trợ tận tình.
+- Dùng Markdown rõ ràng, từng bước 1-2-3 dễ làm theo.
+- Xưng hô là: "Em/Mình là Trợ Lý CSKH Đặng Năm".
+- Tuyệt đối không phán tử vi hay bói toán dài dòng ở kênh này; nếu người dùng muốn xem số, hãy lịch sự hướng dẫn họ vào đúng chức năng trên thanh menu.
+${getLanguageInstruction(lang)}`;
+
+    const prompt = `${cleanMessage}`;
+
+    const result = await tryMultiAI({
+      prompt,
+      parts: [{ text: prompt }],
+      preferredProvider: process.env.DEFAULT_AI_PROVIDER || "auto",
+      systemPrompt,
+      history
+    });
+
+    result.text = hideModelLeakServer(result.text);
+    res.json({ ok: true, text: result.text, label: 'Trợ Lý CSKH Đặng Năm' });
+  } catch (error) {
+    res.status(500).json({ ok: false, error: cleanError(error) });
+  }
+});
+
 // ===== NAM36 WEATHER REAL FALLBACK + NO TECH ERROR =====
 function weatherCodeViNam36(code) {
   const m = {0:'Trời quang',1:'Ít mây',2:'Có mây',3:'Nhiều mây/u ám',45:'Sương mù',48:'Sương mù',51:'Mưa phùn nhẹ',53:'Mưa phùn vừa',55:'Mưa phùn dày',61:'Mưa nhỏ',63:'Mưa vừa',65:'Mưa to',80:'Mưa rào nhẹ',81:'Mưa rào vừa',82:'Mưa rào mạnh',95:'Dông',96:'Dông kèm mưa đá',99:'Dông kèm mưa đá'};

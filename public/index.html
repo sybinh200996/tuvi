@@ -7,7 +7,7 @@
   <meta name="description" content="Đặng Năm Mystic - AI tử vi, chỉ tay, xem tướng, chiêm tinh, chat, lịch sử và tài khoản." />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="assets/icon.svg" />
-  <link rel="stylesheet" href="style.css?v=1792520000" />
+  <link rel="stylesheet" href="style.css?v=1792530000" />
   
       <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
@@ -28,8 +28,8 @@
   <!-- Dùng chung một ứng dụng responsive cho desktop và mobile; tránh SPA mobile tách rời làm thiếu tab/chức năng. -->
 
     <!-- Premium Chat Upgrades -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
 
 <style id="chat-mobile-fix">
 /* Chat AI mobile only: keep the original page background sharp and visible. */
@@ -1345,7 +1345,7 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="i18n.js?v=1792520000"></script><script src="mystic-engine.js"></script><script src="sync-speech.js?v=1792520000"></script><script src="app.js?v=1792520000"></script>
+  <script src="i18n.js?v=1792530000"></script><script src="mystic-engine.js"></script><script src="sync-speech.js?v=1792530000"></script><script src="app.js?v=1792530000"></script>
 
   <!-- App Download Modal -->
   <div id="appDownloadModal" class="modal-overlay" onclick="if(event.target===this) closeAppModal()">
@@ -1479,5 +1479,88 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
       Đặng Năm Mystic — nội dung tử vi, phong thủy, tarot và AI chỉ mang tính tham khảo, không thay thế tư vấn y tế, pháp lý, tài chính hay các quyết định quan trọng.
     </p>
   </footer>
+
+  <!-- Trợ Lý CSKH & Hỗ Trợ Kỹ Thuật Floating Button & Drawer -->
+  <div id="cskhWrap" class="cskh-wrap">
+    <button id="cskhFab" class="cskh-fab" onclick="toggleCskhPanel()" title="Trợ Lý CSKH & Hỗ Trợ Kỹ Thuật" aria-label="Trợ Lý CSKH & Hỗ Trợ Kỹ Thuật">
+      <span class="cskh-fab-icon">🎧</span>
+      <span class="cskh-fab-label">CSKH 24/7</span>
+      <span class="cskh-fab-pulse"></span>
+    </button>
+  </div>
+
+  <div id="cskhDrawer" class="cskh-drawer" style="display:none;" onclick="if(event.target===this) toggleCskhPanel(false)">
+    <div class="cskh-card" onclick="event.stopPropagation()">
+      <!-- Header -->
+      <div class="cskh-header">
+        <div class="cskh-header-info">
+          <div class="cskh-avatar">🎧</div>
+          <div>
+            <h3 class="cskh-title">Trợ Lý CSKH & Hỗ Trợ Kỹ Thuật</h3>
+            <span class="cskh-status"><i class="status-dot online"></i> Trực tuyến 24/7 · Sẵn sàng hỗ trợ</span>
+          </div>
+        </div>
+        <button class="cskh-close-btn" onclick="toggleCskhPanel(false)" title="Đóng">✕</button>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="cskh-nav-tabs">
+        <button id="cskhTabFaq" class="cskh-tab-btn active" onclick="switchCskhTab('faq')">❓ Câu hỏi mẫu</button>
+        <button id="cskhTabReport" class="cskh-tab-btn" onclick="switchCskhTab('report')">⚠️ Báo lỗi dịch vụ</button>
+        <button id="cskhTabChat" class="cskh-tab-btn" onclick="switchCskhTab('chat')">💬 Chat AI hỗ trợ</button>
+      </div>
+
+      <!-- Tab 1: FAQ Section -->
+      <div id="cskhContentFaq" class="cskh-tab-pane active">
+        <p class="cskh-tab-desc">Bấm vào câu hỏi thường gặp bên dưới để xem hướng dẫn sử dụng nhanh:</p>
+        <div class="cskh-faq-list" id="cskhFaqList"></div>
+      </div>
+
+      <!-- Tab 2: Report Bug / Service Issue -->
+      <div id="cskhContentReport" class="cskh-tab-pane">
+        <p class="cskh-tab-desc">Gặp lỗi web tải chậm, lỗi giao diện hoặc phản hồi chưa đúng? Hãy gửi phản hồi để kỹ thuật kiểm tra ngay:</p>
+        <form id="cskhReportForm" onsubmit="event.preventDefault(); submitCskhReport();">
+          <div class="cskh-form-group">
+            <label for="cskhReportType">Loại sự cố <span class="req">*</span></label>
+            <select id="cskhReportType" required>
+              <option value="Web tải chậm / Chờ lâu">🐢 Web tải chậm / Chờ lâu</option>
+              <option value="Lỗi tính năng / Giao diện">⚠️ Lỗi tính năng / Giao diện</option>
+              <option value="Lỗi phản hồi AI">🤖 Lỗi phản hồi AI / Chatbot</option>
+              <option value="Lỗi âm thanh / Đọc giọng nói">🔊 Lỗi đọc giọng nói / Microphone</option>
+              <option value="Góp ý nâng cấp">💡 Góp ý cải tiến chức năng</option>
+              <option value="Khác">📌 Vấn đề khác</option>
+            </select>
+          </div>
+          <div class="cskh-form-group">
+            <label for="cskhReportDesc">Mô tả sự cố bạn đang gặp phải <span class="req">*</span></label>
+            <textarea id="cskhReportDesc" rows="3" required placeholder="Mô tả ngắn gọn: bị chậm ở màn hình nào, nút nào bấm không chạy, hoặc lỗi gì..."></textarea>
+          </div>
+          <div class="cskh-form-group">
+            <label for="cskhReportContact">Số điện thoại hoặc Email (Tùy chọn)</label>
+            <input id="cskhReportContact" type="text" placeholder="Nhập để kỹ thuật viên tiện phản hồi..." />
+          </div>
+          <div class="cskh-device-summary" id="cskhDeviceSummary"></div>
+          <button type="submit" id="cskhSubmitBtn" class="cskh-submit-btn">🚀 Gửi Báo Lỗi Cho Kỹ Thuật</button>
+        </form>
+        <div id="cskhReportStatus" class="cskh-report-status"></div>
+      </div>
+
+      <!-- Tab 3: Live AI Support Chat -->
+      <div id="cskhContentChat" class="cskh-tab-pane">
+        <div id="cskhChatLogs" class="cskh-chat-logs">
+          <div class="cskh-msg bot">
+            <div class="cskh-msg-bubble">
+              Xin chào! Em là <b>Trợ Lý CSKH & Hỗ Trợ Kỹ Thuật Đặng Năm</b>. Anh/Chị đang cần hướng dẫn tính năng nào hay web app đang bị chậm ở đâu để em hỗ trợ ngay ạ?
+            </div>
+          </div>
+        </div>
+        <div class="cskh-chat-input-bar">
+          <input id="cskhChatInput" type="text" placeholder="Nhập câu hỏi cần hỗ trợ kỹ thuật..." onkeydown="if(event.key==='Enter') sendCskhChat()" />
+          <button id="cskhChatSendBtn" onclick="sendCskhChat()" title="Gửi câu hỏi">➤</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
