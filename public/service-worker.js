@@ -1,4 +1,4 @@
-const CACHE = "v66-smart-birthdate-desktop-20261022";
+const CACHE = "v67-multilingual-vi-en-zh-20261104";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -6,6 +6,7 @@ const APP_SHELL = [
   "./style.css",
   "./app.js",
   "./sync-speech.js",
+  "./i18n.js",
   "./knowledge.js",
   "./manifest.webmanifest",
   "./assets/icon.svg",

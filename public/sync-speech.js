@@ -86,9 +86,15 @@
     return sentences.length ? sentences : [normalized];
   }
 
-  // Split a sentence into word tokens for word-by-word inline revelation
-  function tokenizeSentence(sentence) {
+  // Split a sentence into word tokens for word-by-word inline revelation (supports Vietnamese, English, and Chinese)
+  function tokenizeSentence(sentence, lang) {
     if (!sentence) return [];
+    const isChinese = (lang === 'zh') || /[\u4e00-\u9fa5]/.test(sentence);
+    if (isChinese) {
+      // Split by CJK ideographic character, English word, or punctuation
+      const matches = sentence.match(/[\u4e00-\u9fa5]|[^\u4e00-\u9fa5\s]+\s*|\s+/g);
+      return matches && matches.length ? matches : [sentence];
+    }
     // Match each non-whitespace block followed by any trailing whitespaces
     const matches = sentence.match(/\S+\s*/g);
     return matches && matches.length ? matches : [sentence];
@@ -143,6 +149,7 @@
       rate = 1.0,
       pitch = 1.0,
       voice = null,
+      lang = null,
       onWord = null,
       onSentenceStart = null,
       onDone = null,
@@ -158,18 +165,25 @@
       return { stop: () => {} };
     }
 
+    const activeLang = lang || (typeof window !== 'undefined' && window.I18nEngine ? window.I18nEngine.getCurrentLang() : 'vi');
+    let targetLangCode = 'vi-VN';
+    if (activeLang === 'zh') targetLangCode = 'zh-CN';
+    else if (activeLang === 'en') targetLangCode = 'en-US';
+
     const sentences = splitSentences(fullOriginalText);
     const session = {
       id,
       fullOriginalText,
       sentences,
-      sentenceTokens: sentences.map(s => tokenizeSentence(s)),
+      sentenceTokens: sentences.map(s => tokenizeSentence(s, activeLang)),
       currentSentenceIdx: 0,
       revealedTokensInCurSentence: 0,
       accumulatedPrevText: '',
       fallbackTimer: null,
       boundaryFiredForCurSentence: false,
       stopped: false,
+      activeLang,
+      targetLangCode,
       onWord,
       onDone,
       onError
@@ -244,14 +258,15 @@
 
     // Build the Utterance
     let utterance = null;
+    const targetLangCode = session.targetLangCode || 'vi-VN';
     try {
       utterance = new SpeechSynthesisUtterance(cleanSpoken);
-      utterance.lang = 'vi-VN';
+      utterance.lang = targetLangCode;
       utterance.rate = Math.max(0.6, Math.min(2.0, Number(rate) || 1.0));
       utterance.pitch = Math.max(0.5, Math.min(1.5, Number(pitch) || 1.0));
       if (voice) {
         utterance.voice = voice;
-        utterance.lang = voice.lang || 'vi-VN';
+        utterance.lang = voice.lang || targetLangCode;
       }
     } catch (e) {
       // Fallback to timer-only if utterance creation fails
@@ -325,13 +340,19 @@
     const spokenWordCount = Math.max(1, tokens.length);
     const charCount = cleanSpoken.length;
     const effectiveRate = Math.max(0.6, Number(rate) || 1.0);
+    const isChinese = (session.activeLang === 'zh') || /[\u4e00-\u9fa5]/.test(cleanSpoken);
 
-    // Approximate duration for Vietnamese utterance
-    const estimatedSentenceMs = Math.max(
-      600,
-      Math.min(12000, ((charCount * 55) + (spokenWordCount * 120)) / effectiveRate)
-    );
-    const intervalPerWord = Math.max(45, Math.min(320, Math.round(estimatedSentenceMs / spokenWordCount)));
+    // Approximate duration for utterance by language
+    let estimatedSentenceMs;
+    if (isChinese) {
+      estimatedSentenceMs = Math.max(500, Math.min(12000, (charCount * 220) / effectiveRate));
+    } else {
+      estimatedSentenceMs = Math.max(
+        600,
+        Math.min(12000, ((charCount * 55) + (spokenWordCount * 120)) / effectiveRate)
+      );
+    }
+    const intervalPerWord = Math.max(35, Math.min(320, Math.round(estimatedSentenceMs / spokenWordCount)));
 
     // Start pacing timer
     session.fallbackTimer = setInterval(function () {
@@ -608,6 +629,7 @@
     isSpeaking: () => Boolean(activeSession),
     createStreamPacer: createStreamPacer,
     smoothScrollToBottom: smoothScrollToBottom,
-    dedupeTranscript: dedupeTranscript
+    dedupeTranscript: dedupeTranscript,
+    tokenizeSentence: tokenizeSentence
   };
 }));

@@ -33,7 +33,14 @@ const TAROT_CARDS_DATA = [{"id":0,"num":"0","name":"The Fool - Chàng Khờ","en
 const routes=[['home','Trang Chủ','home'],['tuvi','Tử Vi','tuvi'],['tarot','Bói Bài Tarot','tarot'],['sim','Sim Phong Thủy','sim'],['palm','Xem Chỉ Tay','palm'],['face','Xem Tướng','face'],['astrology','Chiêm Tinh','astro'],['love','Tình Duyên','love'],['numerology','Thần Số Học','num'],['chat','AI Chat','chat'],['fengshui','Phong Thủy','feng'],['history','Lịch Sử','history']];
 let lastResult='';
 const $=id=>document.getElementById(id);
-function init(){renderTabs();renderHistory();loadAccount();loadVoicePrefs();initVietnameseVoices();startClock();initSmartDateInputs();loadDestinyProfileToForm();loadDestinyProfileFromCloud().then(loadDestinyProfileToForm);const firstRoute=location.hash?.replace('#/','')||(window.matchMedia&&window.matchMedia('(max-width: 760px)').matches?'chat':'home');routeTo(firstRoute,false);window.addEventListener('hashchange',()=>routeTo(location.hash.replace('#/','')||'home',false));checkGeminiStatus();loadAIProviders();setTimeout(()=>{if(window.matchMedia&&window.matchMedia('(max-width:760px)').matches&&$('chatText')){$('chatText').focus({preventScroll:true});}},600);}
+function init(){
+  if(window.I18nEngine){
+    const curLang=window.I18nEngine.getCurrentLang();
+    window.I18nEngine.applyTranslations(curLang);
+    window.I18nEngine.updateLanguageSelectorUI(curLang);
+  }
+  renderTabs();renderHistory();loadAccount();loadVoicePrefs();initVietnameseVoices();startClock();initSmartDateInputs();loadDestinyProfileToForm();loadDestinyProfileFromCloud().then(loadDestinyProfileToForm);const firstRoute=location.hash?.replace('#/','')||(window.matchMedia&&window.matchMedia('(max-width: 760px)').matches?'chat':'home');routeTo(firstRoute,false);window.addEventListener('hashchange',()=>routeTo(location.hash.replace('#/','')||'home',false));checkGeminiStatus();loadAIProviders();setTimeout(()=>{if(window.matchMedia&&window.matchMedia('(max-width:760px)').matches&&$('chatText')){$('chatText').focus({preventScroll:true});}},600);
+}
 
 const BIRTH_PROFILE_STORAGE_KEY = 'dangnam_birth_profile';
 const DESTINY_STORAGE_KEY = 'synam_destiny_profile';
@@ -510,7 +517,13 @@ async function handleSaveDestinyProfile() {
 }
 
 function tabIcon(icon){return `<span class="holo-icon icon-${icon}"><i></i></span>`}
-function renderTabs(){const html=routes.map(([id,name,ico])=>`<button class="tab-card" data-route="${id}" onclick="routeTo('${id}')">${tabIcon(ico)}<span>${name}</span></button>`).join('');$('featureTabs').innerHTML=html;$('sideLinks').innerHTML=routes.concat([['deep','Phân tích Tử vi chuyên sâu','deep'],['account','Tài khoản','account']]).map(([id,name,ico])=>`<button class="link" onclick="routeTo('${id}');toggleMenu(false)">${tabIcon(ico)} <span>${name}</span></button>`).join('')}
+function renderTabs(){
+  const t = (k, fb) => (window.I18nEngine && typeof window.I18nEngine.t === 'function') ? window.I18nEngine.t(k, fb) : fb;
+  const html=routes.map(([id,name,ico])=>`<button class="tab-card" data-route="${id}" onclick="routeTo('${id}')">${tabIcon(ico)}<span>${t('nav_'+id, name)}</span></button>`).join('');
+  $('featureTabs').innerHTML=html;
+  const allSideRoutes=routes.concat([['deep',t('nav_deep','Phân tích Tử vi chuyên sâu'),'deep'],['account',t('nav_account','Tài khoản'),'account']]);
+  $('sideLinks').innerHTML=allSideRoutes.map(([id,name,ico])=>`<button class="link" onclick="routeTo('${id}');toggleMenu(false)">${tabIcon(ico)} <span>${t('nav_'+id, name)}</span></button>`).join('');
+}
 function routeTo(route,push=true){
   if(!route)route='home';
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -810,13 +823,20 @@ function exportResultToPrint(title = 'Bản Luận Giải Đặng Năm AI', cont
 
 async function streamChatResponse({ url, payload, signal, onStart, onDelta, onDone, onError }) {
   try {
+    const curLang = (window.I18nEngine && typeof window.I18nEngine.getCurrentLang === 'function')
+      ? window.I18nEngine.getCurrentLang()
+      : (localStorage.getItem('dangnam_language') || 'vi');
+    const enrichedPayload = (payload && typeof payload === 'object' && !Array.isArray(payload))
+      ? { lang: curLang, ...payload }
+      : payload;
+
     const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'text/event-stream'
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(enrichedPayload),
       ...(signal ? { signal } : {})
     });
 
@@ -1111,37 +1131,89 @@ let cachedVoices=[];
 function getVoicePrefs(){
   try{return JSON.parse(localStorage.getItem('synam_voice_prefs')||'{}')}catch{return {}}
 }
-function isVietnameseVoice(v){
-  const hay=(String(v?.lang||'')+' '+String(v?.name||'')).toLowerCase();
+function isVoiceForLang(v, lang = 'vi'){
+  const l = String(lang || 'vi').toLowerCase();
+  const vLang = String(v?.lang || '').toLowerCase();
+  const vName = String(v?.name || '').toLowerCase();
+  const hay = vLang + ' ' + vName;
+  if (l.startsWith('zh')) {
+    return vLang.startsWith('zh') || hay.includes('chinese') || hay.includes('mandarin') || hay.includes('putonghua') || hay.includes('cmn');
+  }
+  if (l.startsWith('en')) {
+    return vLang.startsWith('en') || hay.includes('english') || hay.includes('us english') || hay.includes('uk english');
+  }
   return hay.includes('vi') || hay.includes('vietnam') || hay.includes('viet nam') || hay.includes('tiếng việt') || hay.includes('tieng viet');
 }
-function scoreVietnameseVoice(v){
-  const hay=(String(v?.lang||'')+' '+String(v?.name||'')).toLowerCase();
-  let score=0;
-  if(String(v?.lang||'').toLowerCase()==='vi-vn') score+=100;
-  if(String(v?.lang||'').toLowerCase().startsWith('vi')) score+=80;
-  if(hay.includes('vietnam') || hay.includes('viet nam')) score+=40;
-  if(hay.includes('google')) score+=15;
-  if(hay.includes('female') || hay.includes('nữ') || hay.includes('nu')) score+=5;
-  if(v?.localService) score+=2;
+
+function scoreVoiceForLang(v, lang = 'vi'){
+  const l = String(lang || 'vi').toLowerCase();
+  const vLang = String(v?.lang || '').toLowerCase();
+  const vName = String(v?.name || '').toLowerCase();
+  const hay = vLang + ' ' + vName;
+  let score = 0;
+
+  if (l.startsWith('zh')) {
+    if (vLang === 'zh-cn') score += 100;
+    else if (vLang.startsWith('zh')) score += 80;
+    if (hay.includes('mandarin') || hay.includes('putonghua') || hay.includes('xiaoxiao') || hay.includes('yunxi')) score += 40;
+    if (hay.includes('natural') || hay.includes('neural')) score += 30;
+    if (hay.includes('google')) score += 15;
+    if (v?.localService) score += 2;
+    return score;
+  }
+
+  if (l.startsWith('en')) {
+    if (vLang === 'en-us') score += 100;
+    else if (vLang === 'en-gb') score += 90;
+    else if (vLang.startsWith('en')) score += 80;
+    if (hay.includes('natural') || hay.includes('neural') || hay.includes('guy') || hay.includes('jenny')) score += 30;
+    if (hay.includes('google')) score += 15;
+    if (v?.localService) score += 2;
+    return score;
+  }
+
+  // Vietnamese
+  if (vLang === 'vi-vn') score += 100;
+  else if (vLang.startsWith('vi')) score += 80;
+  if (hay.includes('vietnam') || hay.includes('viet nam')) score += 40;
+  if (hay.includes('natural') || hay.includes('neural') || hay.includes('hoaimy') || hay.includes('namminh')) score += 30;
+  if (hay.includes('google')) score += 15;
+  if (hay.includes('female') || hay.includes('nữ') || hay.includes('nu')) score += 5;
+  if (v?.localService) score += 2;
   return score;
 }
+
+function isVietnameseVoice(v){
+  return isVoiceForLang(v, 'vi');
+}
+function scoreVietnameseVoice(v){
+  return scoreVoiceForLang(v, 'vi');
+}
+
 function refreshVoiceList(){
   if(!('speechSynthesis' in window)) return [];
   cachedVoices=(speechSynthesis.getVoices?.()||[]).slice();
   const select=$('voiceSelect');
+  const curLang = (window.I18nEngine && typeof window.I18nEngine.getCurrentLang === 'function')
+    ? window.I18nEngine.getCurrentLang()
+    : 'vi';
+
   if(select){
     const prefs=getVoicePrefs();
-    const vi=cachedVoices.filter(isVietnameseVoice).sort((a,b)=>scoreVietnameseVoice(b)-scoreVietnameseVoice(a));
-    const others=cachedVoices.filter(v=>!isVietnameseVoice(v));
-    const opts=[`<option value="auto">Tự động chọn giọng Việt</option>`]
-      .concat(vi.map(v=>`<option value="${escapeHtml(v.name)}">🇻🇳 ${escapeHtml(v.name)} (${escapeHtml(v.lang||'')})</option>`))
+    const matched=cachedVoices.filter(v=>isVoiceForLang(v, curLang)).sort((a,b)=>scoreVoiceForLang(b, curLang)-scoreVoiceForLang(a, curLang));
+    const others=cachedVoices.filter(v=>!isVoiceForLang(v, curLang));
+    const langFlag = curLang === 'zh' ? '🇨🇳' : curLang === 'en' ? '🇬🇧' : '🇻🇳';
+    const autoLabel = curLang === 'zh' ? '自动选用优质中文语音' : curLang === 'en' ? 'Auto-select Best English Voice' : 'Tự động chọn giọng Việt tốt nhất';
+
+    const opts=[`<option value="auto">${autoLabel}</option>`]
+      .concat(matched.map(v=>`<option value="${escapeHtml(v.name)}">${langFlag} ${escapeHtml(v.name)} (${escapeHtml(v.lang||'')})</option>`))
       .concat(others.slice(0,40).map(v=>`<option value="${escapeHtml(v.name)}">🌐 ${escapeHtml(v.name)} (${escapeHtml(v.lang||'')})</option>`));
     select.innerHTML=opts.join('');
     select.value=prefs.voiceName||'auto';
   }
   return cachedVoices;
 }
+
 function initVietnameseVoices(){
   if(!('speechSynthesis' in window)) return;
   refreshVoiceList();
@@ -1149,6 +1221,7 @@ function initVietnameseVoices(){
   setTimeout(refreshVoiceList,250);
   setTimeout(refreshVoiceList,1000);
 }
+
 function getPreferredVoice(){
   const prefs=getVoicePrefs();
   const voices=refreshVoiceList();
@@ -1157,29 +1230,40 @@ function getPreferredVoice(){
     const chosen=voices.find(v=>v.name===prefs.voiceName);
     if(chosen) return chosen;
   }
-  const vi=voices.filter(isVietnameseVoice).sort((a,b)=>scoreVietnameseVoice(b)-scoreVietnameseVoice(a));
-  return vi[0] || null;
+  const curLang = (window.I18nEngine && typeof window.I18nEngine.getCurrentLang === 'function')
+    ? window.I18nEngine.getCurrentLang()
+    : 'vi';
+  const matched=voices.filter(v=>isVoiceForLang(v, curLang)).sort((a,b)=>scoreVoiceForLang(b, curLang)-scoreVoiceForLang(a, curLang));
+  return matched[0] || voices[0] || null;
 }
+
 function speakText(text, force=false){
   const enabled=$('voiceReplyToggle')?.checked;
   if(!force && !enabled) return;
   if(!('speechSynthesis' in window)){toast('Trình duyệt chưa hỗ trợ đọc giọng nói');return}
   const clean=cleanSpeakText(text);
   if(!clean){toast('Không có nội dung để đọc');return}
+  const curLang = (window.I18nEngine && typeof window.I18nEngine.getCurrentLang === 'function')
+    ? window.I18nEngine.getCurrentLang()
+    : 'vi';
+
   if (typeof window !== 'undefined' && window.SyncSpeech) {
     const voice=getPreferredVoice();
     const rate=Number($('voiceRate')?.value||1);
-    if(voice){
-      setVoiceStatus('🔊 Đang đọc: '+voice.name, true);
-    } else {
-      setVoiceStatus('🔊 Đang đọc giọng AI...', true);
-    }
+    const readingStatus = curLang === 'zh'
+      ? (voice ? `🔊 正在朗读: ${voice.name}` : '🔊 正在进行语音朗读...')
+      : curLang === 'en'
+        ? (voice ? `🔊 Reading: ${voice.name}` : '🔊 Reading aloud...')
+        : (voice ? `🔊 Đang đọc: ${voice.name}` : '🔊 Đang đọc giọng AI...');
+    setVoiceStatus(readingStatus, true);
+
     const lastAiMsg = $('chatLog')?.querySelector('.msg.ai-msg:last-child .content-body');
     window.SyncSpeech.speakWithSync({
       id: 'desktop-chat-tts',
       text,
       rate,
       voice,
+      lang: curLang,
       onWord: (revealedText, isDone) => {
         if (lastAiMsg && $('page-chat')?.classList.contains('active')) {
           lastAiMsg.innerHTML = markdownish(revealedText);
@@ -1191,7 +1275,8 @@ function speakText(text, force=false){
           lastAiMsg.innerHTML = markdownish(finalText);
           scrollChatBottom();
         }
-        setVoiceStatus('Đã đọc xong.', false);
+        const doneText = curLang === 'zh' ? '朗读完毕。' : curLang === 'en' ? 'Finished reading.' : 'Đã đọc xong.';
+        setVoiceStatus(doneText, false);
         if($('autoListenToggle')?.checked && $('page-chat')?.classList.contains('active')) startVoiceInput();
       },
       onError: () => {
@@ -1203,17 +1288,19 @@ function speakText(text, force=false){
 
   speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(clean);
-  u.lang='vi-VN';
+  const targetLangCode = curLang === 'zh' ? 'zh-CN' : curLang === 'en' ? 'en-US' : 'vi-VN';
+  u.lang=targetLangCode;
   u.rate=Number($('voiceRate')?.value||1);
   u.pitch=1;
   const voice=getPreferredVoice();
   if(voice){
     u.voice=voice;
-    u.lang=voice.lang || 'vi-VN';
-    setVoiceStatus('🔊 Đang đọc bằng giọng: '+voice.name,false);
+    u.lang=voice.lang || targetLangCode;
+    const readingStatus = curLang === 'zh' ? `🔊 正在朗读: ${voice.name}` : curLang === 'en' ? `🔊 Reading: ${voice.name}` : `🔊 Đang đọc bằng giọng: ${voice.name}`;
+    setVoiceStatus(readingStatus, false);
   }else{
-    u.lang='vi-VN';
-    setVoiceStatus('🔊 Máy chưa có giọng Việt. Vẫn đọc bằng giọng mặc định của trình duyệt.',false);
+    u.lang=targetLangCode;
+    setVoiceStatus(curLang === 'zh' ? '🔊 正在使用系统默认语音朗读。' : curLang === 'en' ? '🔊 Reading with system default voice.' : '🔊 Máy chưa có giọng Việt. Vẫn đọc bằng giọng mặc định của trình duyệt.', false);
   }
   u.onend=()=>{ if($('autoListenToggle')?.checked && $('page-chat')?.classList.contains('active')) startVoiceInput(); };
   speechSynthesis.speak(u);
@@ -1272,20 +1359,38 @@ function handleChatTextKey(event){
 function getSpeechRecognition(){return window.SpeechRecognition||window.webkitSpeechRecognition||null}
 function setVoiceStatus(text,active=false){const el=$('voiceStatus');if(el){el.textContent=text;el.classList.toggle('listening',active)} const btn=$('voiceBtn');if(btn){btn.classList.toggle('recording',active);btn.textContent=active?'🔴':'🎤'}}
 function startVoiceInput(){
-  if($('voiceInputToggle') && !$('voiceInputToggle').checked){toast('Mic nhập giọng đang tắt. Bật 🎤 Mic trước đã nhé.');return}
+  const curLang = (window.I18nEngine && typeof window.I18nEngine.getCurrentLang === 'function')
+    ? window.I18nEngine.getCurrentLang()
+    : 'vi';
+  const t = (k, fb) => (window.I18nEngine && typeof window.I18nEngine.t === 'function') ? window.I18nEngine.t(k, fb) : fb;
+
+  if($('voiceInputToggle') && !$('voiceInputToggle').checked){
+    toast(t('voice_mic_off', 'Mic nhập giọng đang tắt. Bật 🎤 Mic trước đã nhé.'));
+    return;
+  }
   const SR=getSpeechRecognition();
-  if(!SR){toast('Trình duyệt này chưa hỗ trợ nhập giọng nói. Dùng Chrome/Edge trên Android hoặc máy tính nhé.');return}
+  if(!SR){
+    toast(t('voice_not_supported', 'Trình duyệt này chưa hỗ trợ nhập giọng nói. Dùng Chrome/Edge trên Android hoặc máy tính nhé.'));
+    return;
+  }
   if(voiceListening) return;
   try{
     speechSynthesis?.cancel?.();
     voiceRecognizer=new SR();
-    voiceRecognizer.lang='vi-VN';
+    const sttLangMap = { vi: 'vi-VN', en: 'en-US', zh: 'zh-CN' };
+    voiceRecognizer.lang = sttLangMap[curLang] || 'vi-VN';
     voiceRecognizer.interimResults=true;
     voiceRecognizer.continuous=true;
     voiceListening=true;
     const initialBaseText=$('chatText')?.value ? $('chatText').value.trim() : '';
     let sessionFullText=initialBaseText;
-    setVoiceStatus('🎙️ Đang nghe tiếng Việt... Đọc đến đâu chữ hiện đến đó',true);
+
+    const listenStatus = curLang === 'zh'
+      ? '🎙️ 正在聆听中文语音... 实时同步识别'
+      : curLang === 'en'
+        ? '🎙️ Listening in English... Real-time transcription'
+        : '🎙️ Đang nghe tiếng Việt... Đọc đến đâu chữ hiện đến đó';
+    setVoiceStatus(listenStatus, true);
     voiceRecognizer.onresult=(event)=>{
       let speechText='', interimText='';
       if(typeof window !== 'undefined' && window.SyncSpeech?.dedupeTranscript){
@@ -1308,13 +1413,16 @@ function startVoiceInput(){
       const fullText=[initialBaseText, speechText].filter(Boolean).join(' ').trim();
       sessionFullText=fullText;
       setChatTextValue(fullText);
-      setVoiceStatus(interimText ? '🎙️ Đang nhận: "'+interimText.trim()+'"' : '🎙️ Đang lắng nghe...', true);
+      const interimPrefix = curLang === 'zh' ? '🎙️ 正在识别: "' : curLang === 'en' ? '🎙️ Hearing: "' : '🎙️ Đang nhận: "';
+      const hearingFallback = curLang === 'zh' ? '🎙️ 正在聆听...' : curLang === 'en' ? '🎙️ Listening...' : '🎙️ Đang lắng nghe...';
+      setVoiceStatus(interimText ? interimPrefix+interimText.trim()+'"' : hearingFallback, true);
     };
     voiceRecognizer.onerror=(e)=>{
       if(e.error==='not-allowed'||e.error==='service-not-allowed'){
-        setVoiceStatus('🎙️ Chưa cấp quyền micro trong trình duyệt',false);
+        const permErr = curLang === 'zh' ? '🎙️ 浏览器未授权麦克风权限' : curLang === 'en' ? '🎙️ Microphone permission not granted' : '🎙️ Chưa cấp quyền micro trong trình duyệt';
+        setVoiceStatus(permErr, false);
       } else if(e.error!=='no-speech'){
-        setVoiceStatus('🎙️ Lỗi mic: '+(e.error||'không rõ'),false);
+        setVoiceStatus('🎙️ Lỗi mic: '+(e.error||'không rõ'), false);
       }
       voiceListening=false;
     };
@@ -1326,12 +1434,14 @@ function startVoiceInput(){
         if(window.desktopAutoSendInterval) clearInterval(window.desktopAutoSendInterval);
 
         let secondsLeft = 2;
-        setVoiceStatus('⚡ Đã đọc xong! Tự động gửi sau ' + secondsLeft + 's... [Bấm vào đây để hủy]', true);
+        const autoSendPrefix = curLang === 'zh' ? '⚡ 说话完毕！将在 ' : curLang === 'en' ? '⚡ Speech ended! Auto-sending in ' : '⚡ Đã đọc xong! Tự động gửi sau ';
+        const autoSendSuffix = curLang === 'zh' ? ' 秒后发送... [点击取消]' : curLang === 'en' ? 's... [Click to cancel]' : 's... [Bấm vào đây để hủy]';
+        setVoiceStatus(`${autoSendPrefix}${secondsLeft}${autoSendSuffix}`, true);
 
         window.desktopAutoSendInterval = setInterval(() => {
           secondsLeft--;
           if(secondsLeft > 0) {
-            setVoiceStatus('⚡ Đã đọc xong! Tự động gửi sau ' + secondsLeft + 's... [Bấm vào đây để hủy]', true);
+            setVoiceStatus(`${autoSendPrefix}${secondsLeft}${autoSendSuffix}`, true);
           } else {
             clearInterval(window.desktopAutoSendInterval);
             window.desktopAutoSendInterval = null;
@@ -1507,7 +1617,17 @@ async function sendImageAI(){
 }
 
 function authHeaders(){const token=localStorage.getItem('synam_token')||'';return token?{'Content-Type':'application/json','Authorization':'Bearer '+token}:{'Content-Type':'application/json'}}
-async function postJSON(url,data){const r=await fetch(url,{method:'POST',headers:authHeaders(),body:JSON.stringify(data)});if(!r.ok)throw new Error(await r.text());return r.json()}
+async function postJSON(url,data){
+  const curLang = (window.I18nEngine && typeof window.I18nEngine.getCurrentLang === 'function')
+    ? window.I18nEngine.getCurrentLang()
+    : (localStorage.getItem('dangnam_language') || 'vi');
+  const enrichedData = (data && typeof data === 'object' && !Array.isArray(data))
+    ? { lang: curLang, ...data }
+    : data;
+  const r=await fetch(url,{method:'POST',headers:authHeaders(),body:JSON.stringify(enrichedData)});
+  if(!r.ok)throw new Error(await r.text());
+  return r.json()
+}
 async function getJSON(url){const token=localStorage.getItem('synam_token')||'';const r=await fetch(url,{headers:token?{'Authorization':'Bearer '+token}:{}});if(!r.ok)throw new Error(await r.text());return r.json()}
 
 async function quickAsk(){const q=($('globalAsk')?.value||'').trim();routeTo('chat');setTimeout(()=>{if(q){setChatTextValue(q);sendChat()}else if($('chatText')){$('chatText').focus();}},120)}
@@ -2882,3 +3002,44 @@ async function analyzeSimPhongThuy(){
     if(btn) { btn.disabled = false; btn.textContent = '🔮 Phân tích bằng AI & Định giá'; }
   }
 }
+
+// ===== MULTILINGUAL LANGUAGE SWITCHER & EVENT LISTENERS =====
+function toggleLangDropdown(event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  const dropdown = $('langDropdown');
+  if (dropdown) {
+    dropdown.classList.toggle('show');
+  }
+}
+
+function closeLangDropdown() {
+  const dropdown = $('langDropdown');
+  if (dropdown && dropdown.classList.contains('show')) {
+    dropdown.classList.remove('show');
+  }
+}
+
+function selectAppLanguage(lang) {
+  if (!window.I18nEngine) return;
+  window.I18nEngine.setLanguage(lang);
+  closeLangDropdown();
+  renderTabs();
+  refreshVoiceList();
+  const langName = window.I18nEngine.LANGUAGES[lang]?.name || lang;
+  toast(lang === 'zh' ? `已切换为 ${langName}` : lang === 'en' ? `Language switched to ${langName}` : `Đã chuyển sang ${langName}`);
+}
+
+window.addEventListener('click', (e) => {
+  if (!e.target.closest('#langSwitchWrap')) {
+    closeLangDropdown();
+  }
+});
+
+window.addEventListener('languageChanged', () => {
+  renderTabs();
+  refreshVoiceList();
+});
+

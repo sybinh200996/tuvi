@@ -7,7 +7,7 @@
   <meta name="description" content="Đặng Năm Mystic - AI tử vi, chỉ tay, xem tướng, chiêm tinh, chat, lịch sử và tài khoản." />
   <link rel="manifest" href="manifest.webmanifest" />
   <link rel="icon" href="assets/icon.svg" />
-  <link rel="stylesheet" href="style.css?v=1792510000" />
+  <link rel="stylesheet" href="style.css?v=1792520000" />
   
       <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta http-equiv="Pragma" content="no-cache" />
@@ -795,6 +795,14 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
     <button class="close-menu" onclick="toggleMenu(false)">×</button>
     <h2>Đặng Năm Mystic</h2>
     <p>Điều hướng nhanh</p>
+    <div class="side-lang-box">
+      <div class="side-lang-title">🌐 Ngôn ngữ / Language / 语言</div>
+      <div class="side-lang-grid">
+        <button class="lang-opt" data-lang="vi" onclick="selectAppLanguage('vi');toggleMenu(false)">🇻🇳 Tiếng Việt</button>
+        <button class="lang-opt" data-lang="en" onclick="selectAppLanguage('en');toggleMenu(false)">🇬🇧 English</button>
+        <button class="lang-opt" data-lang="zh" onclick="selectAppLanguage('zh');toggleMenu(false)">🇨🇳 中文</button>
+      </div>
+    </div>
     <div id="sideLinks"></div>
   </aside>
   <div id="menuShade" class="menu-shade" onclick="toggleMenu(false)"></div>
@@ -804,9 +812,18 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
       <nav class="topbar">
         <button class="icon-btn menu-btn" onclick="toggleMenu(true)">☰</button>
         <div class="top-actions"><span id="liveClock" class="live-clock">Đang lấy giờ...</span><span id="geminiStatus" class="ai-status warn">Gemini: kiểm tra...</span>
-          <button id="destinyNavBtn" class="destiny-nav-pill" onclick="openDestinyProfileModal()" title="Hồ Sơ Bản Mệnh"><span class="destiny-nav-icon">📜</span> <span class="destiny-nav-text">Hồ Sơ Bản Mệnh</span> <span id="destinyBadge" class="destiny-badge-status not-saved">Chưa lưu</span></button>
+          <button id="destinyNavBtn" class="destiny-nav-pill" onclick="openDestinyProfileModal()" title="Hồ Sơ Bản Mệnh"><span class="destiny-nav-icon">📜</span> <span class="destiny-nav-text" data-i18n="destiny_profile">Hồ Sơ Bản Mệnh</span> <span id="destinyBadge" class="destiny-badge-status not-saved" data-i18n="not_saved">Chưa lưu</span></button>
           <button class="icon-btn" onclick="speakLastResult()">🔊</button>
-          <button class="icon-btn" onclick="routeTo('account')">🌐</button>
+          <div class="lang-switch-wrap" id="langSwitchWrap">
+          <button id="langSwitchBtn" class="lang-pill" onclick="toggleLangDropdown(event)" title="Chuyển ngôn ngữ / Switch Language / 切换语言">
+            <span id="curLangFlag">🇻🇳</span> <span id="curLangCode">VI</span> <span class="lang-arrow">▾</span>
+          </button>
+          <div id="langDropdown" class="lang-dropdown">
+            <button class="lang-opt active" data-lang="vi" onclick="selectAppLanguage('vi')"><span class="lang-opt-flag">🇻🇳</span> <span class="lang-opt-name">Tiếng Việt</span></button>
+            <button class="lang-opt" data-lang="en" onclick="selectAppLanguage('en')"><span class="lang-opt-flag">🇬🇧</span> <span class="lang-opt-name">English</span></button>
+            <button class="lang-opt" data-lang="zh" onclick="selectAppLanguage('zh')"><span class="lang-opt-flag">🇨🇳</span> <span class="lang-opt-name">中文 (简体)</span></button>
+          </div>
+        </div>
           <button class="icon-btn" onclick="openAppModal()" title="Tải App Mobile" style="width:auto; padding: 0 10px; font-weight:bold; font-size: 13px;">📱 Tải App</button>
           <button class="profile-pill" onclick="routeTo('account')"><span class="avatar">👤</span> Tài khoản <b>Member</b></button>
         </div>
@@ -818,7 +835,7 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
         <p>AI TỬ VI - CHỈ TAY - XEM TƯỚNG - CHIÊM TINH</p>
         <div class="search-shell">
           <span>⌕</span>
-          <input id="globalAsk" placeholder="Hỏi về tử vi, chỉ tay, tướng số, chiêm tinh..." onkeydown="if(event.key==='Enter') quickAsk()" />
+          <input id="globalAsk" data-i18n-placeholder="chat_placeholder" placeholder="Hỏi về tử vi, chỉ tay, tướng số, chiêm tinh..." onkeydown="if(event.key==='Enter') quickAsk()" />
           <button onclick="quickAsk()">✦ AI PHÂN TÍCH</button>
         </div>
         <div class="quick-row">
@@ -1322,13 +1339,13 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
         </article>
       </div>
     </section>
-    <nav class="bottom-nav"><button onclick="routeTo('home')">⌂<span>Trang chủ</span></button><button onclick="routeTo('history')">▣<span>Lịch sử</span></button><button class="magic" onclick="quickAsk()">✦</button><button onclick="routeTo('chat')">☻<span>AI Chat</span></button><button onclick="routeTo('account')">♙<span>Tài khoản</span></button></nav>
+    <nav class="bottom-nav"><button onclick="routeTo('home')">⌂<span data-i18n="nav_home">Trang chủ</span></button><button onclick="routeTo('history')">▣<span data-i18n="nav_history">Lịch sử</span></button><button class="magic" onclick="quickAsk()">✦</button><button onclick="routeTo('chat')">☻<span data-i18n="nav_chat">AI Chat</span></button><button onclick="routeTo('account')">♙<span data-i18n="nav_account">Tài khoản</span></button></nav>
   </main>
   <div id="toast" class="toast"></div>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
-  <script src="mystic-engine.js"></script><script src="sync-speech.js?v=1792510000"></script><script src="app.js?v=1792510000"></script>
+  <script src="i18n.js?v=1792520000"></script><script src="mystic-engine.js"></script><script src="sync-speech.js?v=1792520000"></script><script src="app.js?v=1792520000"></script>
 
   <!-- App Download Modal -->
   <div id="appDownloadModal" class="modal-overlay" onclick="if(event.target===this) closeAppModal()">
@@ -1386,20 +1403,20 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
       
       <form id="destinyProfileForm" onsubmit="event.preventDefault(); saveBirthProfileFromModal();">
         <div class="destiny-form-group">
-          <label for="destinyModalFullName">Họ và tên đương số <span class="req">*</span></label>
+          <label for="destinyModalFullName"><span data-i18n="destiny_fullname">Họ và tên đương số</span> <span class="req">*</span></label>
           <input id="destinyModalFullName" required placeholder="Ví dụ: Đặng Văn Năm" autocomplete="name" />
         </div>
         
         <div class="destiny-form-row">
           <div class="destiny-form-group">
-            <label for="destinyModalGender">Giới tính <span class="req">*</span></label>
+            <label for="destinyModalGender"><span data-i18n="destiny_gender">Giới tính</span> <span class="req">*</span></label>
             <select id="destinyModalGender">
               <option value="Nam">Nam</option>
               <option value="Nữ">Nữ</option>
             </select>
           </div>
           <div class="destiny-form-group">
-            <label for="destinyModalCalendarType">Loại lịch <span class="req">*</span></label>
+            <label for="destinyModalCalendarType"><span data-i18n="destiny_calendar">Loại lịch</span> <span class="req">*</span></label>
             <select id="destinyModalCalendarType">
               <option value="solar">Dương lịch</option>
               <option value="lunar">Âm lịch</option>
@@ -1409,11 +1426,11 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
 
         <div class="destiny-form-row">
           <div class="destiny-form-group">
-            <label for="destinyModalBirthDate">Ngày / Tháng / Năm sinh <span class="req">*</span></label>
+            <label for="destinyModalBirthDate"><span data-i18n="destiny_birthdate">Ngày / Tháng / Năm sinh</span> <span class="req">*</span></label>
             <div class="smart-date-wrapper"><input id="destinyModalBirthDate" class="smart-date-input" type="text" inputmode="numeric" placeholder="DD/MM/YYYY (ví dụ: 20/10/1995)" maxlength="10" required autocomplete="bday" /><input id="destinyModalBirthDate_picker" type="date" class="smart-date-picker-hidden" tabindex="-1" aria-hidden="true" /><button type="button" class="smart-date-picker-btn" title="Chọn ngày từ lịch" onclick="openSmartDatePicker('destinyModalBirthDate')">📅</button></div>
           </div>
           <div class="destiny-form-group">
-            <label for="destinyModalBirthHour">Giờ sinh (12 Canh giờ) <span class="req">*</span></label>
+            <label for="destinyModalBirthHour"><span data-i18n="destiny_birthhour">Giờ sinh (12 Canh giờ)</span> <span class="req">*</span></label>
             <select id="destinyModalBirthHour">
               <option value="Tý (23h00 - 00h59)">Giờ Tý (23h00 - 00h59)</option>
               <option value="Sửu (01h00 - 02h59)">Giờ Sửu (01h00 - 02h59)</option>
@@ -1432,13 +1449,13 @@ body[data-route="chat"] .chat-pro-main .pro-chat-log {
         </div>
 
         <div class="destiny-form-group">
-          <label for="destinyModalBirthPlace">Nơi sinh / Quê quán (Tùy chọn)</label>
+          <label for="destinyModalBirthPlace"><span data-i18n="destiny_birthplace">Nơi sinh / Quê quán (Tùy chọn)</span></label>
           <input id="destinyModalBirthPlace" placeholder="Ví dụ: Hà Nội, TP. Hồ Chí Minh, Đà Nẵng..." />
         </div>
 
         <div class="destiny-modal-actions">
-          <button type="submit" class="primary" style="flex:2;">💾 Lưu Hồ Sơ Bản Mệnh</button>
-          <button type="button" class="ghost" style="flex:1;" onclick="closeDestinyProfileModal()">Đóng</button>
+          <button type="submit" class="primary" style="flex:2;" data-i18n="destiny_save_btn">💾 Lưu Hồ Sơ Bản Mệnh</button>
+          <button type="button" class="ghost" style="flex:1;" onclick="closeDestinyProfileModal()" data-i18n="close">Đóng</button>
         </div>
       </form>
       <div id="destinyModalStatus" class="destiny-modal-status"></div>
